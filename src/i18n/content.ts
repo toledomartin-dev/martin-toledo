@@ -24,8 +24,9 @@ export const links = {
 
 // Stack: filas que se desplazan en direcciones alternas. `icon` es el nombre del ícono en
 // simple-icons (siReact, siDocker…); sin ícono se muestra un monograma.
-// Datos reales del sistema BiciCba. Estaciones: viajes del último mes. Totales: desde el lanzamiento.
+// Datos reales del sistema BiciCba. Totales: desde el lanzamiento. Estaciones: los 30 días previos a `asOf`.
 export const bicicbaStats = {
+  asOf: '2026-10-20',
   totals: { trips: 313377, users: 129124, tourists: 11206, km: 327258.4, co2Kg: 75269.43 },
   stations: [
     { name: 'Parque las Heras', trips: 982 },
@@ -162,14 +163,16 @@ export const t = {
       bicicba: {
         title: 'BiciCba',
         text: 'Mi primer proyecto: el sitio, los paneles de administración y los reportes del sistema de bicicletas públicas de Córdoba. Estos números salen de esos reportes.',
-        trips: 'viajes en total',
+        trips: 'viajes',
         users: 'usuarios registrados',
         tourists: 'turistas',
         km: 'km recorridos',
         co2: 'de CO₂ evitadas',
         co2Note: 'frente a recorrer los mismos km en un auto mediano',
         chartTitle: 'Viajes por estación',
-        chartPeriod: 'último mes',
+        chartPeriod: 'últimos 30 días',
+        totalsTitle: 'Desde el lanzamiento',
+        asOf: 'Datos al',
         share: 'del mes',
         visit: 'bicicba.com',
       },
@@ -317,14 +320,16 @@ export const t = {
       bicicba: {
         title: 'BiciCba',
         text: "My first project: the website, admin dashboards and reports for Córdoba's public bike sharing system. These numbers come from those reports.",
-        trips: 'trips in total',
+        trips: 'trips',
         users: 'registered users',
         tourists: 'tourists',
         km: 'km ridden',
         co2: 'of CO₂ avoided',
         co2Note: 'versus riding the same km in a mid-size car',
         chartTitle: 'Trips per station',
-        chartPeriod: 'last month',
+        chartPeriod: 'last 30 days',
+        totalsTitle: 'Since launch',
+        asOf: 'Data as of',
         share: 'of the month',
         visit: 'bicicba.com',
       },

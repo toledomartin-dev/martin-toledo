@@ -10,7 +10,8 @@ const ui = t[lang].bento.bicicba;
 const locale = lang === 'es' ? 'es-AR' : 'en-US';
 const fmt = (n: number, digits = 0) => n.toLocaleString(locale, { maximumFractionDigits: digits });
 
-const { totals, stations } = bicicbaStats;
+const { totals, stations, asOf } = bicicbaStats;
+const asOfLabel = new Date(`${asOf}T12:00:00`).toLocaleDateString(locale, { day: 'numeric', month: 'short', year: 'numeric' });
 const monthTotal = stations.reduce((sum, s) => sum + s.trips, 0);
 const max = Math.max(...stations.map((s) => s.trips));
 const rows = [...stations]
@@ -45,7 +46,8 @@ const tiles = [
     <p class="mt-2 max-w-md text-sm leading-relaxed text-muted">{ui.text}</p>
 
     <!-- Totales: números para leer, no para comparar → cifras destacadas, sin gráfico -->
-    <dl class="mt-8 grid grid-cols-2 gap-x-6 gap-y-7">
+    <p class="mt-8 font-mono text-[10px] tracking-widest text-muted uppercase">{ui.totalsTitle}</p>
+    <dl class="mt-4 grid grid-cols-2 gap-x-6 gap-y-7">
       {
         tiles.map((tile) => (
           <div>
@@ -57,6 +59,7 @@ const tiles = [
         ))
       }
     </dl>
+    <p class="mt-auto pt-8 font-mono text-[11px] text-muted/80">{ui.asOf} {asOfLabel}</p>
   </div>
 
   <!-- Ranking de estaciones: una serie, un color, ordenado de mayor a menor -->
