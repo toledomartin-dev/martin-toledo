@@ -1,0 +1,41 @@
+---
+import { render } from 'astro:content';
+import { t, site } from '../i18n/content';
+import { notesBase, readingMinutes, formatDate, type Note } from '../lib/notes';
+
+interface Props {
+  note: Note;
+}
+
+const { note } = Astro.props;
+const lang = note.data.lang;
+const ui = t[lang].notes;
+const { Content } = await render(note);
+---
+
+<article class="mx-auto max-w-2xl px-4 pt-32 pb-24 sm:px-6 sm:pt-40">
+  <a href={notesBase(lang)} class="inline-flex items-center gap-2 text-sm text-muted hover:text-accent">
+    <span aria-hidden="true">←</span>
+    {ui.back}
+  </a>
+
+  <p class="mt-10 font-mono text-xs text-muted">
+    {formatDate(note.data.date, lang)} · {readingMinutes(note)} {ui.minutes}
+  </p>
+  <h1 class="display text-gradient mt-4 text-4xl text-balance sm:text-5xl">{note.data.title}</h1>
+  <p class="mt-5 text-lg leading-relaxed text-muted">{note.data.description}</p>
+  <ul class="mt-6 flex flex-wrap gap-2">
+    {note.data.tags.map((tag) => <li class="rounded-full border border-line px-2.5 py-0.5 font-mono text-[11px] text-muted">{tag}</li>)}
+  </ul>
+
+  <div class="prose mt-12 border-t border-line pt-10">
+    <Content />
+  </div>
+
+  <footer class="mt-16 flex flex-wrap items-center justify-between gap-4 border-t border-line pt-8">
+    <p class="font-mono text-[11px] text-muted">{ui.disclaimer}</p>
+    <p class="text-sm text-muted">
+      — <a href={lang === 'es' ? '/#sobre-mi' : '/en/#sobre-mi'} class="text-fg hover:text-accent">{site.name}</a>
+    </p>
+  </footer>
+</article>

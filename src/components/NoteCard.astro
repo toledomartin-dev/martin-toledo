@@ -1,0 +1,30 @@
+---
+import { t, type Lang } from '../i18n/content';
+import { notePath, readingMinutes, formatDate, type Note } from '../lib/notes';
+
+interface Props {
+  note: Note;
+  lang: Lang;
+  delay?: number;
+}
+
+const { note, lang, delay = 0 } = Astro.props;
+const ui = t[lang].notes;
+---
+
+<article class="glass reveal group relative flex flex-col p-7" style={`--d:${delay}s`}>
+  <p class="font-mono text-[11px] text-muted">
+    {formatDate(note.data.date, lang)} · {readingMinutes(note)} {ui.minutes}
+  </p>
+  <h3 class="mt-4 text-xl font-medium tracking-tight text-balance">
+    <!-- Link "estirado": toda la tarjeta lleva a la nota -->
+    <a href={notePath(note)} class="after:absolute after:inset-0 after:content-['']">{note.data.title}</a>
+  </h3>
+  <p class="mt-3 text-sm leading-relaxed text-muted">{note.data.description}</p>
+  <ul class="mt-5 flex flex-wrap gap-2">
+    {note.data.tags.map((tag) => <li class="rounded-full border border-line px-2.5 py-0.5 font-mono text-[11px] text-muted">{tag}</li>)}
+  </ul>
+  <p class="mt-auto pt-6 text-sm font-medium text-accent">
+    {ui.read} <span class="inline-block transition-transform group-hover:translate-x-1" aria-hidden="true">→</span>
+  </p>
+</article>

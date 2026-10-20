@@ -109,7 +109,7 @@ export const t = {
       description:
         'Ingeniero en Sistemas y líder técnico. Construyo sistemas de movilidad en producción en Córdoba: apps de taxis, bicicletas públicas y transporte.',
     },
-    nav: { projects: 'Proyectos', about: 'Sobre mí', experience: 'Experiencia', stack: 'Stack', talks: 'Charlas', contact: 'Contacto' },
+    nav: { projects: 'Proyectos', about: 'Sobre mí', experience: 'Experiencia', stack: 'Stack', talks: 'Charlas', notes: 'Notas', contact: 'Contacto' },
     hero: {
       location: 'Córdoba, Argentina',
       role: 'Líder Técnico y Full Stack Developer',
@@ -245,6 +245,18 @@ export const t = {
       caseCta: 'Leer el caso de estudio',
       caseHref: '/caso-gps/',
     },
+    notes: {
+      kicker: 'Notas',
+      title: 'Lo que aprendí en producción.',
+      intro: 'Bugs reales, cómo los encontramos y qué me llevé de cada uno.',
+      read: 'Leer la nota',
+      minutes: 'min de lectura',
+      all: 'Ver todas las notas',
+      indexTitle: 'Notas técnicas',
+      indexLead: 'Historias de producción de apps de movilidad: bugs que costaron horas, cómo los encontramos y la lección que dejó cada uno.',
+      back: 'Todas las notas',
+      disclaimer: 'El código está simplificado y los nombres de tablas son ilustrativos.',
+    },
     contact: {
       title: '¿Construimos algo juntos?',
       text: 'Estoy abierto a nuevos desafíos. Escribime y te respondo a la brevedad.',
@@ -266,7 +278,7 @@ export const t = {
       description:
         'Systems Engineer and technical lead. I build production mobility systems in Córdoba, Argentina: taxi apps, public bike sharing and public transport.',
     },
-    nav: { projects: 'Projects', about: 'About', experience: 'Experience', stack: 'Stack', talks: 'Talks', contact: 'Contact' },
+    nav: { projects: 'Projects', about: 'About', experience: 'Experience', stack: 'Stack', talks: 'Talks', notes: 'Notes', contact: 'Contact' },
     hero: {
       location: 'Córdoba, Argentina',
       role: 'Technical Lead & Full Stack Developer',
@@ -401,6 +413,18 @@ export const t = {
       play: 'Watch the talk',
       caseCta: 'Read the case study',
       caseHref: '/en/gps-case-study/',
+    },
+    notes: {
+      kicker: 'Notes',
+      title: 'What I learned in production.',
+      intro: 'Real bugs, how we found them and what each one taught me.',
+      read: 'Read the note',
+      minutes: 'min read',
+      all: 'See all notes',
+      indexTitle: 'Technical notes',
+      indexLead: 'Production stories from mobility apps: bugs that cost hours, how we found them and the lesson each one left.',
+      back: 'All notes',
+      disclaimer: 'Code is simplified and table names are illustrative.',
     },
     contact: {
       title: "Let's build something together",
