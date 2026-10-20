@@ -1,5 +1,6 @@
 ---
 import { t, links, type Lang } from '../i18n/content';
+import BiciStats from './BiciStats.astro';
 
 interface Props {
   lang: Lang;
@@ -224,39 +225,8 @@ const spark = 'M0 50 L20 42 L40 46 L60 30 L80 34 L100 22 L120 28 L140 16 L160 20
       <p class="mt-auto pt-4 font-mono text-[11px] text-emerald-300/90">✓ {ui.saldobus.read} · {ui.saldobus.done}</p>
     </div>
 
-    <!-- BiciCba: estaciones -->
-    <a href={links.bicicba} target="_blank" rel="noopener noreferrer" class="glass reveal group flex flex-col p-7 lg:col-span-2">
-      <svg viewBox="0 0 200 90" class="h-24 w-full" aria-hidden="true">
-        <path d="M10 70 C50 20 90 80 130 40 S190 30 195 15" fill="none" stroke="var(--border)" stroke-width="2"></path>
-        {
-          [
-            [24, 55, 6],
-            [62, 42, 9],
-            [100, 60, 4],
-            [138, 38, 7],
-            [176, 24, 5],
-          ].map(([x, y, n], i) => (
-            <g>
-              {i % 2 === 0 && (
-                <circle cx={x} cy={y} r="11" fill="var(--accent)" opacity=".18" class="anim-pulse" style={`transform-origin:${x}px ${y}px`} />
-              )}
-              <circle cx={x} cy={y} r="8" fill="var(--card-2)" stroke="var(--accent)" stroke-width="1.5" />
-              <text x={x} y={y + 3} text-anchor="middle" font-size="8" font-family="monospace" fill="var(--fg)">
-                {n}
-              </text>
-            </g>
-          ))
-        }
-      </svg>
-      <div class="mt-4 flex items-center justify-between">
-        <h3 class="text-lg font-medium tracking-tight">{ui.bicicba.title}</h3>
-        <span class="text-muted transition-colors group-hover:text-accent" aria-label={ui.visit}>↗</span>
-      </div>
-      <p class="mt-1 text-sm leading-relaxed text-muted">{ui.bicicba.text}</p>
-    </a>
-
     <!-- TuBondi: recorrido -->
-    <a href={links.tubondi} target="_blank" rel="noopener noreferrer" class="glass reveal group flex flex-col p-7 lg:col-span-2" style="--d:.06s">
+    <a href={links.tubondi} target="_blank" rel="noopener noreferrer" class="glass reveal group flex flex-col p-7 lg:col-span-3" style="--d:.06s">
       <div class="relative mt-8 h-16" aria-hidden="true">
         <div class="absolute top-1/2 right-2 left-2 h-0.5 -translate-y-1/2 rounded bg-line"></div>
         <div class="absolute top-1/2 right-2 left-2 flex -translate-y-1/2 justify-between">
@@ -277,7 +247,7 @@ const spark = 'M0 50 L20 42 L40 46 L60 30 L80 34 L100 22 L120 28 L140 16 L160 20
     </a>
 
     <!-- Municipalidad: documento + checklist -->
-    <div class="glass reveal flex flex-col p-7 sm:col-span-2 lg:col-span-2" style="--d:.12s">
+    <div class="glass reveal flex flex-col p-7 lg:col-span-3" style="--d:.12s">
       <div class="flex gap-3" aria-hidden="true">
         <div class="flex-1 rounded-xl border border-line bg-bg-soft/60 p-3">
           <div class="flex items-center gap-2">
@@ -316,6 +286,9 @@ const spark = 'M0 50 L20 42 L40 46 L60 30 L80 34 L100 22 L120 28 L140 16 L160 20
         {ui.muni.libreta} ↗
       </a>
     </div>
+
+    <!-- BiciCba: impacto real, con datos del sistema -->
+    <BiciStats lang={lang} />
   </div>
 </section>
 

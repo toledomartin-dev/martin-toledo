@@ -18,6 +18,8 @@
   --accent-ink: #1a0b00;
   --glow: rgba(255, 122, 26, 0.35);
   --edge: rgba(255, 255, 255, 0.1);
+  /* Color de datos validado (dataviz): banda de luminosidad y contraste del modo */
+  --chart: #e2650f;
   color-scheme: dark;
 }
 
@@ -34,6 +36,7 @@ html.light {
   --accent-ink: #ffffff;
   --glow: rgba(232, 89, 12, 0.18);
   --edge: rgba(0, 0, 0, 0.06);
+  --chart: #e8590c;
   color-scheme: light;
 }
 

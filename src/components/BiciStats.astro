@@ -1,0 +1,131 @@
+---
+import { t, links, bicicbaStats, type Lang } from '../i18n/content';
+
+interface Props {
+  lang: Lang;
+}
+
+const { lang } = Astro.props;
+const ui = t[lang].bento.bicicba;
+const locale = lang === 'es' ? 'es-AR' : 'en-US';
+const fmt = (n: number, digits = 0) => n.toLocaleString(locale, { maximumFractionDigits: digits });
+
+const { totals, stations } = bicicbaStats;
+const monthTotal = stations.reduce((sum, s) => sum + s.trips, 0);
+const max = Math.max(...stations.map((s) => s.trips));
+const rows = [...stations]
+  .sort((a, b) => b.trips - a.trips)
+  .map((s) => ({
+    ...s,
+    width: (s.trips / max) * 100,
+    share: `${fmt((s.trips / monthTotal) * 100, 1)} %`,
+  }));
+
+const tiles = [
+  { value: fmt(totals.trips), label: ui.trips },
+  { value: fmt(totals.users), label: ui.users, sub: `+ ${fmt(totals.tourists)} ${ui.tourists}` },
+  { value: fmt(Math.round(totals.km)), label: ui.km },
+  { value: `≈ ${fmt(totals.co2Kg / 1000)} t`, label: ui.co2, sub: ui.co2Note },
+];
+---
+
+<div class="glass reveal grid gap-10 p-7 sm:col-span-2 sm:p-8 lg:col-span-6 lg:grid-cols-[1fr_1.1fr]">
+  <div class="flex flex-col">
+    <div class="flex items-start justify-between gap-4">
+      <h3 class="text-2xl font-medium tracking-tight">{ui.title}</h3>
+      <a
+        href={links.bicicba}
+        target="_blank"
+        rel="noopener noreferrer"
+        class="inline-flex shrink-0 items-center gap-1.5 rounded-full border border-line px-3 py-1 font-mono text-xs text-muted transition-colors hover:border-accent/60 hover:text-accent"
+      >
+        {ui.visit} <span aria-hidden="true">↗</span>
+      </a>
+    </div>
+    <p class="mt-2 max-w-md text-sm leading-relaxed text-muted">{ui.text}</p>
+
+    <!-- Totales: números para leer, no para comparar → cifras destacadas, sin gráfico -->
+    <dl class="mt-8 grid grid-cols-2 gap-x-6 gap-y-7">
+      {
+        tiles.map((tile) => (
+          <div>
+            <dt class="sr-only">{tile.label}</dt>
+            <dd class="display text-3xl sm:text-4xl">{tile.value}</dd>
+            <dd class="mt-1 text-sm text-muted">{tile.label}</dd>
+            {tile.sub && <dd class="mt-0.5 text-xs text-muted/80">{tile.sub}</dd>}
+          </div>
+        ))
+      }
+    </dl>
+  </div>
+
+  <!-- Ranking de estaciones: una serie, un color, ordenado de mayor a menor -->
+  <figure class="flex flex-col">
+    <figcaption class="flex items-baseline justify-between gap-4">
+      <span class="font-medium">{ui.chartTitle}</span>
+      <span class="font-mono text-xs text-muted">{ui.chartPeriod} · {fmt(monthTotal)}</span>
+    </figcaption>
+    <ol class="mt-5 space-y-1">
+      {
+        rows.map((row, i) => (
+          <li
+            class="bar-row group relative grid grid-cols-[8.5rem_1fr_2.75rem] items-center gap-3 rounded-lg px-2 py-1.5 outline-none sm:grid-cols-[12rem_1fr_3rem]"
+            tabindex="0"
+          >
+            <span class="truncate text-sm text-muted transition-colors group-hover:text-fg group-focus-visible:text-fg">{row.name}</span>
+            <!-- Carril propio: el ancho de la barra es proporcional al valor, sin nada que la comprima -->
+            <span class="block">
+              <span class="bar block h-3.5 rounded-r-[4px] bg-[var(--chart)]" style={`width:${row.width}%;--i:${i}`} />
+            </span>
+            <span class="text-right text-sm font-medium tabular-nums">{fmt(row.trips)}</span>
+            <span
+              class="tip pointer-events-none absolute -top-7 right-2 z-10 rounded-md border border-line bg-card px-2 py-1 text-xs whitespace-nowrap shadow-lg"
+              role="tooltip"
+            >
+              <strong class="text-fg">{row.share}</strong> <span class="text-muted">{ui.share}</span>
+            </span>
+          </li>
+        ))
+      }
+    </ol>
+  </figure>
+</div>
+
+<style>
+  /* Las barras crecen desde la base cuando la tarjeta aparece en pantalla */
+  .bar {
+    transform-origin: left;
+    transform: scaleX(0);
+    transition: transform 0.9s cubic-bezier(0.2, 0.7, 0.2, 1) calc(var(--i) * 60ms + 200ms);
+  }
+  :global(.visible) .bar {
+    transform: scaleX(1);
+  }
+  /* La fila es el área de interacción: más grande que la barra */
+  .bar-row:hover,
+  .bar-row:focus-visible {
+    background: color-mix(in srgb, var(--fg) 5%, transparent);
+  }
+  .bar-row:hover .bar,
+  .bar-row:focus-visible .bar {
+    filter: brightness(1.12);
+  }
+  .tip {
+    opacity: 0;
+    transform: translateY(4px);
+    transition:
+      opacity 0.2s ease,
+      transform 0.2s ease;
+  }
+  .bar-row:hover .tip,
+  .bar-row:focus-visible .tip {
+    opacity: 1;
+    transform: none;
+  }
+  @media (prefers-reduced-motion: reduce) {
+    .bar {
+      transform: none;
+      transition: none;
+    }
+  }
+</style>

@@ -24,6 +24,23 @@ export const links = {
 
 // Stack: filas que se desplazan en direcciones alternas. `icon` es el nombre del ícono en
 // simple-icons (siReact, siDocker…); sin ícono se muestra un monograma.
+// Datos reales del sistema BiciCba. Estaciones: viajes del último mes. Totales: desde el lanzamiento.
+export const bicicbaStats = {
+  totals: { trips: 313377, users: 129124, tourists: 11206, km: 327258.4, co2Kg: 75269.43 },
+  stations: [
+    { name: 'Parque las Heras', trips: 982 },
+    { name: 'Paseo Sobremonte', trips: 687 },
+    { name: 'Plaza España', trips: 642 },
+    { name: 'Parque de la Biodiversidad', trips: 624 },
+    { name: 'Plaza Alberdi', trips: 605 },
+    { name: 'Parque Sarmiento', trips: 539 },
+    { name: 'Plaza Vélez Sarsfield', trips: 530 },
+    { name: 'Parque de las Tejas', trips: 251 },
+    { name: 'Cruz Roja', trips: 227 },
+    { name: 'Manantiales', trips: 44 },
+  ],
+};
+
 export const stackRows = [
   {
     es: 'Mobile y frontend',
@@ -142,7 +159,20 @@ export const t = {
         read: 'Tarjeta leída',
         done: 'Saldo recargado',
       },
-      bicicba: { title: 'BiciCba', text: 'Mi primer proyecto: sitio, paneles y reportes de las bicis públicas.' },
+      bicicba: {
+        title: 'BiciCba',
+        text: 'Mi primer proyecto: el sitio, los paneles de administración y los reportes del sistema de bicicletas públicas de Córdoba. Estos números salen de esos reportes.',
+        trips: 'viajes en total',
+        users: 'usuarios registrados',
+        tourists: 'turistas',
+        km: 'km recorridos',
+        co2: 'de CO₂ evitadas',
+        co2Note: 'frente a recorrer los mismos km en un auto mediano',
+        chartTitle: 'Viajes por estación',
+        chartPeriod: 'último mes',
+        share: 'del mes',
+        visit: 'bicicba.com',
+      },
       tubondi: { title: 'TuBondi', text: 'Rebranding completo de la app de transporte público.' },
       muni: {
         title: 'Municipalidad de Córdoba',
@@ -284,7 +314,20 @@ export const t = {
         read: 'Card read',
         done: 'Balance topped up',
       },
-      bicicba: { title: 'BiciCba', text: 'My first project: site, dashboards and reports for public bike sharing.' },
+      bicicba: {
+        title: 'BiciCba',
+        text: "My first project: the website, admin dashboards and reports for Córdoba's public bike sharing system. These numbers come from those reports.",
+        trips: 'trips in total',
+        users: 'registered users',
+        tourists: 'tourists',
+        km: 'km ridden',
+        co2: 'of CO₂ avoided',
+        co2Note: 'versus riding the same km in a mid-size car',
+        chartTitle: 'Trips per station',
+        chartPeriod: 'last month',
+        share: 'of the month',
+        visit: 'bicicba.com',
+      },
       tubondi: { title: 'TuBondi', text: 'Full rebrand of the public transport app.' },
       muni: {
         title: 'Córdoba City Hall',

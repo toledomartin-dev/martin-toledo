@@ -48,7 +48,7 @@ export const cv = {
     ],
     projects: [
       { name: 'Entaxi', text: 'Plataforma de taxis multimarca con modo taxímetro (cbataxi.com). App React Native + TypeScript, Traccar, Firebase, SQLite offline, Sentry.' },
-      { name: 'BiciCba', text: 'Bicicletas públicas de Córdoba. Desarrollo full stack del sitio, paneles de administración y reportes.' },
+      { name: 'BiciCba', text: 'Bicicletas públicas de Córdoba: más de 313.000 viajes y 129.000 usuarios registrados. Desarrollo full stack del sitio, paneles de administración y reportes.' },
       { name: 'Tu Libreta Digital', text: 'Aplicación de la Municipalidad de Córdoba. Desarrollo full stack.' },
       { name: 'Empadronamiento de taxistas', text: 'Registro de taxistas ante la Municipalidad. PHP y MySQL.' },
       { name: 'SaldoBus', text: 'Recarga de tarjetas de transporte por NFC (MIFARE). React Native, API Node/TypeScript con JWT y AES-256.' },
@@ -122,7 +122,7 @@ export const cv = {
     ],
     projects: [
       { name: 'Entaxi', text: 'Multi-brand taxi platform with taximeter mode (cbataxi.com). React Native + TypeScript app, Traccar, Firebase, offline SQLite, Sentry.' },
-      { name: 'BiciCba', text: "Córdoba's public bike sharing. Full stack development of the site, admin dashboards and reports." },
+      { name: 'BiciCba', text: "Córdoba's public bike sharing: over 313,000 trips and 129,000 registered users. Full stack development of the site, admin dashboards and reports." },
       { name: 'Tu Libreta Digital', text: 'Córdoba City Hall application. Full stack development.' },
       { name: 'Taxi driver registry', text: 'Taxi driver registration with City Hall. PHP and MySQL.' },
       { name: 'SaldoBus', text: 'NFC transit card top-up (MIFARE). React Native, Node/TypeScript API with JWT and AES-256.' },
