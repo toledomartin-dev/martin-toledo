@@ -20,7 +20,7 @@ const city = t[lang].city;
       aria-hidden="true"
     >
     </div>
-    <canvas id="particles" class="absolute inset-0 size-full" aria-hidden="true"></canvas>
+    <canvas id="particles" class="absolute inset-0 size-full opacity-0 transition-opacity duration-1000 [&.is-ready]:opacity-100" aria-hidden="true"></canvas>
     <!-- Degradé para leer bien el texto sobre las partículas -->
     <div
       class="pointer-events-none absolute inset-0 bg-gradient-to-t from-bg via-bg/40 to-transparent lg:bg-gradient-to-r lg:from-bg lg:via-bg/50 lg:to-transparent"
@@ -129,25 +129,36 @@ const city = t[lang].city;
 
   const fallback = () => window.addEventListener('scroll', () => paint(scrollProgress()), { passive: true });
 
-  // Las partículas son un extra: solo se cargan si el equipo puede con ellas. El chequeo va
-  // ANTES de descargar Three.js (~130 KB), así un equipo sin GPU no lo procesa para nada.
+  // Las partículas son un extra: arrancan con la primera interacción (mouse, toque, scroll) o a
+  // los 3,5 s, cuando la página ya está cargada y responde. Así el contenido nunca compite con
+  // Three.js. Antes de descargarlo (~130 KB) se comprueba que el equipo pueda con él.
   const nav = navigator as Navigator & { connection?: { saveData?: boolean }; deviceMemory?: number };
-  const canRun = !isSoftwareRenderer() && !nav.connection?.saveData && (nav.deviceMemory ?? 8) >= 4;
-
-  if (canRun) {
-    // Se carga cuando el navegador queda libre después de cargar la página: el contenido
-    // aparece y responde primero, y las partículas entran después con su animación
-    const start = () =>
+  const lowEnd = nav.connection?.saveData || (nav.deviceMemory ?? 8) < 4;
+  const events = ['pointermove', 'pointerdown', 'touchstart', 'scroll', 'keydown'] as const;
+  let started = false;
+  const start = () => {
+    if (started) return;
+    started = true;
+    events.forEach((ev) => window.removeEventListener(ev, start));
+    const run = () => {
+      if (isSoftwareRenderer()) return fallback();
       import('../scripts/particles')
         .then(({ initParticles }) => initParticles({ canvas, section, onProgress: paint }))
-        .then((ok) => ok || fallback())
+        .then((ok) => (ok ? canvas.classList.add('is-ready') : fallback()))
         .catch(fallback);
-    const whenIdle = () =>
-      'requestIdleCallback' in window ? requestIdleCallback(start, { timeout: 2500 }) : setTimeout(start, 600);
-    if (document.readyState === 'complete') whenIdle();
-    else window.addEventListener('load', whenIdle, { once: true });
-  } else {
+    };
+    'requestIdleCallback' in window ? requestIdleCallback(run, { timeout: 800 }) : setTimeout(run, 100);
+  };
+
+  if (lowEnd) {
     fallback();
+  } else {
+    const arm = () => {
+      events.forEach((ev) => window.addEventListener(ev, start, { passive: true, once: true }));
+      setTimeout(start, 3500);
+    };
+    if (document.readyState === 'complete') arm();
+    else window.addEventListener('load', arm, { once: true });
   }
   paint(scrollProgress());
 </script>

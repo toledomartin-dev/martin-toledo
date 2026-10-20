@@ -12,7 +12,6 @@ import {
   ShaderMaterial,
   WebGLRenderer,
 } from 'three';
-import { isSoftwareRenderer } from './gpu';
 
 const vertexShader = /* glsl */ `
   uniform float uTime;
@@ -151,8 +150,6 @@ function cssColor(name: string) {
 
 /** Devuelve false si no se pudo (o no convenía) iniciar las partículas. */
 export async function initParticles({ canvas, section, onProgress }: Options): Promise<boolean> {
-  if (isSoftwareRenderer()) return false;
-
   const [pointsBuf, routes] = await Promise.all([
     fetch('/data/cordoba-points.bin').then((r) => r.arrayBuffer()),
     fetch('/data/cordoba-routes.json').then((r) => r.json() as Promise<number[][][]>),
