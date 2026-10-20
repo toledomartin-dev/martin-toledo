@@ -1,0 +1,192 @@
+<!doctype html>
+<!--
+  Generador de la imagen para compartir el link (Open Graph, 1200x630).
+  Necesita los datos del mapa, así que se sirve junto al sitio:
+    1. npm run build && npm run preview
+    2. copiar este archivo a dist/og-image.html
+    3. chrome --headless=new --hide-scrollbars --window-size=1200,630
+         --screenshot=public/og/og-es.png http://localhost:4321/og-image.html
+       (con ?en al final de la URL → public/og/og-en.png)
+-->
+<html>
+  <head>
+    <meta charset="utf-8" />
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@500&display=swap" rel="stylesheet" />
+    <style>
+      html,
+      body {
+        margin: 0;
+        width: 1200px;
+        height: 630px;
+        overflow: hidden;
+        background: #07080b;
+        font-family: Inter, sans-serif;
+      }
+      #c {
+        position: absolute;
+        inset: 0;
+      }
+      .brand {
+        position: absolute;
+        left: 72px;
+        top: 64px;
+        display: flex;
+        align-items: center;
+        gap: 16px;
+        color: #f1f2f4;
+        font-weight: 600;
+        font-size: 26px;
+        letter-spacing: -0.01em;
+      }
+      .logo {
+        width: 52px;
+        height: 52px;
+        border-radius: 13px;
+        background: linear-gradient(#ffa45c, #ff6a00);
+        display: grid;
+        place-items: center;
+        color: #1a0b00;
+        font-weight: 800;
+        font-size: 23px;
+        letter-spacing: -1px;
+        box-shadow: 0 0 40px rgba(255, 122, 26, 0.45);
+      }
+      .txt {
+        position: absolute;
+        left: 72px;
+        bottom: 72px;
+        width: 760px;
+      }
+      .kick {
+        font-family: 'JetBrains Mono', monospace;
+        font-size: 18px;
+        letter-spacing: 0.2em;
+        text-transform: uppercase;
+        color: #ff7a1a;
+        display: flex;
+        align-items: center;
+        gap: 12px;
+      }
+      .dot {
+        width: 10px;
+        height: 10px;
+        border-radius: 50%;
+        background: #ff7a1a;
+        box-shadow: 0 0 16px #ff7a1a;
+      }
+      h1 {
+        margin: 20px 0 0;
+        font-weight: 450;
+        font-size: 70px;
+        line-height: 1;
+        letter-spacing: -0.04em;
+        background: linear-gradient(180deg, #f1f2f4 35%, rgba(241, 242, 244, 0.6));
+        -webkit-background-clip: text;
+        background-clip: text;
+        color: transparent;
+      }
+      .sub {
+        margin-top: 22px;
+        font-size: 24px;
+        color: #8d939e;
+      }
+      .sub b {
+        color: #f1f2f4;
+        font-weight: 500;
+      }
+    </style>
+  </head>
+  <body>
+    <canvas id="c" width="1200" height="630"></canvas>
+    <div class="brand"><span class="logo">MT</span>Martín Toledo</div>
+    <div class="txt">
+      <div class="kick"><span class="dot"></span><span id="k"></span></div>
+      <h1 id="h"></h1>
+      <div class="sub" id="s"></div>
+    </div>
+    <script>
+      const EN = new URLSearchParams(location.search).has('en');
+      const T = EN
+        ? { k: 'Córdoba · Argentina', h: 'I build systems<br>that move cities.', s: '<b>Technical Lead · Full Stack</b> — mobile, maps & GPS' }
+        : { k: 'Córdoba · Argentina', h: 'Construyo sistemas<br>que mueven ciudades.', s: '<b>Líder Técnico · Full Stack</b> — mobile, mapas y GPS' };
+      k.textContent = T.k;
+      h.innerHTML = T.h;
+      s.innerHTML = T.s;
+
+      // Pseudoaleatorio fijo: la imagen sale igual cada vez
+      let seed = 11;
+      const rnd = () => (seed = (seed * 16807) % 2147483647) / 2147483647;
+
+      (async () => {
+        const [buf, routes] = await Promise.all([
+          fetch('/data/cordoba-points.bin').then((r) => r.arrayBuffer()),
+          fetch('/data/cordoba-routes.json').then((r) => r.json()),
+        ]);
+        const raw = new Int16Array(buf);
+        const ctx = c.getContext('2d');
+        const W = 1200,
+          H = 630;
+
+        let g = ctx.createRadialGradient(900, 300, 10, 900, 300, 520);
+        g.addColorStop(0, 'rgba(255,122,26,.22)');
+        g.addColorStop(1, 'rgba(255,122,26,0)');
+        ctx.fillStyle = g;
+        ctx.fillRect(0, 0, W, H);
+
+        // Mapa de Córdoba inclinado, a la derecha
+        const CX = 905, CY = 315, S = 470, TILT = 0.95, F = 3.2, ROT = -0.12;
+        const project = (x, y) => {
+          const xr = x * Math.cos(ROT) - y * Math.sin(ROT);
+          const yr = x * Math.sin(ROT) + y * Math.cos(ROT);
+          const yy = yr * Math.cos(TILT), zz = yr * Math.sin(TILT);
+          const p = F / (F + zz);
+          return [CX + xr * S * p, CY - yy * S * p, p];
+        };
+        const fade = (px) => Math.min(1, Math.max(0, (px - 560) / 220));
+
+        for (let i = 0; i < raw.length / 2; i++) {
+          const [px, py, p] = project(raw[i * 2] / 32767, raw[i * 2 + 1] / 32767);
+          const a = fade(px) * (0.35 + 0.55 * p * p);
+          if (a <= 0.01 || py < -5 || py > H + 5) continue;
+          ctx.fillStyle = `rgba(255,243,232,${a})`;
+          ctx.beginPath();
+          ctx.arc(px, py, 1.1 * p + 0.3, 0, 7);
+          ctx.fill();
+        }
+
+        ctx.shadowColor = '#ff7a1a';
+        routes.forEach((r) => {
+          if (r.length < 5) return;
+          const k = Math.floor(rnd() * (r.length - 4));
+          const seg = r.slice(k, k + 4).map(([x, y]) => project(x, y));
+          const [hx, hy] = seg[seg.length - 1];
+          if (fade(hx) < 0.3) return;
+          const lg = ctx.createLinearGradient(seg[0][0], seg[0][1], hx, hy);
+          lg.addColorStop(0, 'rgba(255,122,26,0)');
+          lg.addColorStop(1, 'rgba(255,148,71,.95)');
+          ctx.strokeStyle = lg;
+          ctx.lineWidth = 3;
+          ctx.lineCap = 'round';
+          ctx.shadowBlur = 14;
+          ctx.beginPath();
+          seg.forEach(([x, y], j) => (j ? ctx.lineTo(x, y) : ctx.moveTo(x, y)));
+          ctx.stroke();
+          ctx.fillStyle = '#ffd2ad';
+          ctx.shadowBlur = 18;
+          ctx.beginPath();
+          ctx.arc(hx, hy, 3.6, 0, 7);
+          ctx.fill();
+        });
+        ctx.shadowBlur = 0;
+
+        // Oscurece la zona del texto para que se lea siempre
+        g = ctx.createLinearGradient(0, 0, W, 0);
+        g.addColorStop(0, 'rgba(7,8,11,1)');
+        g.addColorStop(0.42, 'rgba(7,8,11,.55)');
+        g.addColorStop(0.6, 'rgba(7,8,11,0)');
+        ctx.fillStyle = g;
+        ctx.fillRect(0, 0, W, H);
+      })();
+    </script>
+  </body>
+</html>

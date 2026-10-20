@@ -1,24 +1,35 @@
 ---
 import fs from 'node:fs';
 import path from 'node:path';
-import { site } from '../i18n/content';
+import { site, t, type Lang } from '../i18n/content';
 
-// Si todavía no está la foto en public/, muestra las iniciales
+interface Props {
+  lang: Lang;
+}
+
+const { lang } = Astro.props;
+const ui = t[lang].about;
+// Sin foto no mostramos nada: las iniciales ya están en el logo
 const hasPhoto = fs.existsSync(path.join(process.cwd(), 'public', site.photo));
 ---
 
 {
-  // Sin foto no mostramos nada: las iniciales ya están en el logo
   hasPhoto && (
-    <span class="relative block size-11 shrink-0">
-      <span class="absolute -inset-1 rounded-full bg-accent/30 blur-md" aria-hidden="true" />
+    <button
+      type="button"
+      class="group relative block size-11 shrink-0 cursor-zoom-in rounded-full"
+      data-lightbox={site.photoFull}
+      data-lightbox-alt={ui.photoAlt}
+      aria-label={ui.zoom}
+    >
+      <span class="absolute -inset-1 rounded-full bg-accent/30 blur-md transition-opacity group-hover:opacity-100" aria-hidden="true" />
       <img
         src={site.photo}
         alt={site.fullName}
-        class="relative size-11 rounded-full border border-accent/40 object-cover"
+        class="relative size-11 rounded-full border border-accent/40 object-cover transition-transform group-hover:scale-110"
         width="44"
         height="44"
       />
-    </span>
+    </button>
   )
 }

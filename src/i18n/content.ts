@@ -8,7 +8,9 @@ export const site = {
   email: 'toledomartinfranco@gmail.com',
   linkedin: 'https://www.linkedin.com/in/martin-franco-toledo',
   github: 'https://github.com/toledomartin-dev',
-  photo: '/img/foto.jpg', // TODO: subir la foto a public/img/foto.jpg
+  photo: '/img/foto.jpg',
+  photoFull: '/img/foto-full.jpg',
+  photoAbout: '/img/foto-about.jpg',
   talkVideoId: '1oeWi3M2vvg',
 };
 
@@ -36,7 +38,7 @@ export const t = {
       description:
         'Ingeniero en Sistemas y líder técnico. Construyo sistemas de movilidad en producción en Córdoba: apps de taxis, bicicletas públicas y transporte.',
     },
-    nav: { projects: 'Proyectos', experience: 'Experiencia', stack: 'Stack', talks: 'Charlas', contact: 'Contacto' },
+    nav: { projects: 'Proyectos', about: 'Sobre mí', experience: 'Experiencia', stack: 'Stack', talks: 'Charlas', contact: 'Contacto' },
     hero: {
       location: 'Córdoba, Argentina',
       role: 'Líder Técnico y Full Stack Developer',
@@ -64,7 +66,7 @@ export const t = {
         title: 'Entaxi',
         text: 'Lideré la migración de la app de choferes a React Native: acceso nativo al hardware, menos RAM y una app más rápida.',
         cta: 'Leer el caso',
-        href: '/caso-entaxi',
+        href: '/caso-entaxi/',
         mock: { status: 'En viaje', destLabel: 'Destino', dest: 'Av. Colón 1200', fare: '$ 4.850', slide: 'Deslizá para cobrar' },
       },
       drivers: {
@@ -95,6 +97,25 @@ export const t = {
         libreta: 'Tu Libreta Digital',
         padron: 'Empadronamiento',
       },
+    },
+    about: {
+      kicker: 'Sobre mí',
+      title: 'Detrás del código.',
+      photoAlt: 'Martín Toledo frente a una catedral, de saco celeste, sonriendo',
+      zoom: 'Ver foto en tamaño completo',
+      close: 'Cerrar',
+      paragraphs: [
+        'Soy Martín, Ingeniero en Sistemas por la UTN de Córdoba. Entré a Micronauta como único desarrollador y hoy lidero técnicamente un equipo de cuatro personas: soy el puente entre el código, los clientes y la dirección.',
+        'Me gustan los problemas que se ven en la calle: un chofer que cobra un viaje, una bici que sale de una estación, un colectivo que reporta su posición. Disfruto tanto diseñar una base de datos como explicarle a un cliente por qué conviene hacerlo de una forma y no de otra.',
+        'Y creo en compartir lo que aprendo: armé capacitaciones de Git, Docker y Jira para toda la empresa y di una charla sobre cómo procesamos datos GPS en tiempo real.',
+      ],
+      facts: [
+        { value: '1.º', label: 'desarrollador del equipo' },
+        { value: 'UTN', label: 'Ingeniero en Sistemas, 2024' },
+        { value: 'TECOM', label: 'speaker sobre GPS en tiempo real' },
+      ],
+      offTitle: 'Fuera del código',
+      off: ['Entrenamiento físico', 'Emprendí con mi hermano una tienda online', 'Voluntariado en misiones solidarias en Chaco'],
     },
     experience: {
       kicker: 'Trayectoria',
@@ -144,7 +165,7 @@ export const t = {
     footer: 'Hecho con Astro, Tailwind y Three.js.',
     cvFile: '/cv/martin-toledo-cv-es.pdf',
     cvName: 'Martin-Toledo-CV.pdf',
-    cvPage: '/cv',
+    cvPage: '/cv/',
     switchLang: { label: 'EN', href: '/en/' },
     theme: 'Cambiar tema',
     back: 'Volver al inicio',
@@ -155,7 +176,7 @@ export const t = {
       description:
         'Systems Engineer and technical lead. I build production mobility systems in Córdoba, Argentina: taxi apps, public bike sharing and public transport.',
     },
-    nav: { projects: 'Projects', experience: 'Experience', stack: 'Stack', talks: 'Talks', contact: 'Contact' },
+    nav: { projects: 'Projects', about: 'About', experience: 'Experience', stack: 'Stack', talks: 'Talks', contact: 'Contact' },
     hero: {
       location: 'Córdoba, Argentina',
       role: 'Technical Lead & Full Stack Developer',
@@ -183,7 +204,7 @@ export const t = {
         title: 'Entaxi',
         text: 'Led the migration of the driver app to React Native: native hardware access, lower RAM usage and a faster app.',
         cta: 'Read the case study',
-        href: '/en/entaxi-case-study',
+        href: '/en/entaxi-case-study/',
         mock: { status: 'On trip', destLabel: 'Destination', dest: 'Av. Colón 1200', fare: '$ 4,850', slide: 'Slide to charge' },
       },
       drivers: {
@@ -214,6 +235,25 @@ export const t = {
         libreta: 'Tu Libreta Digital',
         padron: 'Driver registry',
       },
+    },
+    about: {
+      kicker: 'About',
+      title: 'Behind the code.',
+      photoAlt: 'Martín Toledo in front of a cathedral, wearing a light blue blazer, smiling',
+      zoom: 'View full-size photo',
+      close: 'Close',
+      paragraphs: [
+        "I'm Martín, a Systems Engineer from UTN in Córdoba, Argentina. I joined Micronauta as the only developer and now lead a team of four: I'm the bridge between the code, the clients and management.",
+        'I like problems you can see out on the street: a driver charging for a trip, a bike leaving a station, a bus reporting its position. I enjoy designing a database as much as explaining to a client why one approach beats another.',
+        'And I believe in sharing what I learn: I ran Git, Docker and Jira trainings for the whole company and gave a talk on how we process GPS data in real time.',
+      ],
+      facts: [
+        { value: '1st', label: 'developer on the team' },
+        { value: 'UTN', label: 'Systems Engineer, 2024' },
+        { value: 'TECOM', label: 'speaker on real-time GPS' },
+      ],
+      offTitle: 'Off the clock',
+      off: ['Strength training', 'Co-founded an online store with my brother', 'Volunteering in community missions in Chaco'],
     },
     experience: {
       kicker: 'Career',
@@ -263,7 +303,7 @@ export const t = {
     footer: 'Built with Astro, Tailwind and Three.js.',
     cvFile: '/cv/martin-toledo-resume-en.pdf',
     cvName: 'Martin-Toledo-Resume.pdf',
-    cvPage: '/en/resume',
+    cvPage: '/en/resume/',
     switchLang: { label: 'ES', href: '/' },
     theme: 'Toggle theme',
     back: 'Back to home',

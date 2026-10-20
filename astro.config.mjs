@@ -3,9 +3,9 @@ import sitemap from '@astrojs/sitemap';
 import tailwindcss from '@tailwindcss/vite';
 import cvPdf from './integrations/cv-pdf.mjs';
 
-// Cambiar por el dominio definitivo cuando esté (ej. https://martintoledo.dev)
 export default defineConfig({
   site: 'https://martin-toledo.pages.dev',
+  trailingSlash: 'always', // Cloudflare redirige /cv → /cv/: los links ya van con barra
   integrations: [sitemap(), cvPdf()],
   vite: {
     plugins: [tailwindcss()],

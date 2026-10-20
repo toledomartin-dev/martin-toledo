@@ -39,14 +39,14 @@ python -I scripts/build-map.py ruta/al/export.json
 - Si el equipo dibuja lento, baja la calidad sola; sin GPU (render por software) no se carga.
 - Respeta "reducir movimiento" del sistema operativo.
 
-## Pendientes antes de publicar
+## Imágenes
 
-- [ ] Foto: `public/img/foto.jpg` (cuadrada). Aparece como avatar junto a la ubicación en el hero.
-- [ ] Link de GitHub en `site` (`src/i18n/content.ts`).
+- **Foto:** `public/img/foto.jpg` (avatar), `foto-about.jpg` (Sobre mí) y `foto-full.jpg` (se abre al tocarlas).
+- **Imagen para compartir el link (1200x630):** `public/og/og-es.jpg` y `og-en.jpg`, generadas con `scripts/og-image.html`.
+- **Favicon:** `public/favicon.svg` es la fuente; `favicon.ico`, `apple-touch-icon.png` e `icon-*.png` salen de él.
 
-## Publicar en Cloudflare Pages
+## Publicación
 
-1. Crear un repo en GitHub y subir este proyecto.
-2. En Cloudflare: Workers & Pages → Create → Pages → conectar el repo.
-3. Framework preset: **Astro** · Build command: `npm run build` · Output: `dist`.
-4. Cada push a `main` se publica solo. Si usás otro dominio, actualizá `site` en `astro.config.mjs`.
+Publicado en **https://martin-toledo.pages.dev** con Cloudflare Pages (preset Astro, `npm run build`, salida `dist`,
+variable `NODE_VERSION=22`). Cada push a `main` se publica solo. Si cambia el dominio, actualizar `site` en
+`astro.config.mjs` y volver a correr `npm run build` para regenerar los PDF.

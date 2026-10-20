@@ -161,7 +161,16 @@ async function switchLanguage(href: string) {
     });
     document.documentElement.lang = next.documentElement.lang;
     document.title = next.title;
-    for (const sel of ['meta[name="description"]', 'meta[property="og:title"]', 'meta[property="og:description"]', 'meta[property="og:url"]']) {
+    for (const sel of [
+      'meta[name="description"]',
+      'meta[property="og:title"]',
+      'meta[property="og:description"]',
+      'meta[property="og:url"]',
+      'meta[property="og:locale"]',
+      'meta[property="og:image"]',
+      'meta[property="og:image:alt"]',
+      'meta[name="twitter:image"]',
+    ]) {
       const value = next.querySelector(sel)?.getAttribute('content');
       if (value) document.querySelector(sel)?.setAttribute('content', value);
     }

@@ -1,0 +1,148 @@
+---
+// Visor de imágenes: cualquier elemento con data-lightbox="<url>" abre la imagen en grande.
+// La animación sale desde la miniatura (técnica FLIP) y vuelve a ella al cerrar.
+interface Props {
+  closeLabel: string;
+}
+
+const { closeLabel } = Astro.props;
+---
+
+<dialog id="lightbox" class="lightbox" aria-label={closeLabel}>
+  <button type="button" class="lightbox-close" aria-label={closeLabel}>
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><path d="M6 6l12 12M18 6 6 18"></path></svg>
+  </button>
+  <img class="lightbox-img" alt="" />
+</dialog>
+
+<style>
+  .lightbox {
+    width: 100vw;
+    height: 100dvh;
+    max-width: none;
+    max-height: none;
+    margin: 0;
+    padding: 0;
+    border: 0;
+    background: transparent;
+    overflow: hidden;
+  }
+  .lightbox[open] {
+    display: grid;
+    place-items: center;
+  }
+  .lightbox::backdrop {
+    background: rgb(7 8 11 / 0.88);
+    backdrop-filter: blur(10px);
+    opacity: 0;
+    transition: opacity 0.35s ease;
+  }
+  .lightbox.is-open::backdrop {
+    opacity: 1;
+  }
+  .lightbox-img {
+    max-width: min(92vw, 900px);
+    max-height: 88dvh;
+    border-radius: 1.25rem;
+    box-shadow: 0 40px 120px -30px rgb(0 0 0 / 0.8);
+    cursor: zoom-out;
+    transform-origin: top left;
+  }
+  .lightbox-close {
+    position: fixed;
+    top: 1rem;
+    right: 1rem;
+    display: grid;
+    place-items: center;
+    width: 2.75rem;
+    height: 2.75rem;
+    border-radius: 999px;
+    border: 1px solid rgb(255 255 255 / 0.15);
+    background: rgb(255 255 255 / 0.08);
+    color: #fff;
+    cursor: pointer;
+    opacity: 0;
+    transition: opacity 0.3s ease, background 0.2s ease;
+  }
+  .lightbox-close svg {
+    width: 1.25rem;
+    height: 1.25rem;
+  }
+  .lightbox-close:hover {
+    background: rgb(255 255 255 / 0.16);
+  }
+  .lightbox.is-open .lightbox-close {
+    opacity: 1;
+  }
+</style>
+
+<script>
+  const dialog = document.getElementById('lightbox') as HTMLDialogElement;
+  const img = dialog.querySelector<HTMLImageElement>('.lightbox-img')!;
+  const reduced = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+  let origin: HTMLElement | null = null;
+  let closing = false;
+
+  // Transformación que lleva la imagen grande a la posición, tamaño y esquinas de la miniatura
+  const fromThumb = () => {
+    const thumb = origin?.querySelector('img') ?? origin;
+    if (!thumb) return { transform: 'none', borderRadius: '1.25rem' };
+    const a = thumb.getBoundingClientRect();
+    const b = img.getBoundingClientRect();
+    const sx = a.width / b.width;
+    // El radio se escala junto con la imagen: lo compensamos para que arranque igual que la miniatura
+    const r = getComputedStyle(thumb).borderTopLeftRadius;
+    const radius = r.endsWith('%') ? r : `${parseFloat(r) / sx}px`;
+    return {
+      transform: `translate(${a.left - b.left}px, ${a.top - b.top}px) scale(${sx}, ${a.height / b.height})`,
+      borderRadius: radius,
+    };
+  };
+
+  const open = async (trigger: HTMLElement) => {
+    origin = trigger;
+    img.src = trigger.dataset.lightbox!;
+    img.alt = trigger.dataset.lightboxAlt ?? '';
+    await img.decode().catch(() => {});
+    document.documentElement.style.overflow = 'hidden';
+    dialog.showModal();
+    requestAnimationFrame(() => dialog.classList.add('is-open'));
+    if (!reduced) {
+      img.animate([fromThumb(), { transform: 'none', borderRadius: '1.25rem' }], {
+        duration: 520,
+        easing: 'cubic-bezier(0.2, 0.8, 0.2, 1)',
+      });
+    }
+  };
+
+  const close = async () => {
+    if (closing || !dialog.open) return;
+    closing = true;
+    dialog.classList.remove('is-open');
+    if (!reduced) {
+      await img.animate([{ transform: 'none', borderRadius: '1.25rem' }, fromThumb()], {
+        duration: 380,
+        easing: 'cubic-bezier(0.4, 0, 0.2, 1)',
+      }).finished.catch(() => {});
+    }
+    dialog.close();
+    document.documentElement.style.overflow = '';
+    origin?.focus();
+    closing = false;
+  };
+
+  document.addEventListener('click', (e) => {
+    const trigger = (e.target as HTMLElement).closest<HTMLElement>('[data-lightbox]');
+    if (trigger) {
+      e.preventDefault();
+      open(trigger);
+    }
+  });
+  // Clic en el fondo, en la imagen o en la X: cierra
+  dialog.addEventListener('click', close);
+  // Escape: cerramos con animación en lugar del cierre instantáneo del navegador
+  dialog.addEventListener('cancel', (e) => {
+    e.preventDefault();
+    close();
+  });
+</script>

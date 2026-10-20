@@ -2,6 +2,7 @@
 import '../styles/global.css';
 import { cv } from '../i18n/cv';
 import { site, t, type Lang } from '../i18n/content';
+import HeadMeta from './HeadMeta.astro';
 
 interface Props {
   lang: Lang;
@@ -23,7 +24,7 @@ const github = site.github.replace(/^https?:\/\//, '');
     <meta name="viewport" content="width=device-width, initial-scale=1" />
     <title>{c.title}</title>
     <meta name="description" content={`${c.role} — ${c.location}`} />
-    <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
+    <HeadMeta lang={lang} title={c.title} description={`${c.role} — ${c.location}`} canonical={new URL(Astro.url.pathname, Astro.site)} />
     <link rel="canonical" href={new URL(Astro.url.pathname, Astro.site)} />
     <link rel="alternate" hreflang={lang === 'es' ? 'en' : 'es'} href={new URL(alternate, Astro.site)} />
   </head>
