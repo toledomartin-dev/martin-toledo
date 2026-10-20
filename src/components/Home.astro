@@ -1,0 +1,22 @@
+---
+import Hero from './Hero.astro';
+import Bento from './Bento.astro';
+import Experience from './Experience.astro';
+import Stack from './Stack.astro';
+import Talk from './Talk.astro';
+import Contact from './Contact.astro';
+import type { Lang } from '../i18n/content';
+
+interface Props {
+  lang: Lang;
+}
+
+const { lang } = Astro.props;
+---
+
+<Hero lang={lang} />
+<Bento lang={lang} />
+<Experience lang={lang} />
+<Stack lang={lang} />
+<Talk lang={lang} />
+<Contact lang={lang} />

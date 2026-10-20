@@ -1,0 +1,236 @@
+---
+import type { Lang } from '../i18n/content';
+
+interface Props {
+  lang: Lang;
+}
+
+const { lang } = Astro.props;
+const home = lang === 'es' ? '/' : '/en/';
+
+const c = {
+  es: {
+    kicker: 'Caso de estudio',
+    title: 'Migrar una app de taxis en producción a React Native',
+    lead: 'Cómo llevamos la app de choferes de Entaxi de una web híbrida a una app nativa, sin frenar la operación ni reescribir el backend.',
+    facts: [
+      { k: 'Rol', v: 'Inicié y lideré el proyecto' },
+      { k: 'Usuarios', v: '~500 choferes (Rapitaxi)' },
+      { k: 'Stack', v: 'React Native · TypeScript · Node' },
+      { k: 'Estado', v: 'En producción, expandiéndose a San Juan' },
+    ],
+    sections: [
+      {
+        h: 'El problema',
+        p: [
+          'La app de choferes estaba hecha con Framework7 y empaquetada con Capacitor: en el fondo, una página web corriendo dentro del teléfono. Para una app que pasa el día entero abierta, con GPS y mapa, eso tenía un costo alto.',
+          'Consumía mucha RAM, se sentía lenta en equipos de gama media y el acceso al hardware (GPS en segundo plano, notificaciones, estado de red) dependía de capas intermedias.',
+        ],
+      },
+      {
+        h: 'La decisión',
+        p: [
+          'Elegimos React Native con TypeScript: acceso directo a las APIs nativas sin abandonar el ecosistema JavaScript que el equipo ya dominaba.',
+          'Lo más importante fue no reescribir todo de golpe. El backend PHP legacy seguía atendiendo a la web en producción, así que la app nueva convive con la vieja sobre los mismos datos.',
+        ],
+      },
+    ],
+    archTitle: 'La arquitectura',
+    archText:
+      'La app nunca habla directo con el PHP. Un backend Node en TypeScript hace de proxy: normaliza las respuestas, maneja la sesión y nos deja reemplazar piezas del legacy de a una.',
+    arch: ['App React Native', 'Backend Node (proxy)', 'PHP legacy', 'MySQL'],
+    archSide: ['Traccar · GPS', 'Firebase · push', 'Socket · viajes'],
+    built: {
+      h: 'Qué construí',
+      items: [
+        'Mapa en tiempo real con MapLibre y seguimiento GPS en segundo plano integrado con Traccar.',
+        'Ciclo completo del viaje: solicitud por socket, seguimiento, cobro y calificación.',
+        'Modo offline con SQLite para el modo taxímetro, pensado para municipios sin central.',
+        'Una sola base de código con builds por marca, una por cliente, publicadas en Google Play.',
+        'Pagos de cuotas con Mercado Pago, comisiones, estadísticas y botón de pánico.',
+        'Monitoreo de errores con Sentry y source maps por versión.',
+      ],
+    },
+    lessons: {
+      h: 'Lo que aprendí',
+      items: [
+        {
+          t: 'En la calle, la red falla',
+          d: 'Una respuesta perdida no significa que la operación falló. Hicimos idempotentes los cambios de estado del viaje para que un reintento nunca deje a un chofer trabado ni le cobre dos veces.',
+        },
+        {
+          t: 'Migrar de a partes',
+          d: 'El proxy permitió lanzar la app nativa mientras la web seguía operando, sin un "big bang" que pusiera en riesgo la operación diaria.',
+        },
+        {
+          t: 'Iniciar, traspasar y seguir liderando',
+          d: 'Llevé el proyecto a un estado avanzado y lo traspasé al equipo para su mantenimiento, sin dejar de guiar las decisiones técnicas.',
+        },
+      ],
+    },
+    back: 'Volver a proyectos',
+  },
+  en: {
+    kicker: 'Case study',
+    title: 'Migrating a production taxi app to React Native',
+    lead: "How we moved Entaxi's driver app from a hybrid web app to a native app, without stopping operations or rewriting the backend.",
+    facts: [
+      { k: 'Role', v: 'Started and led the project' },
+      { k: 'Users', v: '~500 drivers (Rapitaxi)' },
+      { k: 'Stack', v: 'React Native · TypeScript · Node' },
+      { k: 'Status', v: 'In production, expanding to San Juan' },
+    ],
+    sections: [
+      {
+        h: 'The problem',
+        p: [
+          'The driver app was built with Framework7 and packaged with Capacitor: essentially a web page running inside the phone. For an app that stays open all day with GPS and a map, that was expensive.',
+          'It used a lot of RAM, felt slow on mid-range devices, and hardware access (background GPS, notifications, network state) went through intermediate layers.',
+        ],
+      },
+      {
+        h: 'The decision',
+        p: [
+          'We chose React Native with TypeScript: direct access to native APIs while staying in the JavaScript ecosystem the team already knew.',
+          'Crucially, we did not rewrite everything at once. The legacy PHP backend still served the web app in production, so the new app lives alongside the old one on the same data.',
+        ],
+      },
+    ],
+    archTitle: 'The architecture',
+    archText:
+      'The app never talks to PHP directly. A TypeScript Node backend acts as a proxy: it normalizes responses, manages the session and lets us replace legacy pieces one at a time.',
+    arch: ['React Native app', 'Node backend (proxy)', 'Legacy PHP', 'MySQL'],
+    archSide: ['Traccar · GPS', 'Firebase · push', 'Socket · trips'],
+    built: {
+      h: 'What I built',
+      items: [
+        'Real-time map with MapLibre and background GPS tracking integrated with Traccar.',
+        'Full trip lifecycle: socket-based requests, tracking, payment and rating.',
+        'Offline mode with SQLite for taximeter mode, designed for towns without a dispatch center.',
+        'A single codebase with per-brand builds, one per client, published on Google Play.',
+        'Fee payments with Mercado Pago, commissions, statistics and a panic button.',
+        'Error monitoring with Sentry and per-release source maps.',
+      ],
+    },
+    lessons: {
+      h: 'What I learned',
+      items: [
+        {
+          t: 'On the street, the network fails',
+          d: "A lost response doesn't mean the operation failed. We made trip state changes idempotent so a retry never leaves a driver stuck or charges them twice.",
+        },
+        {
+          t: 'Migrate in pieces',
+          d: 'The proxy let us ship the native app while the web app kept running, with no "big bang" release risking daily operations.',
+        },
+        {
+          t: 'Start, hand over, keep leading',
+          d: 'I took the project to an advanced stage and handed it to the team for maintenance, while still guiding technical decisions.',
+        },
+      ],
+    },
+    back: 'Back to projects',
+  },
+}[lang];
+---
+
+<article class="mx-auto max-w-3xl px-4 pt-32 pb-24 sm:px-6 sm:pt-40">
+  <a href={`${home}#proyectos`} class="inline-flex items-center gap-2 text-sm text-muted hover:text-accent">
+    <span aria-hidden="true">←</span>
+    {c.back}
+  </a>
+
+  <p class="mt-10 font-mono text-sm text-accent">{c.kicker}</p>
+  <h1 class="display text-gradient mt-4 text-4xl text-balance sm:text-6xl">{c.title}</h1>
+  <p class="mt-6 text-lg leading-relaxed text-muted">{c.lead}</p>
+
+  <dl class="glass mt-10 grid grid-cols-2 gap-px bg-line sm:grid-cols-4">
+    {
+      c.facts.map((f) => (
+        <div class="bg-card p-4">
+          <dt class="font-mono text-xs tracking-wider text-muted uppercase">{f.k}</dt>
+          <dd class="mt-2 text-sm font-medium">{f.v}</dd>
+        </div>
+      ))
+    }
+  </dl>
+
+  {
+    c.sections.map((s) => (
+      <section class="reveal mt-16">
+        <h2 class="text-2xl font-medium tracking-tight">{s.h}</h2>
+        {s.p.map((para) => (
+          <p class="mt-4 leading-relaxed text-muted">{para}</p>
+        ))}
+      </section>
+    ))
+  }
+
+  <section class="reveal mt-16">
+    <h2 class="text-2xl font-medium tracking-tight">{c.archTitle}</h2>
+    <p class="mt-4 leading-relaxed text-muted">{c.archText}</p>
+
+    <figure class="glass mt-8 p-6">
+      <div class="flex flex-col items-stretch gap-3 sm:flex-row sm:items-center">
+        {
+          c.arch.map((node, i) => (
+            <>
+              <div
+                class:list={[
+                  'flex-1 rounded-xl border px-3 py-4 text-center text-sm font-medium',
+                  i === 0 || i === 1 ? 'border-accent/60 bg-accent/10' : 'border-line bg-bg-soft text-muted',
+                ]}
+              >
+                {node}
+              </div>
+              {i < c.arch.length - 1 && (
+                <span class="self-center font-mono text-accent" aria-hidden="true">
+                  <span class="sm:hidden">↓</span>
+                  <span class="hidden sm:inline">→</span>
+                </span>
+              )}
+            </>
+          ))
+        }
+      </div>
+      <div class="mt-4 flex flex-wrap justify-center gap-2 border-t border-line pt-4">
+        {c.archSide.map((s) => <span class="rounded-md bg-bg-soft px-2.5 py-1 font-mono text-xs text-muted">{s}</span>)}
+      </div>
+    </figure>
+  </section>
+
+  <section class="reveal mt-16">
+    <h2 class="text-2xl font-medium tracking-tight">{c.built.h}</h2>
+    <ul class="mt-6 space-y-3">
+      {
+        c.built.items.map((item) => (
+          <li class="flex gap-3 leading-relaxed text-muted">
+            <svg class="mt-1 size-5 shrink-0 text-accent" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" aria-hidden="true"><path d="m5 12 5 5L20 7"></path></svg>
+            {item}
+          </li>
+        ))
+      }
+    </ul>
+  </section>
+
+  <section class="reveal mt-16">
+    <h2 class="text-2xl font-medium tracking-tight">{c.lessons.h}</h2>
+    <div class="mt-6 grid gap-4">
+      {
+        c.lessons.items.map((l) => (
+          <div class="glass p-6">
+            <h3 class="font-semibold">{l.t}</h3>
+            <p class="mt-2 text-sm leading-relaxed text-muted">{l.d}</p>
+          </div>
+        ))
+      }
+    </div>
+  </section>
+
+  <div class="mt-16 border-t border-line pt-8">
+    <a href={`${home}#proyectos`} class="inline-flex items-center gap-2 font-semibold text-accent hover:underline">
+      <span aria-hidden="true">←</span>
+      {c.back}
+    </a>
+  </div>
+</article>

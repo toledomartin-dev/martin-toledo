@@ -1,0 +1,203 @@
+---
+import '../styles/global.css';
+import { cv } from '../i18n/cv';
+import { site, t, type Lang } from '../i18n/content';
+
+interface Props {
+  lang: Lang;
+  alternate: string;
+}
+
+const { lang, alternate } = Astro.props;
+const c = cv[lang];
+const home = lang === 'es' ? '/' : '/en/';
+const web = Astro.site?.host ?? '';
+const linkedin = site.linkedin.replace(/^https?:\/\/(www\.)?/, '');
+const github = site.github.replace(/^https?:\/\//, '');
+---
+
+<!doctype html>
+<html lang={lang} class="light">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>{c.title}</title>
+    <meta name="description" content={`${c.role} — ${c.location}`} />
+    <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
+    <link rel="canonical" href={new URL(Astro.url.pathname, Astro.site)} />
+    <link rel="alternate" hreflang={lang === 'es' ? 'en' : 'es'} href={new URL(alternate, Astro.site)} />
+  </head>
+  <body class="min-h-screen bg-bg-soft font-sans text-fg print:bg-white">
+    <!-- Barra de herramientas: no se imprime -->
+    <div class="sticky top-0 z-10 border-b border-line bg-bg/85 backdrop-blur print:hidden">
+      <div class="mx-auto flex max-w-[210mm] items-center justify-between gap-3 px-4 py-3">
+        <a href={home} class="text-sm text-muted hover:text-fg">← {c.toolbar.back}</a>
+        <div class="flex items-center gap-2">
+          <a
+            id="lang-switch"
+            href={alternate}
+            hreflang={lang === 'es' ? 'en' : 'es'}
+            class="rounded-full px-3 py-2 font-mono text-xs font-semibold text-muted hover:text-fg">{lang === 'es' ? 'EN' : 'ES'}</a
+          >
+          <a
+            id="download"
+            href={t[lang].cvFile}
+            download={t[lang].cvName}
+            class="btn-glow inline-flex items-center gap-2 rounded-full px-4 py-2 text-sm font-semibold"
+          >
+            <svg class="size-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" aria-hidden="true"
+              ><path d="M12 3v12M7 10l5 5 5-5M5 21h14"></path></svg
+            >
+            {c.toolbar.print}
+          </a>
+        </div>
+      </div>
+    </div>
+
+    <main
+      class="paper mx-auto my-8 w-full max-w-[210mm] bg-white px-6 py-10 text-[#1b1714] shadow-[0_30px_80px_-40px_rgba(60,40,20,.45)] sm:px-[16mm] sm:py-[14mm] print:m-0 print:max-w-none print:p-0 print:shadow-none"
+    >
+      <header class="border-b-2 border-accent pb-4">
+        <h1 class="text-[26pt] leading-none font-semibold tracking-tight">{site.fullName}</h1>
+        <p class="mt-2 text-[11pt] font-medium text-accent-strong">{c.role}</p>
+        <p class="mt-2 flex flex-wrap gap-x-3 gap-y-1 text-[9pt] text-[#5b534b]">
+          <span>{c.location}</span>
+          <span aria-hidden="true">·</span>
+          <a href={`mailto:${site.email}`}>{site.email}</a>
+          <span aria-hidden="true">·</span>
+          <a href={site.linkedin}>{linkedin}</a>
+          <span aria-hidden="true">·</span>
+          <a href={site.github}>{github}</a>
+          {web && <span aria-hidden="true">·</span>}
+          {web && <a href={`https://${web}`}>{web}</a>}
+        </p>
+      </header>
+
+      <section class="cv-section">
+        <h2>{c.sections.profile}</h2>
+        {c.profile.map((p) => <p class="mt-1.5 text-[9.5pt] leading-relaxed">{p}</p>)}
+      </section>
+
+      <section class="cv-section">
+        <h2>{c.sections.experience}</h2>
+        {
+          c.jobs.map((job) => (
+            <article class="job mt-3">
+              <div class="flex flex-wrap items-baseline justify-between gap-x-4">
+                <h3 class="text-[10.5pt] font-semibold">
+                  {job.role} <span class="font-normal text-[#5b534b]">— {job.company}</span>
+                </h3>
+                <p class="text-[9pt] text-[#5b534b] tabular-nums">{job.period}</p>
+              </div>
+              <ul class="mt-1.5 list-disc space-y-1 pl-4 text-[9.5pt] leading-snug marker:text-accent">
+                {job.points.map((pt) => (
+                  <li>{pt}</li>
+                ))}
+              </ul>
+            </article>
+          ))
+        }
+      </section>
+
+      <section class="cv-section">
+        <h2>{c.sections.projects}</h2>
+        <ul class="mt-1.5 grid gap-x-6 gap-y-1.5 text-[9.5pt] leading-snug sm:grid-cols-2 print:grid-cols-2">
+          {
+            c.projects.map((p) => (
+              <li>
+                <span class="font-semibold">{p.name}.</span> {p.text}
+              </li>
+            ))
+          }
+        </ul>
+      </section>
+
+      <section class="cv-section">
+        <h2>{c.sections.skills}</h2>
+        <dl class="mt-1.5 grid grid-cols-[auto_1fr] gap-x-4 gap-y-1 text-[9.5pt] leading-snug">
+          {
+            c.skills.map((s) => (
+              <>
+                <dt class="font-semibold">{s.k}</dt>
+                <dd>{s.v}</dd>
+              </>
+            ))
+          }
+        </dl>
+      </section>
+
+      <div class="grid gap-x-8 sm:grid-cols-2 print:grid-cols-2">
+        <section class="cv-section">
+          <h2>{c.sections.education}</h2>
+          {
+            c.education.map((e) => (
+              <div class="mt-1.5 text-[9.5pt] leading-snug">
+                <p class="font-semibold">{e.name}</p>
+                <p>{e.place}</p>
+                <p class="text-[9pt] text-[#5b534b]">{e.period}</p>
+              </div>
+            ))
+          }
+        </section>
+        <section class="cv-section">
+          <h2>{c.sections.languages}</h2>
+          <ul class="mt-1.5 space-y-0.5 text-[9.5pt]">{c.languages.map((l) => <li>{l}</li>)}</ul>
+        </section>
+      </div>
+
+      <section class="cv-section">
+        <h2>{c.sections.talks}</h2>
+        {
+          c.talks.map((t) => (
+            <p class="mt-1.5 text-[9.5pt] leading-snug">
+              <span class="font-semibold">{t.name}.</span> {t.text}
+            </p>
+          ))
+        }
+      </section>
+    </main>
+
+    <script>
+      import { initLangSwitch } from '../scripts/lang-switch';
+
+      initLangSwitch(document.getElementById('lang-switch') as HTMLAnchorElement);
+    </script>
+  </body>
+</html>
+
+<style>
+  @page {
+    size: A4;
+    margin: 14mm 15mm;
+  }
+  .cv-section {
+    margin-top: 1.1rem;
+  }
+  .cv-section h2 {
+    font-size: 8.5pt;
+    font-weight: 600;
+    letter-spacing: 0.14em;
+    text-transform: uppercase;
+    color: var(--accent);
+    border-bottom: 1px solid #ece6dd;
+    padding-bottom: 0.2rem;
+    break-after: avoid;
+  }
+  .job,
+  li,
+  dl {
+    break-inside: avoid;
+  }
+  a {
+    color: inherit;
+    text-decoration: none;
+  }
+  @media print {
+    :global(html),
+    :global(body) {
+      background: #fff !important;
+      print-color-adjust: exact;
+      -webkit-print-color-adjust: exact;
+    }
+  }
+</style>

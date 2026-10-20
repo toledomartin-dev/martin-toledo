@@ -1,0 +1,147 @@
+---
+import { t, type Lang } from '../i18n/content';
+import Photo from './Photo.astro';
+
+interface Props {
+  lang: Lang;
+}
+
+const { lang } = Astro.props;
+const ui = t[lang].hero;
+const city = t[lang].city;
+---
+
+<!-- La sección es alta para que el scroll "recorra" la transformación esfera → mapa -->
+<section id="hero" class="relative h-[240svh]">
+  <div class="sticky top-0 h-svh overflow-hidden">
+    <!-- Fallback sin WebGL: un brillo suave -->
+    <div
+      class="pointer-events-none absolute top-1/2 right-[-10%] size-[640px] -translate-y-1/2 rounded-full bg-accent/15 blur-[120px]"
+      aria-hidden="true"
+    >
+    </div>
+    <canvas id="particles" class="absolute inset-0 size-full" aria-hidden="true"></canvas>
+    <!-- Degradé para leer bien el texto sobre las partículas -->
+    <div
+      class="pointer-events-none absolute inset-0 bg-gradient-to-t from-bg via-bg/40 to-transparent lg:bg-gradient-to-r lg:from-bg lg:via-bg/50 lg:to-transparent"
+      aria-hidden="true"
+    >
+    </div>
+
+    <div class="relative mx-auto flex h-full max-w-6xl items-end px-4 pb-16 sm:px-6 lg:items-center lg:pb-0">
+      <!-- Escena 1: presentación -->
+      <div data-scene="1" class="max-w-xl will-change-transform">
+        <div class="flex items-center gap-3">
+          <Photo />
+          <p class="inline-flex items-center gap-2 rounded-full border border-line bg-card/70 px-3 py-1 text-xs text-muted backdrop-blur">
+            <span class="relative flex size-2">
+              <span class="anim-pulse absolute inline-flex size-full rounded-full bg-accent"></span>
+              <span class="relative inline-flex size-2 rounded-full bg-accent"></span>
+            </span>
+            {ui.location}
+          </p>
+        </div>
+
+        <h1 class="display text-gradient mt-6 text-5xl sm:text-6xl lg:text-7xl">{ui.headline}</h1>
+        <p class="mt-6 max-w-md text-base leading-relaxed text-muted sm:text-lg">
+          <span class="text-fg">Martín Toledo</span> — {ui.role}. {ui.sub}
+        </p>
+
+        <div class="mt-9 flex flex-wrap gap-3">
+          <a href="#proyectos" class="btn-glow magnetic inline-flex items-center gap-2 rounded-full px-6 py-3 text-sm font-semibold">
+            {ui.ctaProjects}
+            <svg class="size-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" aria-hidden="true"><path d="M12 5v14M5 12l7 7 7-7"></path></svg>
+          </a>
+          <a
+            href={t[lang].cvFile}
+            download={t[lang].cvName}
+            class="magnetic inline-flex items-center gap-2 rounded-full border border-line bg-card/70 px-6 py-3 text-sm font-semibold backdrop-blur transition-colors hover:border-accent/60"
+          >
+            {ui.ctaCv}
+          </a>
+          <a
+            href={t[lang].cvPage}
+            class="inline-flex items-center gap-1.5 px-2 py-3 text-sm text-muted underline-offset-4 transition-colors hover:text-fg hover:underline"
+          >
+            {ui.ctaCvOnline}
+            <span aria-hidden="true">↗</span>
+          </a>
+        </div>
+      </div>
+
+      <!-- Escena 2: el mapa (aparece con el scroll) -->
+      <div
+        data-scene="2"
+        class="pointer-events-none absolute inset-x-4 bottom-16 max-w-md opacity-0 sm:inset-x-6 lg:top-1/2 lg:bottom-auto lg:-translate-y-1/2"
+      >
+        <p class="font-mono text-xs tracking-widest text-accent uppercase">{city.kicker}</p>
+        <h2 class="display text-gradient mt-4 text-4xl sm:text-5xl">{city.title}</h2>
+        <p class="mt-5 leading-relaxed text-muted">{city.text}</p>
+        <ul class="mt-6 flex flex-wrap gap-x-6 gap-y-2 font-mono text-xs text-muted">
+          <li class="flex items-center gap-2"><span class="size-1.5 rounded-full bg-[#ffe9d6]"></span>{city.legendPoints}</li>
+          <li class="flex items-center gap-2"><span class="size-2 rounded-full bg-accent shadow-[0_0_10px_var(--accent)]"></span>{city.legendVehicles}</li>
+        </ul>
+      </div>
+    </div>
+
+    <!-- Indicador de scroll -->
+    <div data-scene="hint" class="reduce-hide absolute bottom-6 left-1/2 hidden -translate-x-1/2 flex-col items-center gap-2 text-muted lg:flex">
+      <span class="font-mono text-[10px] tracking-[0.3em] uppercase">Scroll</span>
+      <span class="h-10 w-px overflow-hidden bg-line">
+        <span class="anim-shimmer block h-full w-full" style="background-size:100% 200%"></span>
+      </span>
+    </div>
+
+    <p data-scene="credit" class="absolute right-4 bottom-3 font-mono text-[10px] text-muted/70 opacity-0 sm:right-6">
+      {city.credit}
+    </p>
+  </div>
+</section>
+
+<script>
+  const section = document.getElementById('hero')!;
+  const canvas = document.getElementById('particles') as HTMLCanvasElement;
+  const s1 = section.querySelector<HTMLElement>('[data-scene="1"]')!;
+  const s2 = section.querySelector<HTMLElement>('[data-scene="2"]')!;
+  const hint = section.querySelector<HTMLElement>('[data-scene="hint"]');
+  const credit = section.querySelector<HTMLElement>('[data-scene="credit"]')!;
+  const ramp = (p: number, a: number, b: number) => Math.min(1, Math.max(0, (p - a) / (b - a)));
+
+  // Las dos escenas de texto se cruzan según el avance del scroll
+  const paint = (p: number) => {
+    const out = ramp(p, 0.05, 0.25);
+    const inn = ramp(p, 0.5, 0.75);
+    s1.style.opacity = String(1 - out);
+    s1.style.transform = `translateY(${-out * 40}px)`;
+    s1.style.visibility = out >= 1 ? 'hidden' : 'visible';
+    s2.style.opacity = String(inn);
+    s2.style.transform = `translateY(${(1 - inn) * 40}px)`;
+    credit.style.opacity = String(inn * 0.8);
+    if (hint) hint.style.opacity = String(1 - ramp(p, 0.02, 0.12));
+  };
+
+  const scrollProgress = () => {
+    const travel = section.offsetHeight - window.innerHeight;
+    return Math.min(1, Math.max(0, -section.getBoundingClientRect().top / Math.max(1, travel)));
+  };
+
+  const supportsWebGL = (() => {
+    try {
+      return !!document.createElement('canvas').getContext('webgl2');
+    } catch {
+      return false;
+    }
+  })();
+
+  if (supportsWebGL) {
+    // Three.js se carga aparte, para no frenar la primera pintura
+    const fallback = () => window.addEventListener('scroll', () => paint(scrollProgress()), { passive: true });
+    import('../scripts/particles')
+      .then(({ initParticles }) => initParticles({ canvas, section, onProgress: paint }))
+      .then((ok) => ok || fallback())
+      .catch(fallback);
+  } else {
+    window.addEventListener('scroll', () => paint(scrollProgress()), { passive: true });
+  }
+  paint(scrollProgress());
+</script>

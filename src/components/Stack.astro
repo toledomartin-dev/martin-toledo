@@ -1,0 +1,38 @@
+---
+import { t, stack, type Lang } from '../i18n/content';
+
+interface Props {
+  lang: Lang;
+}
+
+const { lang } = Astro.props;
+const ui = t[lang].stack;
+const translate = (item: string) =>
+  lang === 'en' ? item.replace('(básico)', '(basic)').replace('Optimización de queries', 'Query optimization') : item;
+---
+
+<section id="stack" class="mx-auto max-w-6xl px-4 py-28 sm:px-6">
+  <div class="reveal max-w-2xl">
+    <p class="font-mono text-xs tracking-widest text-accent uppercase">{ui.kicker}</p>
+    <h2 class="display text-gradient mt-4 text-4xl sm:text-6xl">{ui.title}</h2>
+    <p class="mt-4 text-muted">{ui.intro}</p>
+  </div>
+
+  <div class="mt-14 grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
+    {
+      stack.map((group, i) => (
+        <div
+          class:list={['glass reveal p-6', i === stack.length - 1 && stack.length % 3 === 1 && 'sm:col-span-2 lg:col-span-3']}
+          style={`--d:${(i % 3) * 0.06}s`}
+        >
+          <h3 class="font-medium">{group[lang]}</h3>
+          <ul class="mt-4 flex flex-wrap gap-2">
+            {group.items.map((item) => (
+              <li class="rounded-full border border-line bg-bg-soft/60 px-3 py-1 text-sm text-muted">{translate(item)}</li>
+            ))}
+          </ul>
+        </div>
+      ))
+    }
+  </div>
+</section>

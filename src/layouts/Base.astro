@@ -1,0 +1,119 @@
+---
+import '../styles/global.css';
+import Header from '../components/Header.astro';
+import Footer from '../components/Footer.astro';
+import { t, site, type Lang } from '../i18n/content';
+
+interface Props {
+  lang: Lang;
+  title?: string;
+  description?: string;
+  alternate?: string; // ruta equivalente en el otro idioma
+  home?: boolean;
+}
+
+const { lang, title, description, alternate, home = false } = Astro.props;
+const ui = t[lang];
+const pageTitle = title ?? ui.meta.title;
+const pageDescription = description ?? ui.meta.description;
+const canonical = new URL(Astro.url.pathname, Astro.site);
+const otherLang = lang === 'es' ? 'en' : 'es';
+const altHref = alternate ?? ui.switchLang.href;
+---
+
+<!doctype html>
+<html lang={lang} class="dark">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>{pageTitle}</title>
+    <meta name="description" content={pageDescription} />
+    <link rel="canonical" href={canonical} />
+    <link rel="alternate" hreflang={otherLang} href={new URL(altHref, Astro.site)} />
+    <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
+    <meta name="theme-color" content="#07080b" />
+
+    <meta property="og:type" content="website" />
+    <meta property="og:title" content={pageTitle} />
+    <meta property="og:description" content={pageDescription} />
+    <meta property="og:url" content={canonical} />
+    <meta property="og:image" content={new URL(site.photo, Astro.site)} />
+    <meta name="twitter:card" content="summary" />
+
+    <script is:inline>
+      // Aplica el tema guardado antes de pintar, para evitar el parpadeo
+      try {
+        const saved = localStorage.getItem('theme');
+        const light = saved ? saved === 'light' : window.matchMedia('(prefers-color-scheme: light)').matches;
+        if (light) {
+          document.documentElement.classList.remove('dark');
+          document.documentElement.classList.add('light');
+        }
+      } catch (e) {}
+    </script>
+  </head>
+  <body class="min-h-screen font-sans">
+    <a
+      href="#main"
+      class="sr-only focus:not-sr-only focus:fixed focus:top-3 focus:left-3 focus:z-50 focus:rounded-lg focus:bg-accent focus:px-4 focus:py-2 focus:text-accent-ink"
+    >
+      {lang === 'es' ? 'Saltar al contenido' : 'Skip to content'}
+    </a>
+    <Header lang={lang} home={home} altHref={altHref} />
+    <main id="main">
+      <slot />
+    </main>
+    <Footer lang={lang} />
+
+    <script>
+      const reduced = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+
+      // Aparición al entrar en pantalla (+ contadores)
+      const io = new IntersectionObserver(
+        (entries) => {
+          for (const entry of entries) {
+            if (!entry.isIntersecting) continue;
+            entry.target.classList.add('visible');
+            entry.target.querySelectorAll<HTMLElement>('[data-count]').forEach((el) => {
+              const end = Number(el.dataset.count);
+              if (reduced) return;
+              const start = performance.now();
+              const step = (now: number) => {
+                const k = Math.min(1, (now - start) / 1600);
+                el.textContent = String(Math.round(end * (1 - Math.pow(1 - k, 3))));
+                if (k < 1) requestAnimationFrame(step);
+              };
+              requestAnimationFrame(step);
+            });
+            io.unobserve(entry.target);
+          }
+        },
+        { threshold: 0.15 },
+      );
+      document.querySelectorAll('.reveal').forEach((el) => io.observe(el));
+
+      // Brillo que sigue al mouse en las tarjetas de vidrio
+      document.querySelectorAll<HTMLElement>('.glass').forEach((card) => {
+        card.addEventListener('pointermove', (e) => {
+          const r = card.getBoundingClientRect();
+          card.style.setProperty('--mx', `${e.clientX - r.left}px`);
+          card.style.setProperty('--my', `${e.clientY - r.top}px`);
+        });
+      });
+
+      // Botones "magnéticos": se acercan levemente al cursor
+      if (!reduced && window.matchMedia('(hover: hover)').matches) {
+        document.querySelectorAll<HTMLElement>('.magnetic').forEach((btn) => {
+          btn.style.transition = 'transform .25s cubic-bezier(.2,.7,.2,1), box-shadow .3s ease';
+          btn.addEventListener('pointermove', (e) => {
+            const r = btn.getBoundingClientRect();
+            const x = (e.clientX - r.left - r.width / 2) * 0.25;
+            const y = (e.clientY - r.top - r.height / 2) * 0.35;
+            btn.style.transform = `translate(${x}px, ${y}px)`;
+          });
+          btn.addEventListener('pointerleave', () => (btn.style.transform = ''));
+        });
+      }
+    </script>
+  </body>
+</html>

@@ -1,0 +1,287 @@
+@import 'tailwindcss';
+@import '@fontsource-variable/inter';
+@import '@fontsource-variable/jetbrains-mono';
+
+@custom-variant dark (&:where(.dark, .dark *));
+
+/* Tema oscuro por defecto; html.light lo cambia */
+:root {
+  --bg: #07080b;
+  --bg-soft: #0d0f14;
+  --card: #0f1116;
+  --card-2: #15181f;
+  --border: #1d2129;
+  --fg: #f1f2f4;
+  --muted: #8d939e;
+  --accent: #ff7a1a;
+  --accent-strong: #ff9447;
+  --accent-ink: #1a0b00;
+  --glow: rgba(255, 122, 26, 0.35);
+  --edge: rgba(255, 255, 255, 0.1);
+  color-scheme: dark;
+}
+
+html.light {
+  --bg: #faf8f5;
+  --bg-soft: #f2eee8;
+  --card: #ffffff;
+  --card-2: #f7f4ef;
+  --border: #e6e0d6;
+  --fg: #15120e;
+  --muted: #6b6359;
+  --accent: #e8590c;
+  --accent-strong: #c2410c;
+  --accent-ink: #ffffff;
+  --glow: rgba(232, 89, 12, 0.18);
+  --edge: rgba(0, 0, 0, 0.06);
+  color-scheme: light;
+}
+
+@theme {
+  --font-sans: 'Inter Variable', ui-sans-serif, system-ui, sans-serif;
+  --font-mono: 'JetBrains Mono Variable', ui-monospace, monospace;
+  --color-bg: var(--bg);
+  --color-bg-soft: var(--bg-soft);
+  --color-card: var(--card);
+  --color-card-2: var(--card-2);
+  --color-line: var(--border);
+  --color-fg: var(--fg);
+  --color-muted: var(--muted);
+  --color-accent: var(--accent);
+  --color-accent-strong: var(--accent-strong);
+  --color-accent-ink: var(--accent-ink);
+}
+
+html {
+  scroll-padding-top: 5rem;
+}
+
+body {
+  background: var(--bg);
+  color: var(--fg);
+  -webkit-font-smoothing: antialiased;
+  overflow-x: clip;
+}
+
+::selection {
+  background: var(--accent);
+  color: var(--accent-ink);
+}
+
+/* Títulos grandes en peso regular, como en Redsun */
+.display {
+  font-weight: 450;
+  letter-spacing: -0.035em;
+  line-height: 1.02;
+}
+
+.text-gradient {
+  background: linear-gradient(180deg, var(--fg) 30%, color-mix(in srgb, var(--fg) 55%, transparent));
+  -webkit-background-clip: text;
+  background-clip: text;
+  color: transparent;
+}
+
+/* Tarjeta de vidrio: borde degradado que se ilumina arriba + brillo que sigue al mouse */
+.glass {
+  position: relative;
+  border: 1px solid transparent;
+  border-radius: 1.5rem;
+  background:
+    linear-gradient(180deg, var(--card-2), var(--card)) padding-box,
+    linear-gradient(180deg, var(--edge), transparent 70%) border-box;
+  box-shadow:
+    0 1px 0 0 color-mix(in srgb, white 4%, transparent) inset,
+    0 20px 50px -30px rgba(0, 0, 0, 0.6);
+  isolation: isolate;
+  overflow: hidden;
+}
+html.light .glass {
+  box-shadow: 0 20px 40px -28px rgba(60, 40, 20, 0.25);
+}
+.glass::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  z-index: -1;
+  border-radius: inherit;
+  background: radial-gradient(420px circle at var(--mx, 50%) var(--my, -20%), var(--glow), transparent 45%);
+  opacity: 0;
+  transition: opacity 0.4s ease;
+}
+.glass:hover::before {
+  opacity: 0.55;
+}
+.glass::after {
+  /* Borde iluminado bajo el cursor */
+  content: '';
+  position: absolute;
+  inset: 0;
+  border-radius: inherit;
+  padding: 1px;
+  background: radial-gradient(260px circle at var(--mx, 50%) var(--my, -20%), var(--accent), transparent 60%);
+  -webkit-mask:
+    linear-gradient(#000 0 0) content-box,
+    linear-gradient(#000 0 0);
+  -webkit-mask-composite: xor;
+  mask-composite: exclude;
+  opacity: 0;
+  transition: opacity 0.4s ease;
+  pointer-events: none;
+}
+.glass:hover::after {
+  opacity: 0.8;
+}
+
+/* Botón principal con brillo */
+.btn-glow {
+  background: linear-gradient(180deg, var(--accent-strong), var(--accent));
+  color: var(--accent-ink);
+  box-shadow:
+    0 0 0 1px color-mix(in srgb, var(--accent) 60%, transparent),
+    0 8px 30px -6px var(--glow),
+    inset 0 1px 0 rgba(255, 255, 255, 0.35);
+  transition:
+    box-shadow 0.3s ease,
+    transform 0.2s ease;
+}
+.btn-glow:hover {
+  box-shadow:
+    0 0 0 1px var(--accent),
+    0 10px 40px -4px var(--glow),
+    inset 0 1px 0 rgba(255, 255, 255, 0.45);
+}
+
+/* Cambio de tema: el navegador cruza las dos "fotos"; la animación del círculo la hace el JS */
+::view-transition-old(root),
+::view-transition-new(root) {
+  animation: none;
+  mix-blend-mode: normal;
+}
+
+/* Botón de idioma mientras trabaja */
+[aria-busy='true'] {
+  cursor: progress;
+  opacity: 0.5;
+}
+
+/* Cambio de idioma: brillo mientras las letras se "descifran" */
+.scrambling {
+  text-shadow: 0 0 14px color-mix(in srgb, var(--accent) 65%, transparent);
+}
+
+/* Aparición al hacer scroll, escalonada con --d */
+.reveal {
+  opacity: 0;
+  transform: translateY(24px);
+  filter: blur(6px);
+  transition:
+    opacity 0.8s cubic-bezier(0.2, 0.7, 0.2, 1),
+    transform 0.8s cubic-bezier(0.2, 0.7, 0.2, 1),
+    filter 0.8s ease;
+  transition-delay: var(--d, 0s);
+}
+.reveal.visible {
+  opacity: 1;
+  transform: none;
+  filter: none;
+}
+
+/* ---------- Animaciones de las mini interfaces ---------- */
+@keyframes dash {
+  to {
+    stroke-dashoffset: 0;
+  }
+}
+@keyframes pulse-ring {
+  0% {
+    transform: scale(0.6);
+    opacity: 0.9;
+  }
+  100% {
+    transform: scale(1.8);
+    opacity: 0;
+  }
+}
+@keyframes shimmer {
+  0% {
+    background-position: -200% 0;
+  }
+  100% {
+    background-position: 200% 0;
+  }
+}
+@keyframes term-line {
+  0%,
+  4% {
+    opacity: 0;
+    transform: translateY(4px);
+  }
+  8%,
+  88% {
+    opacity: 1;
+    transform: none;
+  }
+  96%,
+  100% {
+    opacity: 0;
+  }
+}
+@keyframes bar {
+  0%,
+  100% {
+    transform: scaleY(var(--from, 0.4));
+  }
+  50% {
+    transform: scaleY(var(--to, 0.9));
+  }
+}
+@keyframes blink {
+  50% {
+    opacity: 0;
+  }
+}
+
+.anim-pulse {
+  animation: pulse-ring 2.4s cubic-bezier(0.2, 0.6, 0.3, 1) infinite;
+}
+.anim-shimmer {
+  background: linear-gradient(90deg, transparent 0%, rgba(255, 255, 255, 0.35) 50%, transparent 100%);
+  background-size: 200% 100%;
+  animation: shimmer 2.6s linear infinite;
+}
+.term-line {
+  opacity: 0;
+  animation: term-line 9s ease infinite;
+  animation-delay: var(--d, 0s);
+}
+.anim-bar {
+  transform-origin: bottom;
+  animation: bar 3s ease-in-out infinite;
+  animation-delay: var(--d, 0s);
+}
+.caret {
+  animation: blink 1s steps(1) infinite;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .reveal {
+    opacity: 1;
+    transform: none;
+    filter: none;
+    transition: none;
+  }
+  .anim-pulse,
+  .anim-shimmer,
+  .anim-bar,
+  .caret {
+    animation: none;
+  }
+  .term-line {
+    animation: none;
+    opacity: 1;
+  }
+  .reduce-hide {
+    display: none;
+  }
+}
