@@ -233,7 +233,7 @@ export const t = {
         period: '2018 — 2024',
       },
     },
-    stack: { kicker: 'Herramientas', title: 'Stack', intro: 'Con lo que trabajo todos los días. Tocá una tarjeta para pintarla.' },
+    stack: { kicker: 'Herramientas', title: 'Stack', intro: 'Con lo que trabajo todos los días.' },
     talk: {
       kicker: 'Charlas',
       title: 'Del hardware a la nube',
@@ -390,7 +390,7 @@ export const t = {
         period: '2018 — 2024',
       },
     },
-    stack: { kicker: 'Tools', title: 'Stack', intro: 'What I work with every day. Tap a card to light it up.' },
+    stack: { kicker: 'Tools', title: 'Stack', intro: 'What I work with every day.' },
     talk: {
       kicker: 'Talks',
       title: 'From hardware to the cloud',
