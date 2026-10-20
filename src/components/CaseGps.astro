@@ -1,0 +1,360 @@
+---
+import { site, type Lang } from '../i18n/content';
+
+interface Props {
+  lang: Lang;
+}
+
+const { lang } = Astro.props;
+const home = lang === 'es' ? '/' : '/en/';
+const talkUrl = `https://www.youtube.com/watch?v=${site.talkVideoId}`;
+
+const c = {
+  es: {
+    kicker: 'Caso de estudio · TECOM 2026',
+    title: 'Del hardware a la nube: 7.000 máquinas hablando a la vez',
+    lead: 'Cómo recibimos, ordenamos y guardamos los datos de toda una flota de colectivos (posiciones GPS y pagos) sin perder una sola trama, incluso en hora pico.',
+    facts: [
+      { k: 'Mi parte', v: 'El lado servidor, y armé la charla' },
+      { k: 'Escala', v: '~7.000 máquinas a bordo' },
+      { k: 'Pico', v: '~1.400 tramas por segundo' },
+      { k: 'Infraestructura', v: '11 servidores (9 locales + 2 virtuales)' },
+    ],
+    problem: {
+      h: 'El problema',
+      p: [
+        'Cada colectivo lleva una máquina a bordo que registra su posición GPS y cada pago, y lo manda por red celular. Un urbano reporta cada ~3 segundos; un interurbano, cada ~6.',
+        'El desafío no es una máquina: es que miles hablen a la vez, todo el día, y que nada se pierda. Una trama de transacción es plata: si se pierde, la recaudación no cierra.',
+      ],
+    },
+    frame: {
+      h: 'La trama: cada byte cuenta',
+      p: 'Las máquinas no mandan JSON: mandan tramas binarias compactas, de 40 a 1.200 bytes. Por red celular, un formato de texto multiplicaría el tráfico y el costo. Cada trama ya trae adentro qué tipo de dato es y de qué máquina viene.',
+      parts: [
+        { b: '02', l: 'inicio' },
+        { b: '4D 49 43', l: 'tipo: GPS o pago' },
+        { b: '00 7A', l: 'ID de máquina' },
+        { b: '1F C4 ···', l: 'datos' },
+        { b: '2D 9E', l: 'verificación' },
+        { b: '03', l: 'fin' },
+      ],
+      note: 'Trama de ejemplo, simplificada.',
+    },
+    ack: {
+      h: 'El ACK: el permiso para avanzar',
+      p: 'La máquina guarda cada trama en su propia cola y la manda de a una. Solo pasa a la siguiente cuando el servidor le responde ACK («la tengo, seguí»). Si se queda sin señal, sigue registrando y reenvía todo cuando vuelve la conexión.',
+    },
+    archTitle: 'La arquitectura',
+    archText: 'Dos microservicios y una pila en el medio. La entrada tiene que ser rápida; el procesamiento, ordenado. Separar esas dos cosas es lo que hace que el sistema aguante los picos.',
+    arch: [
+      { t: 'Máquina', d: 'a bordo del colectivo' },
+      { t: 'Micro TCP', d: 'recibe y responde ACK', hot: true },
+      { t: 'La pila', d: 'cola que absorbe picos', hot: true },
+      { t: 'Micro FAZ', d: 'enruta por cliente', hot: true },
+      { t: 'Base del cliente', d: 'escrituras' },
+      { t: 'Réplica', d: 'lecturas del front' },
+    ],
+    backup: 'TCP de respaldo',
+    pieces: [
+      {
+        t: 'Micro TCP: la puerta de entrada',
+        d: 'Liviana a propósito: no procesa nada. Recibe la trama, responde el ACK y la deja en la pila. Así la máquina nunca espera a que la base termine de escribir.',
+      },
+      {
+        t: 'La pila: el amortiguador',
+        d: 'Una base que funciona como cola. Si en un pico entran más tramas de las que se pueden procesar, esperan ahí, en orden. La TCP apila y la FAZ desapila: nadie se pisa.',
+      },
+      {
+        t: 'Micro FAZ: el repartidor',
+        d: 'Saca tramas de la pila, las interpreta y pone cada dato en la base de su cliente según el ID que viene en la trama. Trabaja a su ritmo: si hay pico, la pila espera.',
+      },
+      {
+        t: 'Réplica: leer sin molestar',
+        d: 'Cada base tiene una copia espejo. La FAZ escribe en la principal y el front consulta la réplica, así una consulta pesada nunca frena la escritura. Y si la principal falla, los datos siguen ahí.',
+      },
+    ],
+    decisions: {
+      h: 'Las decisiones que lo hicieron escalar',
+      items: [
+        {
+          t: 'Todo en el mismo servidor',
+          d: 'Probamos separar la TCP, la FAZ y las bases en servidores distintos. El traspaso de datos por la red local era tanto que la red colapsaba. Juntos, los datos viajan por dentro del servidor.',
+        },
+        {
+          t: 'Una base por cliente',
+          d: 'Los datos de un cliente nunca comparten base con otro: separación física, no solo lógica. Es seguridad y, además, escalabilidad. Un cliente grande recibe su propia FAZ y no frena al resto.',
+        },
+        {
+          t: 'Siempre hay respaldo',
+          d: 'Si la TCP principal se cae, una de respaldo toma el flujo y el camino sigue igual. La máquina ni se entera.',
+        },
+        {
+          t: 'La máquina pregunta, el servidor responde',
+          d: 'Para mandarle horarios o un firmware nuevo no se le habla directo: la orden queda pendiente en la base y viaja junto con el próximo ACK. Lo que no puede esperar, como el mapa del pasajero, va por WebSockets.',
+        },
+      ],
+    },
+    results: {
+      h: 'Un día cualquiera',
+      stats: [
+        { v: '~7.000', l: 'máquinas en la calle' },
+        { v: '~1.400/s', l: 'tramas en hora pico' },
+        { v: '~30 GB', l: 'guardados y replicados por día' },
+        { v: '0', l: 'tramas perdidas: ninguna se da por entregada sin ACK' },
+      ],
+    },
+    talk: {
+      h: 'La charla',
+      p: 'Lo presentamos en TECOM 2026 junto a Cristian Lungu, que contó el hardware, y Bruno Toledo, que mostró el frontend. Yo expuse el lado servidor y armé la presentación.',
+      cta: 'Ver la charla',
+    },
+    back: 'Volver a proyectos',
+  },
+  en: {
+    kicker: 'Case study · TECOM 2026',
+    title: 'From hardware to the cloud: 7,000 machines talking at once',
+    lead: 'How we receive, sort and store data from an entire bus fleet (GPS positions and payments) without losing a single frame, even at rush hour.',
+    facts: [
+      { k: 'My part', v: 'The server side, and I built the talk' },
+      { k: 'Scale', v: '~7,000 on-board machines' },
+      { k: 'Peak', v: '~1,400 frames per second' },
+      { k: 'Infrastructure', v: '11 servers (9 on-prem + 2 virtual)' },
+    ],
+    problem: {
+      h: 'The problem',
+      p: [
+        'Every bus carries an on-board machine that records its GPS position and every payment, and sends it over the cellular network. A city bus reports every ~3 seconds; an intercity bus, every ~6.',
+        "The challenge isn't one machine: it's thousands talking at once, all day long, with nothing lost. A transaction frame is money: if it's lost, the fare collection doesn't add up.",
+      ],
+    },
+    frame: {
+      h: 'The frame: every byte counts',
+      p: "The machines don't send JSON: they send compact binary frames, 40 to 1,200 bytes long. Over a cellular network, a text format would multiply traffic and cost. Each frame already carries its data type and the machine it comes from.",
+      parts: [
+        { b: '02', l: 'start' },
+        { b: '4D 49 43', l: 'type: GPS or payment' },
+        { b: '00 7A', l: 'machine ID' },
+        { b: '1F C4 ···', l: 'data' },
+        { b: '2D 9E', l: 'checksum' },
+        { b: '03', l: 'end' },
+      ],
+      note: 'Sample frame, simplified.',
+    },
+    ack: {
+      h: 'The ACK: permission to move on',
+      p: 'The machine keeps every frame in its own queue and sends them one at a time. It only moves to the next one when the server answers ACK ("got it, go on"). If it loses signal, it keeps recording and resends everything once the connection is back.',
+    },
+    archTitle: 'The architecture',
+    archText: 'Two microservices with a queue in the middle. Ingestion has to be fast; processing has to be orderly. Splitting those two concerns is what lets the system absorb the peaks.',
+    arch: [
+      { t: 'Machine', d: 'on board the bus' },
+      { t: 'Micro TCP', d: 'receives and ACKs', hot: true },
+      { t: 'The queue', d: 'absorbs peaks', hot: true },
+      { t: 'Micro FAZ', d: 'routes per client', hot: true },
+      { t: 'Client database', d: 'writes' },
+      { t: 'Replica', d: 'front-end reads' },
+    ],
+    backup: 'Backup TCP',
+    pieces: [
+      {
+        t: 'Micro TCP: the front door',
+        d: 'Lightweight on purpose: it does no processing. It receives the frame, answers the ACK and drops it in the queue, so a machine never waits for the database to finish writing.',
+      },
+      {
+        t: 'The queue: the shock absorber',
+        d: "A database working as a queue. If more frames arrive at peak than can be processed, they wait there, in order. TCP pushes and FAZ pops: they never step on each other.",
+      },
+      {
+        t: 'Micro FAZ: the dispatcher',
+        d: 'It pulls frames from the queue, parses them and writes each record into its client database based on the ID inside the frame. It works at its own pace: at peak, the queue waits.',
+      },
+      {
+        t: 'Replica: read without getting in the way',
+        d: 'Every database has a mirror copy. FAZ writes to the primary and the front end reads from the replica, so a heavy query never slows down writes. And if the primary fails, the data is still there.',
+      },
+    ],
+    decisions: {
+      h: 'The decisions that made it scale',
+      items: [
+        {
+          t: 'Everything on the same server',
+          d: 'We tried splitting TCP, FAZ and the databases across different servers. So much data moved over the local network that it collapsed. Together, data travels inside the server.',
+        },
+        {
+          t: 'One database per client',
+          d: "One client's data never shares a database with another's: physical isolation, not just logical. That's security and also scalability. A large client gets its own FAZ and doesn't slow anyone down.",
+        },
+        {
+          t: 'There is always a backup',
+          d: "If the primary TCP goes down, a backup one takes over the stream and the path stays the same. The machine doesn't even notice.",
+        },
+        {
+          t: 'The machine asks, the server answers',
+          d: "To send it schedules or new firmware we never talk to it directly: the order waits in the database and rides along with the next ACK. What can't wait, like the passenger map, goes over WebSockets.",
+        },
+      ],
+    },
+    results: {
+      h: 'Any given day',
+      stats: [
+        { v: '~7,000', l: 'machines on the street' },
+        { v: '~1,400/s', l: 'frames at rush hour' },
+        { v: '~30 GB', l: 'stored and replicated per day' },
+        { v: '0', l: 'lost frames: none counts as delivered without an ACK' },
+      ],
+    },
+    talk: {
+      h: 'The talk',
+      p: 'We presented it at TECOM 2026 with Cristian Lungu, who covered the hardware, and Bruno Toledo, who showed the front end. I presented the server side and built the slides.',
+      cta: 'Watch the talk (in Spanish)',
+    },
+    back: 'Back to projects',
+  },
+}[lang];
+---
+
+<article class="mx-auto max-w-3xl px-4 pt-32 pb-24 sm:px-6 sm:pt-40">
+  <a href={`${home}#proyectos`} class="inline-flex items-center gap-2 text-sm text-muted hover:text-accent">
+    <span aria-hidden="true">←</span>
+    {c.back}
+  </a>
+
+  <p class="mt-10 font-mono text-sm text-accent">{c.kicker}</p>
+  <h1 class="display text-gradient mt-4 text-4xl text-balance sm:text-6xl">{c.title}</h1>
+  <p class="mt-6 text-lg leading-relaxed text-muted">{c.lead}</p>
+
+  <dl class="glass mt-10 grid grid-cols-2 gap-px bg-line sm:grid-cols-4">
+    {
+      c.facts.map((f) => (
+        <div class="bg-card p-4">
+          <dt class="font-mono text-xs tracking-wider text-muted uppercase">{f.k}</dt>
+          <dd class="mt-2 text-sm font-medium">{f.v}</dd>
+        </div>
+      ))
+    }
+  </dl>
+
+  <section class="reveal mt-16">
+    <h2 class="text-2xl font-medium tracking-tight">{c.problem.h}</h2>
+    {c.problem.p.map((p) => <p class="mt-4 leading-relaxed text-muted">{p}</p>)}
+  </section>
+
+  <section class="reveal mt-16">
+    <h2 class="text-2xl font-medium tracking-tight">{c.frame.h}</h2>
+    <p class="mt-4 leading-relaxed text-muted">{c.frame.p}</p>
+    <figure class="glass mt-8 p-5 sm:p-6">
+      <div class="flex flex-wrap gap-2">
+        {
+          c.frame.parts.map((part, i) => (
+            <div class="flex min-w-0 flex-col gap-2">
+              <span
+                class:list={[
+                  'rounded-lg border px-3 py-2 font-mono text-sm',
+                  i === 2 ? 'border-accent/70 bg-accent/15 text-fg' : 'border-line bg-bg-soft text-muted',
+                ]}
+              >
+                {part.b}
+              </span>
+              <span class="px-1 text-[11px] leading-tight text-muted">{part.l}</span>
+            </div>
+          ))
+        }
+      </div>
+      <figcaption class="mt-4 border-t border-line pt-3 font-mono text-[11px] text-muted">{c.frame.note}</figcaption>
+    </figure>
+  </section>
+
+  <section class="reveal mt-16">
+    <h2 class="text-2xl font-medium tracking-tight">{c.ack.h}</h2>
+    <p class="mt-4 leading-relaxed text-muted">{c.ack.p}</p>
+  </section>
+
+  <section class="reveal mt-16">
+    <h2 class="text-2xl font-medium tracking-tight">{c.archTitle}</h2>
+    <p class="mt-4 leading-relaxed text-muted">{c.archText}</p>
+
+    <figure class="glass mt-8 p-5 sm:p-6">
+      <ol class="grid gap-3 sm:grid-cols-3">
+        {
+          c.arch.map((node, i) => (
+            <li class="relative">
+              <div
+                class:list={[
+                  'h-full rounded-xl border px-4 py-3',
+                  node.hot ? 'border-accent/60 bg-accent/10' : 'border-line bg-bg-soft',
+                ]}
+              >
+                <p class="font-mono text-[10px] text-muted">{String(i + 1).padStart(2, '0')}</p>
+                <p class="mt-1 text-sm font-medium">{node.t}</p>
+                <p class="text-xs text-muted">{node.d}</p>
+                {i === 1 && (
+                  <p class="mt-2 inline-flex rounded-md border border-dashed border-line px-2 py-0.5 font-mono text-[10px] text-muted">
+                    + {c.backup}
+                  </p>
+                )}
+              </div>
+            </li>
+          ))
+        }
+      </ol>
+    </figure>
+
+    <div class="mt-8 grid gap-4 sm:grid-cols-2">
+      {
+        c.pieces.map((piece) => (
+          <div class="glass p-6">
+            <h3 class="font-medium">{piece.t}</h3>
+            <p class="mt-2 text-sm leading-relaxed text-muted">{piece.d}</p>
+          </div>
+        ))
+      }
+    </div>
+  </section>
+
+  <section class="reveal mt-16">
+    <h2 class="text-2xl font-medium tracking-tight">{c.decisions.h}</h2>
+    <ol class="mt-6 space-y-4">
+      {
+        c.decisions.items.map((item, i) => (
+          <li class="glass flex gap-5 p-6">
+            <span class="font-mono text-sm text-accent">{String(i + 1).padStart(2, '0')}</span>
+            <div>
+              <h3 class="font-medium">{item.t}</h3>
+              <p class="mt-2 text-sm leading-relaxed text-muted">{item.d}</p>
+            </div>
+          </li>
+        ))
+      }
+    </ol>
+  </section>
+
+  <section class="reveal mt-16">
+    <h2 class="text-2xl font-medium tracking-tight">{c.results.h}</h2>
+    <dl class="mt-6 grid grid-cols-2 gap-4">
+      {
+        c.results.stats.map((s) => (
+          <div class="glass p-6">
+            <dt class="sr-only">{s.l}</dt>
+            <dd class="display text-4xl text-accent sm:text-5xl">{s.v}</dd>
+            <dd class="mt-2 text-sm leading-snug text-muted">{s.l}</dd>
+          </div>
+        ))
+      }
+    </dl>
+  </section>
+
+  <section class="reveal mt-16">
+    <h2 class="text-2xl font-medium tracking-tight">{c.talk.h}</h2>
+    <p class="mt-4 leading-relaxed text-muted">{c.talk.p}</p>
+    <a href={talkUrl} target="_blank" rel="noopener noreferrer" class="btn-glow mt-6 inline-flex items-center gap-2 rounded-full px-6 py-3 text-sm font-semibold">
+      {c.talk.cta} <span aria-hidden="true">↗</span>
+    </a>
+  </section>
+
+  <div class="mt-16 border-t border-line pt-8">
+    <a href={`${home}#proyectos`} class="inline-flex items-center gap-2 font-semibold text-accent hover:underline">
+      <span aria-hidden="true">←</span>
+      {c.back}
+    </a>
+  </div>
+</article>

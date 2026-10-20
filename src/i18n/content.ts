@@ -156,6 +156,8 @@ export const t = {
       description:
         'Cómo procesamos en tiempo real las conexiones TCP y los puntos GPS de flotas de colectivos sin que el sistema colapse.',
       play: 'Ver la charla',
+      caseCta: 'Leer el caso de estudio',
+      caseHref: '/caso-gps/',
     },
     contact: {
       title: '¿Construimos algo juntos?',
@@ -296,6 +298,8 @@ export const t = {
       description:
         'How we process TCP connections and GPS data from bus fleets in real time without the system collapsing.',
       play: 'Watch the talk',
+      caseCta: 'Read the case study',
+      caseHref: '/en/gps-case-study/',
     },
     contact: {
       title: "Let's build something together",
