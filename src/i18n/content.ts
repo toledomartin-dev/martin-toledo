@@ -51,7 +51,7 @@ export const t = {
     city: {
       kicker: 'Córdoba · datos reales',
       title: 'Las avenidas de Córdoba, dibujadas con puntos.',
-      text: 'Detrás de cada app hay miles de posiciones GPS llegando sin parar. Diseño los sistemas que las reciben por TCP, las procesan y las muestran en tiempo real, sin que colapsen.',
+      text: 'Detrás de cada app hay miles de posiciones GPS llegando sin parar. Trabajo en los sistemas que las reciben, las procesan y las muestran en tiempo real, sin que colapsen.',
       legendPoints: 'Avenidas (OpenStreetMap)',
       legendVehicles: 'Vehículos simulados',
       credit: 'Mapa © OpenStreetMap contributors',
@@ -193,7 +193,7 @@ export const t = {
     city: {
       kicker: 'Córdoba · real data',
       title: "Córdoba's avenues, drawn in points.",
-      text: 'Behind every app there are thousands of GPS positions streaming in nonstop. I design the systems that receive them over TCP, process them and show them in real time, without collapsing.',
+      text: 'Behind every app there are thousands of GPS positions streaming in nonstop. I work on the systems that receive them, process them and show them in real time, without collapsing.',
       legendPoints: 'Avenues (OpenStreetMap)',
       legendVehicles: 'Simulated vehicles',
       credit: 'Map © OpenStreetMap contributors',

@@ -13,9 +13,9 @@ const c = {
   es: {
     kicker: 'Caso de estudio · TECOM 2026',
     title: 'Del hardware a la nube: 7.000 máquinas hablando a la vez',
-    lead: 'Cómo recibimos, ordenamos y guardamos los datos de toda una flota de colectivos (posiciones GPS y pagos) sin perder una sola trama, incluso en hora pico.',
+    lead: 'Cómo funciona el sistema de Micronauta que recibe, ordena y guarda los datos de toda una flota de colectivos (posiciones GPS y pagos) sin perder una sola trama, incluso en hora pico. Lo investigué de punta a punta para contarlo en TECOM 2026.',
     facts: [
-      { k: 'Mi parte', v: 'El lado servidor, y armé la charla' },
+      { k: 'Mi parte', v: 'Mejoré la web de la flota y armé la charla' },
       { k: 'Escala', v: '~7.000 máquinas a bordo' },
       { k: 'Pico', v: '~1.400 tramas por segundo' },
       { k: 'Infraestructura', v: '11 servidores (9 locales + 2 virtuales)' },
@@ -78,7 +78,7 @@ const c = {
       items: [
         {
           t: 'Todo en el mismo servidor',
-          d: 'Probamos separar la TCP, la FAZ y las bases en servidores distintos. El traspaso de datos por la red local era tanto que la red colapsaba. Juntos, los datos viajan por dentro del servidor.',
+          d: 'Se probó separar la TCP, la FAZ y las bases en servidores distintos. El traspaso de datos por la red local era tanto que la red colapsaba. Juntos, los datos viajan por dentro del servidor.',
         },
         {
           t: 'Una base por cliente',
@@ -104,8 +104,8 @@ const c = {
       ],
     },
     talk: {
-      h: 'La charla',
-      p: 'Lo presentamos en TECOM 2026 junto a Cristian Lungu, que contó el hardware, y Bruno Toledo, que mostró el frontend. Yo expuse el lado servidor y armé la presentación.',
+      h: 'Mi parte',
+      p: 'Este sistema ya existía cuando llegué. Mi trabajo fue mejorar la web de la flota, donde el equipo de soporte ve cada coche en el mapa, revisa reportes y manda órdenes a las máquinas. Para la charla, que presentamos en equipo en TECOM 2026, investigué cómo funcionaba todo el recorrido dentro de la empresa, armé la presentación y expuse el lado servidor.',
       cta: 'Ver la charla',
     },
     back: 'Volver a proyectos',
@@ -113,9 +113,9 @@ const c = {
   en: {
     kicker: 'Case study · TECOM 2026',
     title: 'From hardware to the cloud: 7,000 machines talking at once',
-    lead: 'How we receive, sort and store data from an entire bus fleet (GPS positions and payments) without losing a single frame, even at rush hour.',
+    lead: "How Micronauta's system receives, sorts and stores data from an entire bus fleet (GPS positions and payments) without losing a single frame, even at rush hour. I researched it end to end to present it at TECOM 2026.",
     facts: [
-      { k: 'My part', v: 'The server side, and I built the talk' },
+      { k: 'My part', v: 'Improved the fleet web app and built the talk' },
       { k: 'Scale', v: '~7,000 on-board machines' },
       { k: 'Peak', v: '~1,400 frames per second' },
       { k: 'Infrastructure', v: '11 servers (9 on-prem + 2 virtual)' },
@@ -178,7 +178,7 @@ const c = {
       items: [
         {
           t: 'Everything on the same server',
-          d: 'We tried splitting TCP, FAZ and the databases across different servers. So much data moved over the local network that it collapsed. Together, data travels inside the server.',
+          d: 'Splitting TCP, FAZ and the databases across different servers was tried. So much data moved over the local network that it collapsed. Together, data travels inside the server.',
         },
         {
           t: 'One database per client',
@@ -204,8 +204,8 @@ const c = {
       ],
     },
     talk: {
-      h: 'The talk',
-      p: 'We presented it at TECOM 2026 with Cristian Lungu, who covered the hardware, and Bruno Toledo, who showed the front end. I presented the server side and built the slides.',
+      h: 'My part',
+      p: 'This system was already running when I joined. My work was improving the fleet web app, where the support team sees every bus on the map, reviews reports and sends orders to the machines. For the talk, which we presented as a team at TECOM 2026, I researched how the whole pipeline worked across the company, built the slides and presented the server side.',
       cta: 'Watch the talk (in Spanish)',
     },
     back: 'Back to projects',
