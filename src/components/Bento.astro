@@ -30,17 +30,28 @@ const spark = 'M0 50 L20 42 L40 46 L60 30 L80 34 L100 22 L120 28 L140 16 L160 20
 
   <div class="mt-14 grid auto-rows-[minmax(220px,auto)] gap-4 sm:grid-cols-2 lg:grid-cols-6">
     <!-- Entaxi: celular con mapa y viaje en curso -->
-    <a href={ui.entaxi.href} class="glass reveal group flex flex-col overflow-hidden sm:col-span-2 lg:col-span-3 lg:row-span-2">
+    <!-- Toda la tarjeta lleva al caso (link "estirado"); el link al sitio queda por encima -->
+    <div class="glass reveal group relative flex flex-col overflow-hidden sm:col-span-2 lg:col-span-3 lg:row-span-2">
       <div class="p-7 sm:p-8">
         <p class="font-mono text-xs text-accent">{ui.entaxi.tag}</p>
         <h3 class="mt-3 text-2xl font-medium tracking-tight">{ui.entaxi.title}</h3>
         <p class="mt-2 max-w-sm text-sm leading-relaxed text-muted">{ui.entaxi.text}</p>
-        <p class="mt-5 inline-flex items-center gap-2 text-sm font-medium text-accent">
-          {ui.entaxi.cta}
-          <span class="transition-transform group-hover:translate-x-1" aria-hidden="true">→</span>
-        </p>
+        <div class="mt-5 flex flex-wrap items-center gap-x-5 gap-y-2">
+          <a href={ui.entaxi.href} class="inline-flex items-center gap-2 text-sm font-medium text-accent after:absolute after:inset-0 after:content-['']">
+            {ui.entaxi.cta}
+            <span class="transition-transform group-hover:translate-x-1" aria-hidden="true">→</span>
+          </a>
+          <a
+            href={links.cbataxi}
+            target="_blank"
+            rel="noopener noreferrer"
+            class="relative z-10 inline-flex items-center gap-1.5 rounded-full border border-line px-3 py-1 font-mono text-xs text-muted transition-colors hover:border-accent/60 hover:text-accent"
+          >
+            cbataxi.com <span aria-hidden="true">↗</span>
+          </a>
+        </div>
       </div>
-      <div class="relative mt-auto flex justify-center px-8" aria-hidden="true">
+      <div class="pointer-events-none relative mt-auto flex justify-center px-8" aria-hidden="true">
         <div class="absolute bottom-0 left-1/2 h-48 w-72 -translate-x-1/2 rounded-full bg-accent/25 blur-3xl"></div>
         <div
           class="relative h-[420px] w-[260px] translate-y-12 overflow-hidden rounded-t-[2.2rem] border-[6px] border-b-0 border-[#20232b] bg-[#0b0d11] shadow-2xl transition-transform duration-500 group-hover:translate-y-6"
@@ -93,7 +104,7 @@ const spark = 'M0 50 L20 42 L40 46 L60 30 L80 34 L100 22 L120 28 L140 16 L160 20
           </div>
         </div>
       </div>
-    </a>
+    </div>
 
     <!-- Choferes: contador + actividad -->
     <div class="glass reveal flex flex-col justify-between p-7 lg:col-span-3" style="--d:.08s">

@@ -3,14 +3,25 @@
 // los textos en orden y los visibles se "descifran" letra por letra hasta la traducción.
 // Si algo no coincide (o el usuario prefiere menos movimiento), se navega normalmente.
 
-const GLYPHS = 'アカサタナハマヤラワイキシチニヒミリウクスツヌフムユルエケセテネヘメレオコソトノホモヨロ0123456789ABCDEFXYZ#$%&*+=<>';
-const DURATION = 900;
+const DURATION = 850;
+const TICK = 55; // cada cuánto cambian los caracteres que todavía no se fijaron (ms)
 const ATTRS = ['href', 'aria-label', 'title', 'alt', 'hreflang', 'data-title', 'download', 'lang'];
+
+// Cada carácter se mezcla con otros de su mismo tipo y la puntuación queda fija:
+// así el texto conserva su forma y su ancho, y no "salta" mientras se descifra.
+const UPPER = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ';
+const LOWER = 'abcdefghijklmnopqrstuvwxyz';
+const DIGITS = '0123456789';
+function glyphFor(ch: string, seed: number) {
+  const pool = /\d/.test(ch) ? DIGITS : /\p{Lu}/u.test(ch) ? UPPER : /\p{Ll}/u.test(ch) ? LOWER : '';
+  if (!pool) return ch;
+  // Pseudoaleatorio estable dentro de cada tick: no parpadea en cada cuadro
+  const h = Math.imul(seed ^ (seed >>> 15), 2246822507) >>> 0;
+  return pool[h % pool.length];
+}
 
 let busy = false;
 let currentPath = location.pathname;
-
-const randomGlyph = () => GLYPHS[Math.floor(Math.random() * GLYPHS.length)];
 
 function textNodes(root: Node) {
   const walker = document.createTreeWalker(root, NodeFilter.SHOW_TEXT, {
@@ -65,6 +76,12 @@ function scramble(pairs: { node: Text; from: string; to: string; delay: number }
     const parents = new Set(pairs.map((p) => p.node.parentElement!));
     parents.forEach((el) => el.classList.add('scrambling'));
 
+    // Cada letra se fija en su momento: una ola de izquierda a derecha con algo de azar
+    const plans = pairs.map((p) => ({
+      ...p,
+      settleAt: Array.from(p.to, (_, i) => p.delay + (i / Math.max(1, p.to.length)) * DURATION * 0.55 + Math.random() * 140),
+    }));
+
     let finished = false;
     const finish = () => {
       if (finished) return;
@@ -79,21 +96,25 @@ function scramble(pairs: { node: Text; from: string; to: string; delay: number }
 
     const frame = (now: number) => {
       if (finished) return;
+      const elapsed = now - start;
+      const tick = Math.floor(elapsed / TICK);
       let done = true;
-      for (const p of pairs) {
-        const t = Math.min(1, Math.max(0, (now - start - p.delay) / (DURATION - p.delay)));
-        if (t < 1) done = false;
-        const len = Math.round(p.from.length + (p.to.length - p.from.length) * t);
-        const settled = Math.floor(p.to.length * t * t);
-        let out = '';
-        for (let i = 0; i < len; i++) {
-          const target = p.to[i] ?? '';
-          if (i < settled) out += target;
-          else if (target === ' ' || p.from[i] === ' ') out += ' ';
-          else out += t === 0 ? (p.from[i] ?? '') : randomGlyph();
+      plans.forEach((p, n) => {
+        if (elapsed < p.delay) {
+          done = false;
+          return;
         }
-        p.node.nodeValue = t >= 1 ? p.to : out;
-      }
+        let out = '';
+        for (let i = 0; i < p.to.length; i++) {
+          const ch = p.to[i];
+          if (elapsed >= p.settleAt[i]) out += ch;
+          else {
+            done = false;
+            out += glyphFor(ch, (n + 1) * 7919 + i * 104729 + tick * 31);
+          }
+        }
+        if (p.node.nodeValue !== out) p.node.nodeValue = out;
+      });
       if (done) finish();
       else requestAnimationFrame(frame);
     };
@@ -140,7 +161,7 @@ async function switchLanguage(href: string) {
 
   // Solo se animan los textos visibles; el resto cambia de golpe al final
   const pairs = currentText
-    .map((node, i) => ({ node, from: node.nodeValue ?? '', to: nextText[i].nodeValue ?? '', delay: Math.random() * 250 }))
+    .map((node, i) => ({ node, from: node.nodeValue ?? '', to: nextText[i].nodeValue ?? '', delay: Math.random() * 180 }))
     .filter((p) => p.from !== p.to);
   const visible = pairs.filter((p) => isVisible(p.node));
   const hidden = pairs.filter((p) => !visible.includes(p));

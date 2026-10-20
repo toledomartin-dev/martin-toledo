@@ -30,7 +30,7 @@ export const cv = {
           'Inicio los proyectos nuevos, los llevo a un estado avanzado, los traspaso al equipo para su mantenimiento y sigo liderando su evolución.',
           'Contacto técnico directo de la dirección y de los clientes: presento productos, defino alcances, defiendo propuestas y negocio integraciones.',
           'Migré la app de choferes de una web híbrida a React Native con acceso nativo al hardware: menor consumo de RAM y una app más rápida. En producción con Rapitaxi (~500 choferes) y en implementación en San Juan.',
-          'Lideré la evolución mobile del equipo: de PWAs a Capacitor y luego a React Native. Publico y mantengo apps en Google Play.',
+          'Lideré la evolución mobile del equipo: de PWAs a Capacitor y luego a React Native. Publico y mantengo apps en Google Play, y compilé la app de taxis para iOS con Capacitor y Codemagic.',
           'Diseño las bases de datos de los proyectos y optimizo las consultas críticas de rendimiento.',
           'Integré pagos con Mercado Pago, servicios de VEDI y sistemas de la Municipalidad de Córdoba por VPN.',
           'Montamos GitLab autohosteado con CI/CD, registry y runners, y dockerizamos todas las aplicaciones para desplegar por tag con rollback.',
@@ -47,7 +47,7 @@ export const cv = {
       },
     ],
     projects: [
-      { name: 'Entaxi', text: 'Plataforma de taxis multimarca con modo taxímetro. App React Native + TypeScript, Traccar, Firebase, SQLite offline, Sentry.' },
+      { name: 'Entaxi', text: 'Plataforma de taxis multimarca con modo taxímetro (cbataxi.com). App React Native + TypeScript, Traccar, Firebase, SQLite offline, Sentry.' },
       { name: 'BiciCba', text: 'Bicicletas públicas de Córdoba. Desarrollo full stack del sitio, paneles de administración y reportes.' },
       { name: 'Tu Libreta Digital', text: 'Aplicación de la Municipalidad de Córdoba. Desarrollo full stack.' },
       { name: 'Empadronamiento de taxistas', text: 'Registro de taxistas ante la Municipalidad. PHP y MySQL.' },
@@ -56,7 +56,7 @@ export const cv = {
     ],
     skills: [
       { k: 'Lenguajes', v: 'JavaScript, TypeScript, PHP, SQL, Python, C#, Kotlin (básico)' },
-      { k: 'Mobile', v: 'React Native, Capacitor, PWA, Firebase, Google Play' },
+      { k: 'Mobile', v: 'React Native, Capacitor, PWA, Firebase, Google Play, iOS (Codemagic)' },
       { k: 'Frontend', v: 'React, Next.js, Vite, Tailwind CSS, Three.js' },
       { k: 'Backend', v: 'Node.js, Express, PHP, WebSockets, APIs REST, JWT, Mercado Pago' },
       { k: 'Datos', v: 'MySQL, PostgreSQL, SQLite; modelado y optimización de consultas' },
@@ -104,7 +104,7 @@ export const cv = {
           'I start new projects, take them to an advanced stage, hand them over for maintenance and keep leading their evolution.',
           'Main technical contact for management and clients: I demo products, define scope, defend proposals and negotiate integrations.',
           'Migrated the driver app from a hybrid web app to React Native with native hardware access: lower RAM usage and a faster app. Live with Rapitaxi (~500 drivers) and rolling out in San Juan.',
-          "Led the team's mobile evolution from PWAs to Capacitor, then React Native. I publish and maintain apps on Google Play.",
+          "Led the team's mobile evolution from PWAs to Capacitor, then React Native. I publish and maintain apps on Google Play, and built the taxi app for iOS with Capacitor and Codemagic.",
           'Design project databases and optimize performance-critical queries.',
           'Integrated Mercado Pago payments, VEDI services and Córdoba City Hall systems over VPN.',
           'Set up self-hosted GitLab with CI/CD, registry and runners, and dockerized every application for tag-based deploys with rollback.',
@@ -121,7 +121,7 @@ export const cv = {
       },
     ],
     projects: [
-      { name: 'Entaxi', text: 'Multi-brand taxi platform with taximeter mode. React Native + TypeScript app, Traccar, Firebase, offline SQLite, Sentry.' },
+      { name: 'Entaxi', text: 'Multi-brand taxi platform with taximeter mode (cbataxi.com). React Native + TypeScript app, Traccar, Firebase, offline SQLite, Sentry.' },
       { name: 'BiciCba', text: "Córdoba's public bike sharing. Full stack development of the site, admin dashboards and reports." },
       { name: 'Tu Libreta Digital', text: 'Córdoba City Hall application. Full stack development.' },
       { name: 'Taxi driver registry', text: 'Taxi driver registration with City Hall. PHP and MySQL.' },
@@ -130,7 +130,7 @@ export const cv = {
     ],
     skills: [
       { k: 'Languages', v: 'JavaScript, TypeScript, PHP, SQL, Python, C#, Kotlin (basic)' },
-      { k: 'Mobile', v: 'React Native, Capacitor, PWA, Firebase, Google Play' },
+      { k: 'Mobile', v: 'React Native, Capacitor, PWA, Firebase, Google Play, iOS (Codemagic)' },
       { k: 'Frontend', v: 'React, Next.js, Vite, Tailwind CSS, Three.js' },
       { k: 'Backend', v: 'Node.js, Express, PHP, WebSockets, REST APIs, JWT, Mercado Pago' },
       { k: 'Data', v: 'MySQL, PostgreSQL, SQLite; data modeling and query optimization' },

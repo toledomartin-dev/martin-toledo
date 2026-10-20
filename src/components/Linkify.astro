@@ -1,12 +1,12 @@
 ---
-// Muestra un texto convirtiendo en link las direcciones de sitios (por ejemplo fcn.pages.dev)
+// Muestra un texto convirtiendo en link las direcciones de sitios (fcn.pages.dev, cbataxi.com…)
 interface Props {
   text: string;
   class?: string;
 }
 
 const { text, class: className } = Astro.props;
-const parts = text.split(/(\b[a-z0-9-]+\.pages\.dev\b)/i);
+const parts = text.split(/(\b[a-z0-9-]+\.(?:pages\.dev|com(?:\.ar)?)\b)/i);
 ---
 
 {

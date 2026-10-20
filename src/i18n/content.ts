@@ -19,16 +19,69 @@ export const links = {
   tubondi: 'https://tubondi.com',
   tulibreta: 'https://transportedigital.cordoba.gob.ar/tulibreta-digital/#!/landing-page/',
   fcn: 'https://fcn.pages.dev',
+  cbataxi: 'https://cbataxi.com',
 };
 
-export const stack = [
-  { es: 'Mobile', en: 'Mobile', items: ['React Native', 'Capacitor', 'PWA', 'Firebase', 'Google Play', 'Kotlin (básico)'] },
-  { es: 'Frontend', en: 'Frontend', items: ['React', 'Next.js', 'TypeScript', 'Tailwind CSS', 'Vite', 'Three.js'] },
-  { es: 'Backend', en: 'Backend', items: ['Node.js', 'Express', 'PHP', 'WebSockets', 'REST', 'Mercado Pago'] },
-  { es: 'Datos', en: 'Data', items: ['MySQL', 'PostgreSQL', 'SQLite', 'Optimización de queries'] },
-  { es: 'Mapas y GPS', en: 'Maps & GPS', items: ['Traccar', 'Nominatim', 'GraphHopper', 'OpenLayers', 'MapLibre'] },
-  { es: 'DevOps', en: 'DevOps', items: ['Docker', 'GitLab CI/CD', 'Traefik', 'Linux', 'Prometheus', 'Grafana', 'Sentry'] },
-  { es: 'IA y automatización', en: 'AI & automation', items: ['Claude', 'n8n'] },
+// Stack: filas que se desplazan en direcciones alternas. `icon` es el nombre del ícono en
+// simple-icons (siReact, siDocker…); sin ícono se muestra un monograma.
+export const stackRows = [
+  {
+    es: 'Mobile y frontend',
+    en: 'Mobile & front end',
+    items: [
+      { name: 'React Native', icon: 'siReact' },
+      { name: 'Capacitor', icon: 'siCapacitor' },
+      { name: 'iOS', icon: 'siApple' },
+      { name: 'Codemagic', icon: 'siCodemagic' },
+      { name: 'Google Play', icon: 'siGoogleplay' },
+      { name: 'Firebase', icon: 'siFirebase' },
+      { name: 'Kotlin', icon: 'siKotlin' },
+      { name: 'PWA', icon: 'siPwa' },
+      { name: 'React', icon: 'siReact' },
+      { name: 'Next.js', icon: 'siNextdotjs' },
+      { name: 'TypeScript', icon: 'siTypescript' },
+      { name: 'Tailwind CSS', icon: 'siTailwindcss' },
+      { name: 'Vite', icon: 'siVite' },
+      { name: 'Three.js', icon: 'siThreedotjs' },
+      { name: 'Astro', icon: 'siAstro' },
+    ],
+  },
+  {
+    es: 'Backend, datos e IA',
+    en: 'Back end, data & AI',
+    items: [
+      { name: 'Node.js', icon: 'siNodedotjs' },
+      { name: 'Express', icon: 'siExpress' },
+      { name: 'PHP', icon: 'siPhp' },
+      { name: 'WebSockets', icon: 'siSocketdotio' },
+      { name: 'Mercado Pago', icon: 'siMercadopago' },
+      { name: 'MySQL', icon: 'siMysql' },
+      { name: 'PostgreSQL', icon: 'siPostgresql' },
+      { name: 'SQLite', icon: 'siSqlite' },
+      { name: 'Claude', icon: 'siClaude' },
+      { name: 'n8n', icon: 'siN8n' },
+    ],
+  },
+  {
+    es: 'Mapas e infraestructura',
+    en: 'Maps & infrastructure',
+    items: [
+      { name: 'Traccar', icon: 'siTraccar' },
+      { name: 'Nominatim', icon: 'siOpenstreetmap' },
+      { name: 'GraphHopper', icon: '' },
+      { name: 'OpenLayers', icon: 'siOpenlayers' },
+      { name: 'MapLibre', icon: 'siMaplibre' },
+      { name: 'Docker', icon: 'siDocker' },
+      { name: 'GitLab CI/CD', icon: 'siGitlab' },
+      { name: 'Traefik', icon: 'siTraefikproxy' },
+      { name: 'Linux', icon: 'siLinux' },
+      { name: 'Prometheus', icon: 'siPrometheus' },
+      { name: 'Grafana', icon: 'siGrafana' },
+      { name: 'Sentry', icon: 'siSentry' },
+      { name: 'Git', icon: 'siGit' },
+      { name: 'Jira', icon: 'siJira' },
+    ],
+  },
 ];
 
 export const t = {
@@ -147,7 +200,7 @@ export const t = {
         period: '2018 — 2024',
       },
     },
-    stack: { kicker: 'Herramientas', title: 'Stack', intro: 'Con lo que trabajo todos los días.' },
+    stack: { kicker: 'Herramientas', title: 'Stack', intro: 'Con lo que trabajo todos los días. Tocá una tarjeta para pintarla.' },
     talk: {
       kicker: 'Charlas',
       title: 'Del hardware a la nube',
@@ -289,7 +342,7 @@ export const t = {
         period: '2018 — 2024',
       },
     },
-    stack: { kicker: 'Tools', title: 'Stack', intro: 'What I work with every day.' },
+    stack: { kicker: 'Tools', title: 'Stack', intro: 'What I work with every day. Tap a card to light it up.' },
     talk: {
       kicker: 'Talks',
       title: 'From hardware to the cloud',

@@ -1,5 +1,6 @@
 ---
-import { t, stack, type Lang } from '../i18n/content';
+import * as icons from 'simple-icons';
+import { t, stackRows, type Lang } from '../i18n/content';
 
 interface Props {
   lang: Lang;
@@ -7,32 +8,167 @@ interface Props {
 
 const { lang } = Astro.props;
 const ui = t[lang].stack;
-const translate = (item: string) =>
-  lang === 'en' ? item.replace('(básico)', '(basic)').replace('Optimización de queries', 'Query optimization') : item;
+
+type SimpleIcon = { path: string; hex: string };
+const lookup = icons as unknown as Record<string, SimpleIcon | undefined>;
+
+// Las marcas casi negras (Express, Next.js…) se pintan con el color del texto para no
+// desaparecer sobre el fondo oscuro
+const luminance = (hex: string) => {
+  const [r, g, b] = [0, 2, 4].map((i) => parseInt(hex.slice(i, i + 2), 16) / 255);
+  return 0.2126 * r + 0.7152 * g + 0.0722 * b;
+};
+const rows = stackRows.map((row, r) => ({
+  label: row[lang],
+  reverse: r % 2 === 1,
+  duration: 38 + r * 6,
+  items: row.items.map((item) => {
+    const icon = item.icon ? lookup[item.icon] : undefined;
+    const hex = icon?.hex ?? 'ff7a1a';
+    return {
+      name: item.name,
+      path: icon?.path,
+      initials: item.name.replace(/[^A-Z]/g, '').slice(0, 2) || item.name.slice(0, 2),
+      brand: luminance(hex) < 0.12 ? 'var(--fg)' : `#${hex}`,
+    };
+  }),
+}));
 ---
 
-<section id="stack" class="mx-auto max-w-6xl px-4 py-28 sm:px-6">
-  <div class="reveal max-w-2xl">
-    <p class="font-mono text-xs tracking-widest text-accent uppercase">{ui.kicker}</p>
-    <h2 class="display text-gradient mt-4 text-4xl sm:text-6xl">{ui.title}</h2>
-    <p class="mt-4 text-muted">{ui.intro}</p>
+<section id="stack" class="py-28">
+  <div class="mx-auto max-w-6xl px-4 sm:px-6">
+    <div class="reveal max-w-2xl">
+      <p class="font-mono text-xs tracking-widest text-accent uppercase">{ui.kicker}</p>
+      <h2 class="display text-gradient mt-4 text-4xl sm:text-6xl">{ui.title}</h2>
+      <p class="mt-4 text-muted">{ui.intro}</p>
+    </div>
   </div>
 
-  <div class="mt-14 grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
+  <div class="reveal mt-14 space-y-8">
     {
-      stack.map((group, i) => (
-        <div
-          class:list={['glass reveal p-6', i === stack.length - 1 && stack.length % 3 === 1 && 'sm:col-span-2 lg:col-span-3']}
-          style={`--d:${(i % 3) * 0.06}s`}
-        >
-          <h3 class="font-medium">{group[lang]}</h3>
-          <ul class="mt-4 flex flex-wrap gap-2">
-            {group.items.map((item) => (
-              <li class="rounded-full border border-line bg-bg-soft/60 px-3 py-1 text-sm text-muted">{translate(item)}</li>
-            ))}
-          </ul>
+      rows.map((row) => (
+        <div>
+          <p class="mx-auto max-w-6xl px-4 font-mono text-[10px] tracking-widest text-muted uppercase sm:px-6">{row.label}</p>
+          <div class="marquee mt-3" style={`--dur:${row.duration}s`}>
+            <ul class:list={['track', row.reverse && 'reverse']}>
+              {[0, 1].map((copy) =>
+                row.items.map((item) => (
+                  <li class="pr-3" aria-hidden={copy === 1 ? 'true' : undefined} data-copy={copy}>
+                    <button
+                      type="button"
+                      class="tech"
+                      data-tech={item.name}
+                      aria-pressed="false"
+                      tabindex={copy === 1 ? -1 : undefined}
+                      style={`--brand:${item.brand}`}
+                    >
+                      {item.path ? (
+                        <svg viewBox="0 0 24 24" class="size-6 shrink-0" fill="currentColor" aria-hidden="true">
+                          <path d={item.path} />
+                        </svg>
+                      ) : (
+                        <span class="grid size-6 shrink-0 place-items-center rounded-md border border-current font-mono text-[10px] font-bold" aria-hidden="true">
+                          {item.initials}
+                        </span>
+                      )}
+                      <span class="text-sm font-medium whitespace-nowrap">{item.name}</span>
+                    </button>
+                  </li>
+                )),
+              )}
+            </ul>
+          </div>
         </div>
       ))
     }
   </div>
 </section>
+
+<style>
+  /* Filas que se desplazan sin fin: el contenido va duplicado y se mueve la mitad del ancho */
+  .marquee {
+    overflow: hidden;
+    mask-image: linear-gradient(to right, transparent, #000 7%, #000 93%, transparent);
+  }
+  .track {
+    display: flex;
+    width: max-content;
+    animation: marquee var(--dur) linear infinite;
+  }
+  .track.reverse {
+    animation-direction: reverse;
+  }
+  .marquee:hover .track,
+  .marquee:focus-within .track {
+    animation-play-state: paused;
+  }
+  @keyframes marquee {
+    to {
+      transform: translateX(-50%);
+    }
+  }
+
+  .tech {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.75rem;
+    padding: 0.85rem 1.15rem;
+    border-radius: 1rem;
+    border: 1px solid var(--border);
+    background: color-mix(in srgb, var(--card) 85%, transparent);
+    color: var(--muted);
+    cursor: pointer;
+    transition:
+      color 0.3s ease,
+      border-color 0.3s ease,
+      background 0.3s ease,
+      box-shadow 0.3s ease,
+      transform 0.3s ease;
+  }
+  /* Al pasar el mouse o tocarla, la tarjeta toma el color de la marca */
+  .tech:hover,
+  .tech:focus-visible,
+  .tech.lit {
+    color: var(--brand);
+    border-color: color-mix(in srgb, var(--brand) 55%, transparent);
+    background: color-mix(in srgb, var(--brand) 12%, var(--card));
+    box-shadow: 0 10px 30px -12px color-mix(in srgb, var(--brand) 60%, transparent);
+  }
+  .tech:hover {
+    transform: translateY(-3px);
+  }
+  .tech span:last-child {
+    color: var(--fg);
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    .marquee {
+      mask-image: none;
+    }
+    .track {
+      animation: none;
+      flex-wrap: wrap;
+      width: auto;
+      max-width: 72rem;
+      margin: 0 auto;
+      padding: 0 1rem;
+      row-gap: 0.75rem;
+    }
+    .track li[data-copy='1'] {
+      display: none;
+    }
+  }
+</style>
+
+<script>
+  // Tocar una tarjeta la deja pintada (y su copia en la fila también)
+  document.querySelectorAll<HTMLButtonElement>('.tech').forEach((btn) => {
+    btn.addEventListener('click', () => {
+      const lit = btn.getAttribute('aria-pressed') !== 'true';
+      document.querySelectorAll<HTMLButtonElement>(`.tech[data-tech="${CSS.escape(btn.dataset.tech!)}"]`).forEach((el) => {
+        el.classList.toggle('lit', lit);
+        el.setAttribute('aria-pressed', String(lit));
+      });
+    });
+  });
+</script>

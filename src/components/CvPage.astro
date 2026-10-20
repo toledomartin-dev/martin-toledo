@@ -109,7 +109,7 @@ const github = site.github.replace(/^https?:\/\//, '');
           {
             c.projects.map((p) => (
               <li>
-                <span class="font-semibold">{p.name}.</span> {p.text}
+                <span class="font-semibold">{p.name}.</span> <Linkify text={p.text} class="text-accent-strong" />
               </li>
             ))
           }
