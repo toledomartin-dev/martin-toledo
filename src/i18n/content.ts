@@ -115,7 +115,7 @@ export const t = {
         { value: 'TECOM', label: 'speaker sobre GPS en tiempo real' },
       ],
       offTitle: 'Fuera del código',
-      off: ['Entrenamiento físico', 'Emprendí con mi hermano una tienda online', 'Voluntariado en misiones solidarias en Chaco'],
+      off: ['Entrenamiento físico', 'Emprendí con mi hermano una tienda online'],
     },
     experience: {
       kicker: 'Trayectoria',
@@ -253,7 +253,7 @@ export const t = {
         { value: 'TECOM', label: 'speaker on real-time GPS' },
       ],
       offTitle: 'Off the clock',
-      off: ['Strength training', 'Co-founded an online store with my brother', 'Volunteering in community missions in Chaco'],
+      off: ['Strength training', 'Co-founded an online store with my brother'],
     },
     experience: {
       kicker: 'Career',
