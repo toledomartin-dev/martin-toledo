@@ -99,6 +99,8 @@ const city = t[lang].city;
 </section>
 
 <script>
+  import { isSoftwareRenderer } from '../scripts/gpu';
+
   const section = document.getElementById('hero')!;
   const canvas = document.getElementById('particles') as HTMLCanvasElement;
   const s1 = section.querySelector<HTMLElement>('[data-scene="1"]')!;
@@ -125,23 +127,27 @@ const city = t[lang].city;
     return Math.min(1, Math.max(0, -section.getBoundingClientRect().top / Math.max(1, travel)));
   };
 
-  const supportsWebGL = (() => {
-    try {
-      return !!document.createElement('canvas').getContext('webgl2');
-    } catch {
-      return false;
-    }
-  })();
+  const fallback = () => window.addEventListener('scroll', () => paint(scrollProgress()), { passive: true });
 
-  if (supportsWebGL) {
-    // Three.js se carga aparte, para no frenar la primera pintura
-    const fallback = () => window.addEventListener('scroll', () => paint(scrollProgress()), { passive: true });
-    import('../scripts/particles')
-      .then(({ initParticles }) => initParticles({ canvas, section, onProgress: paint }))
-      .then((ok) => ok || fallback())
-      .catch(fallback);
+  // Las partículas son un extra: solo se cargan si el equipo puede con ellas. El chequeo va
+  // ANTES de descargar Three.js (~130 KB), así un equipo sin GPU no lo procesa para nada.
+  const nav = navigator as Navigator & { connection?: { saveData?: boolean }; deviceMemory?: number };
+  const canRun = !isSoftwareRenderer() && !nav.connection?.saveData && (nav.deviceMemory ?? 8) >= 4;
+
+  if (canRun) {
+    // Se carga cuando el navegador queda libre después de cargar la página: el contenido
+    // aparece y responde primero, y las partículas entran después con su animación
+    const start = () =>
+      import('../scripts/particles')
+        .then(({ initParticles }) => initParticles({ canvas, section, onProgress: paint }))
+        .then((ok) => ok || fallback())
+        .catch(fallback);
+    const whenIdle = () =>
+      'requestIdleCallback' in window ? requestIdleCallback(start, { timeout: 2500 }) : setTimeout(start, 600);
+    if (document.readyState === 'complete') whenIdle();
+    else window.addEventListener('load', whenIdle, { once: true });
   } else {
-    window.addEventListener('scroll', () => paint(scrollProgress()), { passive: true });
+    fallback();
   }
   paint(scrollProgress());
 </script>

@@ -24,12 +24,13 @@ const links = [
   <nav
     class="mx-auto flex h-14 max-w-6xl items-center justify-between rounded-full border border-line/80 bg-bg/60 pr-2 pl-3 shadow-[0_10px_40px_-20px_rgba(0,0,0,.6)] backdrop-blur-xl"
   >
-    <a href={base} class="group flex items-center gap-2.5 font-medium tracking-tight" aria-label="Martín Toledo">
+    <a href={base} class="group flex items-center gap-2.5 font-medium tracking-tight">
       <span class="relative grid size-8 place-items-center">
         <span class="absolute inset-0 rounded-full bg-accent/40 blur-md transition-opacity group-hover:opacity-100 opacity-60"></span>
-        <span class="relative grid size-8 place-items-center rounded-full bg-accent font-mono text-[11px] font-bold text-accent-ink">MT</span>
+        <span class="relative grid size-8 place-items-center rounded-full bg-accent font-mono text-[11px] font-bold text-accent-ink" aria-hidden="true">MT</span>
       </span>
-      <span class="hidden sm:inline">Martín Toledo</span>
+      <!-- En celular el nombre no se ve, pero los lectores de pantalla lo siguen leyendo -->
+      <span class="sr-only sm:not-sr-only">Martín Toledo</span>
     </a>
 
     <ul class="hidden items-center lg:flex">
