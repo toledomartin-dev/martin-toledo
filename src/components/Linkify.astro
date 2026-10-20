@@ -1,0 +1,22 @@
+---
+// Muestra un texto convirtiendo en link las direcciones de sitios (por ejemplo fcn.pages.dev)
+interface Props {
+  text: string;
+  class?: string;
+}
+
+const { text, class: className } = Astro.props;
+const parts = text.split(/(\b[a-z0-9-]+\.pages\.dev\b)/i);
+---
+
+{
+  parts.map((part, i) =>
+    i % 2 === 1 ? (
+      <a href={`https://${part}`} target="_blank" rel="noopener noreferrer" class={className}>
+        {part}
+      </a>
+    ) : (
+      part
+    ),
+  )
+}

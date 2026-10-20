@@ -17,7 +17,7 @@ const hasPhoto = fs.existsSync(path.join(process.cwd(), 'public', site.photo));
   hasPhoto && (
     <button
       type="button"
-      class="group relative block size-11 shrink-0 cursor-zoom-in rounded-full"
+      class="group relative block size-11 shrink-0 cursor-pointer rounded-full"
       data-lightbox={site.photoFull}
       data-lightbox-alt={ui.photoAlt}
       aria-label={ui.zoom}

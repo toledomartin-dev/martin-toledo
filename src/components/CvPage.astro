@@ -3,6 +3,7 @@ import '../styles/global.css';
 import { cv } from '../i18n/cv';
 import { site, t, type Lang } from '../i18n/content';
 import HeadMeta from './HeadMeta.astro';
+import Linkify from './Linkify.astro';
 
 interface Props {
   lang: Lang;
@@ -92,7 +93,9 @@ const github = site.github.replace(/^https?:\/\//, '');
               </div>
               <ul class="mt-1.5 list-disc space-y-1 pl-4 text-[9.5pt] leading-snug marker:text-accent">
                 {job.points.map((pt) => (
-                  <li>{pt}</li>
+                  <li>
+                    <Linkify text={pt} class="text-accent-strong" />
+                  </li>
                 ))}
               </ul>
             </article>

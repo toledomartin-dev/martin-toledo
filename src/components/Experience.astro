@@ -1,5 +1,6 @@
 ---
 import { t, type Lang } from '../i18n/content';
+import Linkify from './Linkify.astro';
 
 interface Props {
   lang: Lang;
@@ -36,7 +37,9 @@ const ui = t[lang].experience;
                   <svg class="mt-0.5 size-4 shrink-0 text-accent" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" aria-hidden="true">
                     <path d="m5 12 5 5L20 7" />
                   </svg>
-                  {pt}
+                  <span>
+                    <Linkify text={pt} class="text-accent underline-offset-4 hover:underline" />
+                  </span>
                 </li>
               ))}
             </ul>
