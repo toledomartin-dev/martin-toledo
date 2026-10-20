@@ -9,7 +9,7 @@ export const site = {
   linkedin: 'https://www.linkedin.com/in/martin-franco-toledo',
   github: 'https://github.com/toledomartin-dev',
   photo: '/img/foto.jpg',
-  photoFull: '/img/foto-full.jpg',
+  photoFull: '/img/foto-full.webp', // la que se abre en grande (WebP: todos los navegadores actuales)
   photoAbout: '/img/foto-about.jpg',
   talkVideoId: '1oeWi3M2vvg',
 };
@@ -161,6 +161,8 @@ export const t = {
       title: '¿Construimos algo juntos?',
       text: 'Estoy abierto a nuevos desafíos. Escribime y te respondo a la brevedad.',
       cta: 'Enviar email',
+      copy: 'Copiar',
+      copied: '¡Copiado!',
     },
     footer: 'Hecho con Astro, Tailwind y Three.js.',
     cvFile: '/cv/martin-toledo-cv-es.pdf',
@@ -299,6 +301,8 @@ export const t = {
       title: "Let's build something together",
       text: "I'm open to new challenges. Send me an email and I'll get back to you soon.",
       cta: 'Send email',
+      copy: 'Copy',
+      copied: 'Copied!',
     },
     footer: 'Built with Astro, Tailwind and Three.js.',
     cvFile: '/cv/martin-toledo-resume-en.pdf',

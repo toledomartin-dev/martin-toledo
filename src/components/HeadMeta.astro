@@ -1,6 +1,6 @@
 ---
 // Íconos y metadatos para compartir (Open Graph / X), comunes a todas las páginas
-import type { Lang } from '../i18n/content';
+import { site, type Lang } from '../i18n/content';
 
 interface Props {
   lang: Lang;
@@ -10,6 +10,23 @@ interface Props {
 }
 
 const { lang, title, description, canonical } = Astro.props;
+
+// Datos estructurados (schema.org): le dicen a Google quién es la persona detrás del sitio
+const person = {
+  '@context': 'https://schema.org',
+  '@type': 'Person',
+  name: site.fullName,
+  alternateName: site.name,
+  url: new URL(lang === 'es' ? '/' : '/en/', Astro.site).href,
+  image: new URL(site.photo, Astro.site).href,
+  email: `mailto:${site.email}`,
+  jobTitle: lang === 'es' ? 'Líder Técnico y Desarrollador Full Stack' : 'Technical Lead & Full Stack Developer',
+  worksFor: { '@type': 'Organization', name: 'Micronauta' },
+  alumniOf: { '@type': 'CollegeOrUniversity', name: 'Universidad Tecnológica Nacional — Facultad Regional Córdoba' },
+  address: { '@type': 'PostalAddress', addressLocality: 'Córdoba', addressCountry: 'AR' },
+  knowsAbout: ['React Native', 'Node.js', 'TypeScript', 'PHP', 'Docker', 'GitLab CI/CD', 'GPS', 'Traccar', 'MySQL'],
+  sameAs: [site.linkedin, site.github],
+};
 const image = new URL(`/og/og-${lang}.jpg`, Astro.site);
 const alt =
   lang === 'es'
@@ -35,3 +52,5 @@ const alt =
 <meta property="og:image:alt" content={alt} />
 <meta name="twitter:card" content="summary_large_image" />
 <meta name="twitter:image" content={image} />
+
+<script type="application/ld+json" set:html={JSON.stringify(person)} />

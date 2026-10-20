@@ -23,13 +23,17 @@ const hasPhoto = fs.existsSync(path.join(process.cwd(), 'public', site.photo));
       aria-label={ui.zoom}
     >
       <span class="absolute -inset-1 rounded-full bg-accent/30 blur-md transition-opacity group-hover:opacity-100" aria-hidden="true" />
-      <img
-        src={site.photo}
-        alt={site.fullName}
-        class="relative size-11 rounded-full border border-accent/40 object-cover transition-transform group-hover:scale-110"
-        width="44"
-        height="44"
-      />
+      <picture>
+        <source srcset="/img/foto-avatar.avif" type="image/avif" />
+        <source srcset="/img/foto-avatar.webp" type="image/webp" />
+        <img
+          src="/img/foto-avatar.jpg"
+          alt={site.fullName}
+          class="relative size-11 rounded-full border border-accent/40 object-cover transition-transform group-hover:scale-110"
+          width="44"
+          height="44"
+        />
+      </picture>
     </button>
   )
 }

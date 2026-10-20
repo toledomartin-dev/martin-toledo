@@ -174,6 +174,9 @@ async function switchLanguage(href: string) {
       const value = next.querySelector(sel)?.getAttribute('content');
       if (value) document.querySelector(sel)?.setAttribute('content', value);
     }
+    const ld = next.querySelector('script[type="application/ld+json"]');
+    const currentLd = document.querySelector('script[type="application/ld+json"]');
+    if (ld && currentLd) currentLd.textContent = ld.textContent;
     for (const sel of ['link[rel="canonical"]', 'link[rel="alternate"]']) {
       const a = next.querySelector(sel);
       const b = document.querySelector(sel);
