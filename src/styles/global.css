@@ -57,6 +57,27 @@ html.light {
 
 html {
   scroll-padding-top: 5rem;
+  /* Sin zoom por doble toque (que además demora los toques); el pellizco sigue andando */
+  touch-action: manipulation;
+}
+@media (prefers-reduced-motion: no-preference) {
+  html {
+    scroll-behavior: smooth;
+  }
+}
+
+/* Cambio de página: fundido corto entre documentos (Chrome y Safari recientes; el resto navega normal) */
+@view-transition {
+  navigation: auto;
+}
+::view-transition-old(root),
+::view-transition-new(root) {
+  animation-duration: 0.28s;
+}
+
+button,
+a {
+  -webkit-tap-highlight-color: transparent;
 }
 
 body {
@@ -156,10 +177,98 @@ html.light .glass {
 }
 
 /* Cambio de tema: el navegador cruza las dos "fotos"; la animación del círculo la hace el JS */
-::view-transition-old(root),
-::view-transition-new(root) {
+html.vt-theme::view-transition-old(root),
+html.vt-theme::view-transition-new(root) {
   animation: none;
   mix-blend-mode: normal;
+}
+
+/* ---------- Menús desplegables (celular y CV): bindMenu pone [data-open] ---------- */
+.pop-menu {
+  visibility: hidden;
+  opacity: 0;
+  transform: translateY(8px) scale(0.97);
+  transform-origin: bottom left;
+  transition:
+    opacity 0.2s ease,
+    transform 0.35s cubic-bezier(0.2, 0.7, 0.2, 1),
+    visibility 0s linear 0.35s;
+}
+.pop-menu-down {
+  transform: translateY(-10px) scale(0.98);
+  transform-origin: top center;
+}
+.pop-menu[data-open] {
+  visibility: visible;
+  opacity: 1;
+  transform: none;
+  transition-delay: 0s;
+}
+.pop-menu > li {
+  opacity: 0;
+  transform: translateY(-6px);
+  transition:
+    opacity 0.25s ease,
+    transform 0.4s cubic-bezier(0.2, 0.7, 0.2, 1);
+}
+.pop-menu[data-open] > li {
+  opacity: 1;
+  transform: none;
+  transition-delay: calc(var(--i, 0) * 40ms + 50ms);
+}
+
+/* Hamburguesa → X */
+.burger {
+  position: relative;
+  width: 18px;
+  height: 14px;
+}
+.burger > span {
+  position: absolute;
+  left: 0;
+  width: 100%;
+  height: 2px;
+  border-radius: 2px;
+  background: currentColor;
+  transition:
+    transform 0.35s cubic-bezier(0.2, 0.7, 0.2, 1),
+    opacity 0.2s ease;
+}
+.burger > span:nth-child(1) {
+  top: 0;
+}
+.burger > span:nth-child(2) {
+  top: 6px;
+}
+.burger > span:nth-child(3) {
+  top: 12px;
+}
+[aria-expanded='true'] > .burger > span:nth-child(1) {
+  transform: translateY(6px) rotate(45deg);
+}
+[aria-expanded='true'] > .burger > span:nth-child(2) {
+  opacity: 0;
+  transform: scaleX(0.3);
+}
+[aria-expanded='true'] > .burger > span:nth-child(3) {
+  transform: translateY(-6px) rotate(-45deg);
+}
+
+/* ---------- Hero: esfera provisoria (canvas 2D) mientras carga Three.js ---------- */
+/* Aparece suave, se desvanece con el scroll (--ghost-out) y le cede el lugar a las partículas */
+.hero-ghost {
+  pointer-events: none;
+  opacity: calc(1 - var(--ghost-out, 0));
+  animation: ghost-in 0.8s ease;
+}
+#particles.is-ready ~ .hero-ghost {
+  opacity: 0;
+  transition: opacity 1s ease;
+}
+@keyframes ghost-in {
+  from {
+    opacity: 0;
+  }
 }
 
 /* ---------- Notas: estilos de lectura ---------- */
@@ -370,5 +479,14 @@ html.dark .astro-code span {
   }
   .reduce-hide {
     display: none;
+  }
+  .pop-menu,
+  .pop-menu > li,
+  .burger > span {
+    transition: none;
+  }
+  ::view-transition-old(root),
+  ::view-transition-new(root) {
+    animation: none;
   }
 }

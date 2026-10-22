@@ -20,7 +20,9 @@ npm run build    # genera el sitio en dist/
   Los PDF (`public/cv/*.pdf`) se generan solos en cada `npm run build` con el Chrome instalado
   (integración `integrations/cv-pdf.mjs`, usa `puppeteer-core`). Commitealos: en Cloudflare no hay Chrome
   y el build usa los que están en el repo. Ruta de Chrome distinta: variable `CHROME_PATH`.
-- **Colores y efectos (vidrio, brillos, animaciones):** `src/styles/global.css`.
+- **Colores y efectos (vidrio, brillos, animaciones, menús desplegables):** `src/styles/global.css`.
+- **Sonidos (Web Audio, apagados por defecto):** `src/scripts/sound.ts`.
+- **Caché offline:** `public/sw.js`. Si algo queda viejo en los navegadores, subir `VERSION`.
 
 ## El mapa de Córdoba
 
@@ -34,7 +36,8 @@ python -I scripts/build-map.py ruta/al/export.json
 
 ## Rendimiento
 
-- Three.js (~130 KB comprimido) se carga recién después de la primera pintura y solo para el hero.
+- Three.js (~130 KB comprimido) se carga recién después de la primera pintura y solo para el hero. Mientras
+  tanto, un canvas 2D dibuja la misma esfera quieta.
 - La animación se pausa fuera de pantalla y con la pestaña oculta.
 - Si el equipo dibuja lento, baja la calidad sola; sin GPU (render por software) no se carga.
 - Respeta "reducir movimiento" del sistema operativo.

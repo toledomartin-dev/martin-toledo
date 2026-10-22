@@ -56,6 +56,20 @@ const links = [
         {ui.switchLang.label}
       </a>
       <button
+        id="sound-toggle"
+        type="button"
+        class="group grid size-9 place-items-center rounded-full text-muted transition-colors hover:text-fg aria-pressed:text-accent"
+        aria-label={ui.sound}
+        aria-pressed="false"
+        title={ui.sound}
+      >
+        <svg class="size-[18px]" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+          <path d="M11 5 6 9H3v6h3l5 4z"></path>
+          <path class="group-aria-pressed:hidden" d="m16 9 5 6m0-6-5 6"></path>
+          <path class="hidden group-aria-pressed:block" d="M15.5 8.5a5 5 0 0 1 0 7M18.5 5.5a9 9 0 0 1 0 13"></path>
+        </svg>
+      </button>
+      <button
         id="theme-toggle"
         type="button"
         class="grid size-9 place-items-center rounded-full text-muted transition-colors hover:text-fg"
@@ -81,17 +95,16 @@ const links = [
         aria-expanded="false"
         aria-controls="mobile-menu"
       >
-        <svg class="size-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true">
-          <path d="M4 7h16M4 12h16M4 17h16"></path>
-        </svg>
+        <!-- Tres líneas que se cruzan en una X al abrir -->
+        <span class="burger" aria-hidden="true"><span></span><span></span><span></span></span>
       </button>
     </div>
   </nav>
 
-  <ul id="mobile-menu" class="mx-auto mt-2 hidden max-w-6xl rounded-3xl border border-line bg-bg/90 p-2 backdrop-blur-xl lg:hidden">
+  <ul id="mobile-menu" class="pop-menu pop-menu-down mx-auto mt-2 max-w-6xl rounded-3xl border border-line bg-bg/90 p-2 backdrop-blur-xl lg:hidden">
     {
-      [...links, { id: 'contacto', label: ui.nav.contact }].map((l) => (
-        <li>
+      [...links, { id: 'contacto', label: ui.nav.contact }].map((l, i) => (
+        <li style={`--i:${i}`}>
           <a href={anchor(l.id)} class="block rounded-2xl px-4 py-3 text-muted hover:bg-card hover:text-fg">
             {l.label}
           </a>
@@ -103,6 +116,8 @@ const links = [
 
 <script>
   import { initLangSwitch } from '../scripts/lang-switch';
+  import { bindMenu } from '../scripts/menu';
+  import { initSound } from '../scripts/sound';
 
   const root = document.documentElement;
   const reduced = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
@@ -124,7 +139,10 @@ const links = [
     const x = r.left + r.width / 2;
     const y = r.top + r.height / 2;
     const radius = Math.hypot(Math.max(x, innerWidth - x), Math.max(y, innerHeight - y));
+    // Marca la transición como de tema: global.css le saca el fundido que usan los cambios de página
+    root.classList.add('vt-theme');
     const transition = document.startViewTransition(applyTheme);
+    transition.finished.finally(() => root.classList.remove('vt-theme'));
     // Si se toca de nuevo antes de terminar, el navegador corta la anterior: no es un error
     transition.ready
       .then(() => {
@@ -138,16 +156,6 @@ const links = [
 
   initLangSwitch(document.getElementById('lang-switch') as HTMLAnchorElement);
 
-  const menuBtn = document.getElementById('menu-toggle');
-  const menu = document.getElementById('mobile-menu');
-  menuBtn?.addEventListener('click', () => {
-    const open = menu?.classList.toggle('hidden') === false;
-    menuBtn.setAttribute('aria-expanded', String(open));
-  });
-  menu?.querySelectorAll('a').forEach((a) =>
-    a.addEventListener('click', () => {
-      menu.classList.add('hidden');
-      menuBtn?.setAttribute('aria-expanded', 'false');
-    }),
-  );
+  bindMenu(document.getElementById('menu-toggle')!, document.getElementById('mobile-menu')!);
+  initSound(document.getElementById('sound-toggle')!);
 </script>

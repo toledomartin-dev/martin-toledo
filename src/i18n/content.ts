@@ -116,8 +116,9 @@ export const t = {
       headline: 'Construyo sistemas que mueven ciudades.',
       sub: 'Apps de taxis, bicicletas públicas y transporte, del GPS del vehículo a la nube.',
       ctaProjects: 'Ver proyectos',
-      ctaCv: 'Descargar CV',
+      ctaCv: 'CV',
       ctaCvOnline: 'Ver online',
+      ctaCvDownload: 'Descargar PDF',
     },
     city: {
       kicker: 'Córdoba · datos reales',
@@ -270,6 +271,7 @@ export const t = {
     cvPage: '/cv/',
     switchLang: { label: 'EN', href: '/en/' },
     theme: 'Cambiar tema',
+    sound: 'Sonido',
     back: 'Volver al inicio',
   },
   en: {
@@ -285,8 +287,9 @@ export const t = {
       headline: 'I build systems that move cities.',
       sub: "Taxi, bike sharing and public transport apps, from the vehicle's GPS to the cloud.",
       ctaProjects: 'See projects',
-      ctaCv: 'Download resume',
+      ctaCv: 'Resume',
       ctaCvOnline: 'View online',
+      ctaCvDownload: 'Download PDF',
     },
     city: {
       kicker: 'Córdoba · real data',
@@ -439,6 +442,7 @@ export const t = {
     cvPage: '/en/resume/',
     switchLang: { label: 'ES', href: '/' },
     theme: 'Toggle theme',
+    sound: 'Sound',
     back: 'Back to home',
   },
 };

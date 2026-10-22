@@ -21,6 +21,8 @@ const city = t[lang].city;
     >
     </div>
     <canvas id="particles" class="absolute inset-0 size-full opacity-0 transition-opacity duration-1000 [&.is-ready]:opacity-100" aria-hidden="true"></canvas>
+    <!-- Mientras llegan las partículas: la misma esfera, quieta, dibujada en 2D sin Three.js -->
+    <canvas class="hero-ghost absolute inset-0 size-full" aria-hidden="true"></canvas>
     <!-- Degradé para leer bien el texto sobre las partículas -->
     <div
       class="pointer-events-none absolute inset-0 bg-gradient-to-t from-bg via-bg/40 to-transparent lg:bg-gradient-to-r lg:from-bg lg:via-bg/50 lg:to-transparent"
@@ -52,20 +54,33 @@ const city = t[lang].city;
             {ui.ctaProjects}
             <svg class="size-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" aria-hidden="true"><path d="M12 5v14M5 12l7 7 7-7"></path></svg>
           </a>
-          <a
-            href={t[lang].cvFile}
-            download={t[lang].cvName}
-            class="magnetic inline-flex items-center gap-2 rounded-full border border-line bg-card/70 px-6 py-3 text-sm font-semibold backdrop-blur transition-colors hover:border-accent/60"
-          >
-            {ui.ctaCv}
-          </a>
-          <a
-            href={t[lang].cvPage}
-            class="inline-flex items-center gap-1.5 px-2 py-3 text-sm text-muted underline-offset-4 transition-colors hover:text-fg hover:underline"
-          >
-            {ui.ctaCvOnline}
-            <span aria-hidden="true">↗</span>
-          </a>
+          <!-- Un solo botón de CV: se despliega hacia arriba para no quedar cortado al pie del hero -->
+          <div class="relative" data-cv-menu>
+            <button
+              type="button"
+              class="magnetic inline-flex items-center gap-2 rounded-full border border-line bg-card/70 px-6 py-3 text-sm font-semibold backdrop-blur transition-colors hover:border-accent/60 aria-expanded:border-accent/60"
+              aria-expanded="false"
+              aria-controls="cv-options"
+            >
+              <svg class="size-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M14 3H7a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2V8z"></path><path d="M14 3v5h5M9 13h6M9 17h4"></path></svg>
+              {ui.ctaCv}
+              <svg class="size-3.5 transition-transform duration-300 [[aria-expanded=true]>&]:rotate-180" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" aria-hidden="true"><path d="m6 15 6-6 6 6"></path></svg>
+            </button>
+            <ul id="cv-options" class="pop-menu absolute bottom-full left-0 z-10 mb-2 min-w-full rounded-2xl border border-line bg-bg/90 p-1.5 whitespace-nowrap shadow-[0_20px_50px_-20px_rgba(0,0,0,.6)] backdrop-blur-xl">
+              <li style="--i:1">
+                <a href={t[lang].cvPage} class="flex items-center gap-3 rounded-xl px-3.5 py-2.5 text-sm text-muted transition-colors hover:bg-card hover:text-fg focus-visible:bg-card focus-visible:text-fg">
+                  <svg class="size-4 text-accent" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M2 12s3.6-7 10-7 10 7 10 7-3.6 7-10 7S2 12 2 12z"></path><circle cx="12" cy="12" r="3"></circle></svg>
+                  {ui.ctaCvOnline}
+                </a>
+              </li>
+              <li style="--i:0">
+                <a href={t[lang].cvFile} download={t[lang].cvName} class="flex items-center gap-3 rounded-xl px-3.5 py-2.5 text-sm text-muted transition-colors hover:bg-card hover:text-fg focus-visible:bg-card focus-visible:text-fg">
+                  <svg class="size-4 text-accent" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 4v11m-5-5 5 5 5-5M5 20h14"></path></svg>
+                  {ui.ctaCvDownload}
+                </a>
+              </li>
+            </ul>
+          </div>
         </div>
       </div>
 
@@ -100,6 +115,10 @@ const city = t[lang].city;
 
 <script>
   import { isSoftwareRenderer } from '../scripts/gpu';
+  import { bindMenu } from '../scripts/menu';
+
+  const cv = document.querySelector<HTMLElement>('[data-cv-menu]')!;
+  bindMenu(cv.querySelector('button')!, cv.querySelector('ul')!);
 
   const section = document.getElementById('hero')!;
   const canvas = document.getElementById('particles') as HTMLCanvasElement;
@@ -113,6 +132,7 @@ const city = t[lang].city;
   const paint = (p: number) => {
     const out = ramp(p, 0.05, 0.25);
     const inn = ramp(p, 0.5, 0.75);
+    section.style.setProperty('--ghost-out', String(out));
     s1.style.opacity = String(1 - out);
     s1.style.transform = `translateY(${-out * 40}px)`;
     s1.style.visibility = out >= 1 ? 'hidden' : 'visible';
@@ -126,6 +146,47 @@ const city = t[lang].city;
     const travel = section.offsetHeight - window.innerHeight;
     return Math.min(1, Math.max(0, -section.getBoundingClientRect().top / Math.max(1, travel)));
   };
+
+  // Esfera provisoria: mismos puntos de Fibonacci, inclinación, tamaño y lugar que la de Three.js
+  // (cámara de 35° a 7 de distancia, radio 1,55), así el cambio a las partículas no se nota
+  const ghost = section.querySelector<HTMLCanvasElement>('canvas.hero-ghost')!;
+  const drawGhost = () => {
+    const w = ghost.clientWidth;
+    const h = ghost.clientHeight;
+    const dpr = Math.min(window.devicePixelRatio, 2);
+    ghost.width = w * dpr;
+    ghost.height = h * dpr;
+    const g = ghost.getContext('2d');
+    if (!g) return;
+    g.scale(dpr, dpr);
+    const css = getComputedStyle(document.documentElement);
+    const dot = css.getPropertyValue('--fg').trim();
+    const accent = css.getPropertyValue('--accent').trim();
+    const wide = w >= 1024;
+    const cx = w / 2 + (wide ? 0.38 : 0) * (w / 2);
+    const cy = h / 2 - (wide ? 0.02 : 0.32) * (h / 2);
+    const unit = h / 2 / (7 * Math.tan((17.5 * Math.PI) / 180));
+    const n = wide ? 2400 : 2200;
+    const golden = Math.PI * (3 - Math.sqrt(5));
+    const tilt = 0.35;
+    for (let i = 0; i < n; i++) {
+      const y0 = 1 - (i / (n - 1)) * 2;
+      const r = Math.sqrt(1 - y0 * y0);
+      const x = Math.cos(golden * i) * r;
+      const z0 = Math.sin(golden * i) * r;
+      const y = y0 * Math.cos(tilt) - z0 * Math.sin(tilt);
+      const z = y0 * Math.sin(tilt) + z0 * Math.cos(tilt);
+      const k = (7 / (7 - z * 1.55)) * 1.55 * unit;
+      g.globalAlpha = 0.12 + 0.6 * (z * 0.5 + 0.5);
+      g.fillStyle = i % 5 ? dot : accent;
+      g.beginPath();
+      g.arc(cx + x * k, cy - y * k, i % 5 ? 0.9 : 1.2, 0, Math.PI * 2);
+      g.fill();
+    }
+  };
+  drawGhost();
+  window.addEventListener('resize', drawGhost);
+  new MutationObserver(drawGhost).observe(document.documentElement, { attributes: true, attributeFilter: ['class'] });
 
   const fallback = () => window.addEventListener('scroll', () => paint(scrollProgress()), { passive: true });
 

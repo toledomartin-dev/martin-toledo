@@ -109,6 +109,22 @@ const altHref = alternate ?? ui.switchLang.href;
           btn.addEventListener('pointerleave', () => (btn.style.transform = ''));
         });
       }
+
+      // Al presionar un botón: se hunde y rebota. Anima `scale`, que se suma al `transform` magnético
+      if (!reduced) {
+        document.addEventListener('pointerdown', (e) => {
+          const el = (e.target as Element).closest<HTMLElement>('button, .btn-glow, .magnetic, [data-press]');
+          el?.animate([{ scale: 1 }, { scale: 0.94, offset: 0.35 }, { scale: 1 }], {
+            duration: 360,
+            easing: 'cubic-bezier(.2,.7,.2,1)',
+          });
+        });
+      }
+
+      // Caché offline: solo en el sitio publicado (en desarrollo serviría archivos viejos)
+      if (import.meta.env.PROD && 'serviceWorker' in navigator) {
+        window.addEventListener('load', () => navigator.serviceWorker.register('/sw.js').catch(() => {}));
+      }
     </script>
   </body>
 </html>
