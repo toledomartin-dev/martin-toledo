@@ -1,0 +1,22 @@
+---
+import Base from '../../../layouts/Base.astro';
+import ProjectPage from '../../../components/ProjectPage.astro';
+import { projects, projectPath } from '../../../projects';
+
+export function getStaticPaths() {
+  return projects.map((project) => ({ params: { slug: project.text.en.slug }, props: { project } }));
+}
+
+const { project } = Astro.props;
+const c = project.text.en;
+---
+
+<Base
+  lang="en"
+  title={c.meta.title}
+  description={c.meta.description}
+  alternate={projectPath('es', project.key)}
+  image={{ src: `/og/projects/${project.key}-en.jpg`, alt: `${c.kicker} — ${c.title}` }}
+>
+  <ProjectPage lang="en" project={project} />
+</Base>

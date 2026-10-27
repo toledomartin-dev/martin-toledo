@@ -1,0 +1,214 @@
+---
+// Préstamo en una estación de BiciCba, en un ciclo de 8 s: se escanea el QR del usuario, una bici
+// sale del anclaje, baja el contador de disponibles y queda registrado el préstamo
+import { t, type Lang } from '../../i18n/content';
+
+interface Props {
+  lang: Lang;
+}
+
+const ui = t[Astro.props.lang].bento.bicicba.mock;
+// Un QR inventado de 7 × 7 (los tres cuadros de las esquinas y algo de ruido)
+const qr = [
+  1, 1, 1, 0, 1, 1, 1,
+  1, 0, 1, 1, 1, 0, 1,
+  1, 1, 1, 0, 1, 1, 1,
+  0, 1, 0, 1, 0, 1, 0,
+  1, 1, 1, 0, 1, 0, 1,
+  1, 0, 1, 1, 0, 1, 1,
+  1, 1, 1, 0, 1, 0, 1,
+];
+const docks = [1, 1, 1, 0, 1];
+---
+
+<div class="grid grid-cols-[auto_1fr] items-center gap-5 rounded-2xl border border-white/5 bg-[#0a0b0f] p-4 text-[11px] text-[#f1f2f4] sm:p-5" aria-hidden="true">
+  <!-- El celular del usuario con su QR -->
+  <div class="relative grid h-36 w-24 place-items-center rounded-2xl border-4 border-[#20232b] bg-[#15181f]">
+    <div class="qr relative grid size-16 grid-cols-7 gap-px rounded-sm bg-white p-1">
+      {qr.map((b) => <span class:list={['rounded-[1px]', b ? 'bg-[#0a0b0f]' : 'bg-transparent']} />)}
+      <span class="scan absolute inset-x-0 top-0 h-0.5 bg-accent shadow-[0_0_10px_var(--accent)]"></span>
+    </div>
+    <span class="ok absolute grid size-7 place-items-center rounded-full bg-emerald-400 text-sm font-bold text-[#0a0b0f]">✓</span>
+    <span class="absolute bottom-2 font-mono text-[9px] text-[#8d939e]">{ui.expires}</span>
+  </div>
+
+  <!-- La estación -->
+  <div class="min-w-0">
+    <div class="flex flex-wrap items-center justify-between gap-x-3 gap-y-1">
+      <span class="font-mono text-[10px] tracking-wider text-[#8d939e] uppercase">{ui.station}</span>
+      <span class="relative shrink-0 font-mono text-[#c9ccd2]">
+        {ui.available}
+        <span class="relative ml-1 inline-block w-3 text-right font-semibold text-white">
+          <span class="count-a absolute right-0">4</span><span class="count-b absolute right-0">3</span>&nbsp;
+        </span>
+      </span>
+    </div>
+    <div class="mt-3 flex gap-1.5">
+      {
+        docks.map((full, i) => (
+          <div class="relative grid h-14 flex-1 place-items-center overflow-hidden rounded-lg border border-white/5 bg-white/[.03]">
+            {full ? (
+              <svg viewBox="0 0 32 20" class:list={['w-[80%]', i === 2 ? 'leaving text-accent' : 'text-[#c9ccd2]']} fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+                <circle cx="7" cy="14" r="5" />
+                <circle cx="25" cy="14" r="5" />
+                <path d="M7 14l5-8h9l4 8M12 6l4 8h5M11 3h3M20 3h3l-2 3" />
+              </svg>
+            ) : (
+              <span class="h-1 w-5 rounded bg-white/10" />
+            )}
+            <span class="absolute bottom-1 size-1 rounded-full bg-emerald-400/70" />
+          </div>
+        ))
+      }
+    </div>
+    <p class="done mt-3 inline-flex items-center gap-1.5 rounded-full bg-emerald-400/10 px-2.5 py-1 font-medium text-emerald-300">
+      <span class="size-1.5 rounded-full bg-emerald-400"></span>{ui.done}
+    </p>
+  </div>
+</div>
+
+<style>
+  .scan {
+    animation: scan 8s ease-in-out infinite;
+  }
+  .qr {
+    animation: qr 8s ease infinite;
+  }
+  .ok {
+    animation: ok 8s ease infinite;
+  }
+  .leaving {
+    animation: leave 8s cubic-bezier(0.6, 0, 0.4, 1) infinite;
+  }
+  .done {
+    animation: done 8s ease infinite;
+  }
+  .count-a {
+    animation: count-a 8s steps(1) infinite;
+  }
+  .count-b {
+    animation: count-b 8s steps(1) infinite;
+  }
+  /* 0–35 %: se escanea el QR · 38 %: válido · 45–55 %: sale la bici · 52–88 %: préstamo registrado */
+  @keyframes scan {
+    0%,
+    4% {
+      transform: translateY(0);
+      opacity: 0;
+    }
+    6% {
+      opacity: 1;
+    }
+    18% {
+      transform: translateY(3.6rem);
+    }
+    32% {
+      transform: translateY(0);
+      opacity: 1;
+    }
+    35%,
+    100% {
+      opacity: 0;
+    }
+  }
+  @keyframes qr {
+    0%,
+    36%,
+    92%,
+    100% {
+      opacity: 1;
+    }
+    40%,
+    88% {
+      opacity: 0.25;
+    }
+  }
+  @keyframes ok {
+    0%,
+    36% {
+      opacity: 0;
+      transform: scale(0.6);
+    }
+    40%,
+    88% {
+      opacity: 1;
+      transform: none;
+    }
+    92%,
+    100% {
+      opacity: 0;
+    }
+  }
+  @keyframes leave {
+    0%,
+    44% {
+      transform: none;
+      opacity: 1;
+    }
+    56%,
+    92% {
+      transform: translateY(-140%);
+      opacity: 0;
+    }
+    100% {
+      transform: none;
+      opacity: 1;
+    }
+  }
+  @keyframes done {
+    0%,
+    50% {
+      opacity: 0;
+      transform: translateY(4px);
+    }
+    54%,
+    88% {
+      opacity: 1;
+      transform: none;
+    }
+    92%,
+    100% {
+      opacity: 0;
+    }
+  }
+  @keyframes count-a {
+    0%,
+    100% {
+      opacity: 1;
+    }
+    52% {
+      opacity: 0;
+    }
+    96% {
+      opacity: 1;
+    }
+  }
+  @keyframes count-b {
+    0%,
+    100% {
+      opacity: 0;
+    }
+    52% {
+      opacity: 1;
+    }
+    96% {
+      opacity: 0;
+    }
+  }
+  @media (prefers-reduced-motion: reduce) {
+    .scan,
+    .qr,
+    .ok,
+    .leaving,
+    .done,
+    .count-a,
+    .count-b {
+      animation: none;
+    }
+    .scan,
+    .ok,
+    .count-b {
+      opacity: 0;
+    }
+  }
+</style>

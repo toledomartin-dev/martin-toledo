@@ -1,0 +1,65 @@
+---
+// Imagen para compartir de cada proyecto (1200×630). La integración og-projects le saca una foto
+// al terminar el build y después borra estas páginas del sitio publicado.
+import '../../styles/global.css';
+import type { Lang } from '../../i18n/content';
+import { projects } from '../../projects';
+import type { Project } from '../../projects/types';
+import { brandIcon } from '../../lib/icons';
+
+export function getStaticPaths() {
+  return projects.flatMap((project) =>
+    (['es', 'en'] as Lang[]).map((lang) => ({ params: { card: `${project.key}-${lang}` }, props: { project, lang } })),
+  );
+}
+
+const { project, lang } = Astro.props as { project: Project; lang: Lang };
+const c = project.text[lang];
+// Los íconos del stack, sin repetir, hasta ocho
+const seen = new Set<string>();
+const icons = c.stack
+  .flatMap((g) => g.items)
+  .filter((i) => i.icon && !seen.has(i.icon) && seen.add(i.icon))
+  .slice(0, 8)
+  .map((i) => ({ name: i.name, ...brandIcon(i.icon, i.name) }));
+---
+
+<!doctype html>
+<html lang={lang} class="dark">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="robots" content="noindex" />
+    <title>{c.kicker}</title>
+    <style>
+      html,
+      body {
+        margin: 0;
+        width: 1200px;
+        height: 630px;
+        overflow: hidden;
+      }
+    </style>
+  </head>
+  <body class="relative font-sans">
+    <div class="absolute -top-40 -right-40 size-[620px] rounded-full bg-accent/20 blur-[140px]"></div>
+    <div class="relative flex h-full flex-col px-[72px] py-[64px]">
+      <div class="flex items-center gap-4 text-[26px] font-semibold tracking-tight">
+        <span class="grid size-12 place-items-center rounded-full bg-accent font-mono text-[17px] font-bold text-accent-ink">MT</span>
+        Martín Toledo
+      </div>
+      <p class="mt-auto font-mono text-[26px] text-accent">{c.kicker}</p>
+      <h1 class="display text-gradient mt-4 max-w-[980px] text-[72px] text-balance">{c.title}</h1>
+      <ul class="mt-10 flex gap-3">
+        {
+          icons.map((i) => (
+            <li class="grid size-16 place-items-center rounded-2xl border border-line bg-card">
+              <svg class="size-8" viewBox="0 0 24 24" aria-hidden="true">
+                <path d={i.path} fill={i.color} />
+              </svg>
+            </li>
+          ))
+        }
+      </ul>
+    </div>
+  </body>
+</html>

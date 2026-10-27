@@ -11,8 +11,8 @@ const ui = t[lang].hero;
 const city = t[lang].city;
 ---
 
-<!-- La sección es alta para que el scroll "recorra" la transformación esfera → mapa -->
-<section id="hero" class="relative h-[240svh]">
+<!-- La sección es alta para que el scroll "recorra" el viaje: la Tierra gira hasta Córdoba y se vuelve el mapa -->
+<section id="hero" class="relative h-[240svh]" data-labels={JSON.stringify({ vehicle: city.vehicle, reported: city.reported, seconds: city.seconds })}>
   <div class="sticky top-0 h-svh overflow-hidden">
     <!-- Fallback sin WebGL: un brillo suave -->
     <div
@@ -21,8 +21,29 @@ const city = t[lang].city;
     >
     </div>
     <canvas id="particles" class="absolute inset-0 size-full opacity-0 transition-opacity duration-1000 [&.is-ready]:opacity-100" aria-hidden="true"></canvas>
-    <!-- Mientras llegan las partículas: la misma esfera, quieta, dibujada en 2D sin Three.js -->
+    <!-- Mientras llegan las partículas: el mismo globo, quieto, dibujado en 2D sin Three.js -->
     <canvas class="hero-ghost absolute inset-0 size-full" aria-hidden="true"></canvas>
+    <!-- Sobre las partículas: nombres de las ciudades en el globo y la tarjeta del vehículo señalado -->
+    <div class="pointer-events-none absolute inset-0 z-10 overflow-hidden font-mono text-[11px]" aria-hidden="true">
+      <span data-place="cordoba" class="absolute top-0 left-0 opacity-0"
+        ><span class="block -translate-x-1/2 -translate-y-[calc(100%+12px)] rounded-full border border-accent/50 bg-bg/80 px-2 py-0.5 whitespace-nowrap text-fg backdrop-blur"
+          >{city.cordoba}</span
+        ></span
+      >
+      <span data-place="sanjuan" class="absolute top-0 left-0 opacity-0"
+        ><span class="block -translate-x-[calc(100%+10px)] -translate-y-1/2 rounded-full border border-line bg-bg/80 px-2 py-0.5 whitespace-nowrap text-muted backdrop-blur"
+          >{city.sanJuan}</span
+        ></span
+      >
+      <span data-place="server" class="absolute top-0 left-0 opacity-0"
+        ><span class="block translate-x-[18px] -translate-y-1/2 rounded-full border border-accent/50 bg-bg/80 px-2 py-0.5 whitespace-nowrap text-fg backdrop-blur"
+          >{city.server}</span
+        ></span
+      >
+      <span data-place="tip" class="absolute top-0 left-0 opacity-0 transition-opacity duration-200"
+        ><span class="block -translate-x-1/2 -translate-y-[calc(100%+14px)] rounded-lg border border-line bg-card/95 px-2.5 py-1.5 whitespace-nowrap text-fg shadow-lg"></span
+      ></span>
+    </div>
     <!-- Degradé para leer bien el texto sobre las partículas -->
     <div
       class="pointer-events-none absolute inset-0 bg-gradient-to-t from-bg via-bg/40 to-transparent lg:bg-gradient-to-r lg:from-bg lg:via-bg/50 lg:to-transparent"
@@ -95,6 +116,7 @@ const city = t[lang].city;
         <ul class="mt-6 flex flex-wrap gap-x-6 gap-y-2 font-mono text-xs text-muted">
           <li class="flex items-center gap-2"><span class="size-1.5 rounded-full bg-[#ffe9d6]"></span>{city.legendPoints}</li>
           <li class="flex items-center gap-2"><span class="size-2 rounded-full bg-accent shadow-[0_0_10px_var(--accent)]"></span>{city.legendVehicles}</li>
+          <li class="flex items-center gap-2"><span class="size-2.5 rounded-full border border-accent"></span>{city.legendPings}</li>
         </ul>
       </div>
     </div>
@@ -115,6 +137,7 @@ const city = t[lang].city;
 
 <script>
   import { isSoftwareRenderer } from '../scripts/gpu';
+  import { IDLE_TILT, START_SPIN, landPoints, rotate } from '../scripts/globe';
   import { bindMenu } from '../scripts/menu';
 
   const cv = document.querySelector<HTMLElement>('[data-cv-menu]')!;
@@ -147,7 +170,7 @@ const city = t[lang].city;
     return Math.min(1, Math.max(0, -section.getBoundingClientRect().top / Math.max(1, travel)));
   };
 
-  // Esfera provisoria: mismos puntos de Fibonacci, inclinación, tamaño y lugar que la de Three.js
+  // Globo provisorio: mismos continentes, giro, inclinación, tamaño y lugar que el de Three.js
   // (cámara de 35° a 7 de distancia, radio 1,55), así el cambio a las partículas no se nota
   const ghost = section.querySelector<HTMLCanvasElement>('canvas.hero-ghost')!;
   const drawGhost = () => {
@@ -167,18 +190,12 @@ const city = t[lang].city;
     const cy = h / 2 - (wide ? 0.02 : 0.32) * (h / 2);
     const unit = h / 2 / (7 * Math.tan((17.5 * Math.PI) / 180));
     const n = wide ? 2400 : 2200;
-    const golden = Math.PI * (3 - Math.sqrt(5));
-    const tilt = 0.35;
+    const land = landPoints(n);
     for (let i = 0; i < n; i++) {
-      const y0 = 1 - (i / (n - 1)) * 2;
-      const r = Math.sqrt(1 - y0 * y0);
-      const x = Math.cos(golden * i) * r;
-      const z0 = Math.sin(golden * i) * r;
-      const y = y0 * Math.cos(tilt) - z0 * Math.sin(tilt);
-      const z = y0 * Math.sin(tilt) + z0 * Math.cos(tilt);
+      const [x, y, z] = rotate([land[i * 3], land[i * 3 + 1], land[i * 3 + 2]], START_SPIN, IDLE_TILT);
       const k = (7 / (7 - z * 1.55)) * 1.55 * unit;
-      g.globalAlpha = 0.12 + 0.6 * (z * 0.5 + 0.5);
-      g.fillStyle = i % 5 ? dot : accent;
+      g.globalAlpha = 0.06 + 0.66 * Math.max(0, z * 0.5 + 0.5) ** 1.5;
+      g.fillStyle = i % 14 ? dot : accent;
       g.beginPath();
       g.arc(cx + x * k, cy - y * k, i % 5 ? 0.9 : 1.2, 0, Math.PI * 2);
       g.fill();
@@ -204,7 +221,15 @@ const city = t[lang].city;
     const run = () => {
       if (isSoftwareRenderer()) return fallback();
       import('../scripts/particles')
-        .then(({ initParticles }) => initParticles({ canvas, section, onProgress: paint }))
+        .then(({ initParticles }) => {
+          const place = (name: string) => section.querySelector<HTMLElement>(`[data-place="${name}"]`)!;
+          return initParticles({
+            canvas,
+            section,
+            onProgress: paint,
+            overlay: { cordoba: place('cordoba'), sanJuan: place('sanjuan'), server: place('server'), tip: place('tip'), labels: JSON.parse(section.dataset.labels!) },
+          });
+        })
         .then((ok) => (ok ? canvas.classList.add('is-ready') : fallback()))
         .catch(fallback);
     };

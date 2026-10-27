@@ -35,6 +35,7 @@ export const cv = {
           'Integré pagos con Mercado Pago, servicios de VEDI y sistemas de la Municipalidad de Córdoba por VPN.',
           'Montamos GitLab autohosteado con CI/CD, registry y runners, y dockerizamos todas las aplicaciones para desplegar por tag con rollback.',
           'Lidero el proyecto de monitoreo de servidores y seguridad (Prometheus, Grafana, Alertmanager, n8n).',
+          'Diseñé y desarrollé un gateway de IA propio delante de un modelo autohospedado (Ollama): claves por aplicación, filtro de salida y un asistente que explica las pantallas del sistema de gestión.',
           'Capacité a nuevos integrantes y a otras áreas en Git, Jira y Docker para la certificación de normas ISO.',
         ],
       },
@@ -48,6 +49,7 @@ export const cv = {
     ],
     projects: [
       { name: 'Entaxi', text: 'Plataforma de taxis multimarca con modo taxímetro (cbataxi.com). App React Native + TypeScript, Traccar, Firebase, SQLite offline, Sentry.' },
+      { name: 'ia-gateway', text: 'IA autohospedada (Ollama, qwen3.5) para las apps de la empresa: claves por app, filtro de salida y cola de GPU. Node/TypeScript, PostgreSQL + pgvector, React.' },
       { name: 'BiciCba', text: 'Bicicletas públicas de Córdoba: más de 313.000 viajes y 129.000 usuarios registrados desde su lanzamiento. Desarrollo full stack del sitio, paneles de administración y reportes.' },
       { name: 'Tu Libreta Digital', text: 'Aplicación de la Municipalidad de Córdoba. Desarrollo full stack.' },
       { name: 'Empadronamiento de taxistas', text: 'Registro de taxistas ante la Municipalidad. PHP y MySQL.' },
@@ -58,11 +60,11 @@ export const cv = {
       { k: 'Lenguajes', v: 'JavaScript, TypeScript, PHP, SQL, Python, C#, Kotlin (básico)' },
       { k: 'Mobile', v: 'React Native, Capacitor, PWA, Firebase, Google Play, iOS (Codemagic)' },
       { k: 'Frontend', v: 'React, Next.js, Vite, Tailwind CSS, Three.js' },
-      { k: 'Backend', v: 'Node.js, Express, PHP, WebSockets, APIs REST, JWT, Mercado Pago' },
+      { k: 'Backend', v: 'Node.js, Express, PHP, Socket.IO, Redis, BullMQ, APIs REST, JWT, Mercado Pago' },
       { k: 'Datos', v: 'MySQL, PostgreSQL, SQLite; modelado y optimización de consultas' },
       { k: 'Mapas y GPS', v: 'Traccar, Nominatim, GraphHopper, OpenLayers, MapLibre' },
       { k: 'DevOps', v: 'Docker, GitLab CI/CD (self-hosted), Traefik, Linux, VPN, Prometheus, Grafana, Sentry' },
-      { k: 'IA y gestión', v: 'Claude, n8n, Git, Jira, capacitación de equipos' },
+      { k: 'IA y gestión', v: 'Claude, Ollama (modelos autohospedados), n8n, Git, Jira, capacitación de equipos' },
     ],
     talks: [
       {
@@ -109,6 +111,7 @@ export const cv = {
           'Integrated Mercado Pago payments, VEDI services and Córdoba City Hall systems over VPN.',
           'Set up self-hosted GitLab with CI/CD, registry and runners, and dockerized every application for tag-based deploys with rollback.',
           'Lead the server and security monitoring project (Prometheus, Grafana, Alertmanager, n8n).',
+          'Designed and built our own AI gateway in front of a self-hosted model (Ollama): per-app keys, an output guard and an assistant that explains the management system screens.',
           'Trained new hires and other departments in Git, Jira and Docker for ISO certification.',
         ],
       },
@@ -122,6 +125,7 @@ export const cv = {
     ],
     projects: [
       { name: 'Entaxi', text: 'Multi-brand taxi platform with taximeter mode (cbataxi.com). React Native + TypeScript app, Traccar, Firebase, offline SQLite, Sentry.' },
+      { name: 'ia-gateway', text: 'Self-hosted AI (Ollama, qwen3.5) for the company apps: per-app keys, output guard and GPU queue. Node/TypeScript, PostgreSQL + pgvector, React.' },
       { name: 'BiciCba', text: "Córdoba's public bike sharing: over 313,000 trips and 129,000 registered users since launch. Full stack development of the site, admin dashboards and reports." },
       { name: 'Tu Libreta Digital', text: 'Córdoba City Hall application. Full stack development.' },
       { name: 'Taxi driver registry', text: 'Taxi driver registration with City Hall. PHP and MySQL.' },
@@ -132,11 +136,11 @@ export const cv = {
       { k: 'Languages', v: 'JavaScript, TypeScript, PHP, SQL, Python, C#, Kotlin (basic)' },
       { k: 'Mobile', v: 'React Native, Capacitor, PWA, Firebase, Google Play, iOS (Codemagic)' },
       { k: 'Frontend', v: 'React, Next.js, Vite, Tailwind CSS, Three.js' },
-      { k: 'Backend', v: 'Node.js, Express, PHP, WebSockets, REST APIs, JWT, Mercado Pago' },
+      { k: 'Backend', v: 'Node.js, Express, PHP, Socket.IO, Redis, BullMQ, REST APIs, JWT, Mercado Pago' },
       { k: 'Data', v: 'MySQL, PostgreSQL, SQLite; data modeling and query optimization' },
       { k: 'Maps & GPS', v: 'Traccar, Nominatim, GraphHopper, OpenLayers, MapLibre' },
       { k: 'DevOps', v: 'Docker, GitLab CI/CD (self-hosted), Traefik, Linux, VPN, Prometheus, Grafana, Sentry' },
-      { k: 'AI & practices', v: 'Claude, n8n, Git, Jira, team training' },
+      { k: 'AI & practices', v: 'Claude, Ollama (self-hosted models), n8n, Git, Jira, team training' },
     ],
     talks: [
       {

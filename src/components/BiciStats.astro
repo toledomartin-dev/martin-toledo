@@ -1,5 +1,6 @@
 ---
-import { t, links, bicicbaStats, type Lang } from '../i18n/content';
+// Los números de BiciCba (totales y viajes por estación), en el encabezado de la página del proyecto
+import { t, bicicbaStats, type Lang } from '../i18n/content';
 
 interface Props {
   lang: Lang;
@@ -30,23 +31,10 @@ const tiles = [
 ];
 ---
 
-<div class="glass reveal grid gap-10 p-7 sm:col-span-2 sm:p-8 lg:col-span-6 lg:grid-cols-[1fr_1.1fr]">
+<div class="glass reveal grid gap-10 p-7 sm:p-8 lg:grid-cols-[1fr_1.1fr]">
   <div class="flex flex-col">
-    <div class="flex items-start justify-between gap-4">
-      <h3 class="text-2xl font-medium tracking-tight">{ui.title}</h3>
-      <a
-        href={links.bicicba}
-        target="_blank"
-        rel="noopener noreferrer"
-        class="inline-flex shrink-0 items-center gap-1.5 rounded-full border border-line px-3 py-1 font-mono text-xs text-muted transition-colors hover:border-accent/60 hover:text-accent"
-      >
-        {ui.visit} <span aria-hidden="true">↗</span>
-      </a>
-    </div>
-    <p class="mt-2 max-w-md text-sm leading-relaxed text-muted">{ui.text}</p>
-
     <!-- Totales: números para leer, no para comparar → cifras destacadas, sin gráfico -->
-    <p class="mt-8 font-mono text-[10px] tracking-widest text-muted uppercase">{ui.totalsTitle}</p>
+    <p class="font-mono text-[10px] tracking-widest text-muted uppercase">{ui.totalsTitle}</p>
     <dl class="mt-4 grid grid-cols-2 gap-x-6 gap-y-7">
       {
         tiles.map((tile) => (
@@ -72,10 +60,10 @@ const tiles = [
       {
         rows.map((row, i) => (
           <li
-            class="bar-row group relative grid grid-cols-[8.5rem_1fr_2.75rem] items-center gap-3 rounded-lg px-2 py-1.5 outline-none sm:grid-cols-[12rem_1fr_3rem]"
+            class="bar-row group/row relative grid grid-cols-[8.5rem_1fr_2.75rem] items-center gap-3 rounded-lg px-2 py-1.5 outline-none sm:grid-cols-[12rem_1fr_3rem]"
             tabindex="0"
           >
-            <span class="truncate text-sm text-muted transition-colors group-hover:text-fg group-focus-visible:text-fg">{row.name}</span>
+            <span class="truncate text-sm text-muted transition-colors group-hover/row:text-fg group-focus-visible/row:text-fg">{row.name}</span>
             <!-- Carril propio: el ancho de la barra es proporcional al valor, sin nada que la comprima -->
             <span class="block">
               <span class="bar block h-3.5 rounded-r-[4px] bg-[var(--chart)]" style={`width:${row.width}%;--i:${i}`} />

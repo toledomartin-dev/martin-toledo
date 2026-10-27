@@ -1,0 +1,70 @@
+---
+// La mini interfaz de la tarjeta del inicio, repetida en el encabezado de la página del proyecto
+import type { Lang } from '../i18n/content';
+import BiciStats from './BiciStats.astro';
+import EntaxiPhone from './mocks/EntaxiPhone.astro';
+import CicdTerminal from './mocks/CicdTerminal.astro';
+import IaChat from './mocks/IaChat.astro';
+import MonitorPanel from './mocks/MonitorPanel.astro';
+import NfcCard from './mocks/NfcCard.astro';
+import MuniDoc from './mocks/MuniDoc.astro';
+
+interface Props {
+  lang: Lang;
+  projectKey: string;
+}
+
+const { lang, projectKey } = Astro.props;
+---
+
+{
+  projectKey === 'entaxi' && (
+    <div class="glass group mt-10 h-[340px] overflow-hidden pt-10">
+      <EntaxiPhone lang={lang} />
+    </div>
+  )
+}
+{
+  projectKey === 'ia-gateway' && (
+    <div class="glass mt-10 p-3 sm:p-5">
+      <IaChat lang={lang} />
+    </div>
+  )
+}
+{
+  projectKey === 'monitoreo' && (
+    <div class="glass mt-10 flex p-4 sm:p-5">
+      <MonitorPanel lang={lang} />
+    </div>
+  )
+}
+{
+  projectKey === 'cicd' && (
+    <div class="glass mt-10 flex p-3 sm:p-5">
+      <CicdTerminal />
+    </div>
+  )
+}
+{
+  projectKey === 'saldobus' && (
+    <div class="glass mt-10 p-6">
+      <NfcCard />
+    </div>
+  )
+}
+{
+  projectKey === 'muni' && (
+    <div class="glass mt-10 p-5">
+      <div class="mx-auto max-w-md">
+        <MuniDoc />
+      </div>
+    </div>
+  )
+}
+{
+  projectKey === 'bicicba' && (
+    <div class="mt-10">
+      <BiciStats lang={lang} />
+    </div>
+  )
+}

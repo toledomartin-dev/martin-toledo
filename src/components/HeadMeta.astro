@@ -7,9 +7,10 @@ interface Props {
   title: string;
   description: string;
   canonical: URL;
+  image?: { src: string; alt: string }; // imagen propia para compartir (las páginas de proyecto)
 }
 
-const { lang, title, description, canonical } = Astro.props;
+const { lang, title, description, canonical, image: own } = Astro.props;
 
 // Datos estructurados (schema.org): le dicen a Google quién es la persona detrás del sitio
 const person = {
@@ -24,14 +25,15 @@ const person = {
   worksFor: { '@type': 'Organization', name: 'Micronauta' },
   alumniOf: { '@type': 'CollegeOrUniversity', name: 'Universidad Tecnológica Nacional — Facultad Regional Córdoba' },
   address: { '@type': 'PostalAddress', addressLocality: 'Córdoba', addressCountry: 'AR' },
-  knowsAbout: ['React Native', 'Node.js', 'TypeScript', 'PHP', 'Docker', 'GitLab CI/CD', 'GPS', 'Traccar', 'MySQL'],
+  knowsAbout: ['React Native', 'Node.js', 'TypeScript', 'PHP', 'Socket.IO', 'Redis', 'Docker', 'GitLab CI/CD', 'Prometheus', 'Ollama', 'GPS', 'Traccar', 'MySQL'],
   sameAs: [site.linkedin, site.github],
 };
-const image = new URL(`/og/og-${lang}.jpg`, Astro.site);
+const image = new URL(own?.src ?? `/og/og-${lang}.jpg`, Astro.site);
 const alt =
-  lang === 'es'
+  own?.alt ??
+  (lang === 'es'
     ? 'Martín Toledo — Construyo sistemas que mueven ciudades. Mapa de Córdoba dibujado con puntos.'
-    : 'Martín Toledo — I build systems that move cities. Map of Córdoba drawn with dots.';
+    : 'Martín Toledo — I build systems that move cities. Map of Córdoba drawn with dots.');
 ---
 
 <link rel="icon" href="/favicon.ico" sizes="48x48" />

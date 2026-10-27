@@ -12,9 +12,10 @@ interface Props {
   description?: string;
   alternate?: string; // ruta equivalente en el otro idioma
   home?: boolean;
+  image?: { src: string; alt: string };
 }
 
-const { lang, title, description, alternate, home = false } = Astro.props;
+const { lang, title, description, alternate, home = false, image } = Astro.props;
 const ui = t[lang];
 const pageTitle = title ?? ui.meta.title;
 const pageDescription = description ?? ui.meta.description;
@@ -32,7 +33,7 @@ const altHref = alternate ?? ui.switchLang.href;
     <meta name="description" content={pageDescription} />
     <link rel="canonical" href={canonical} />
     <link rel="alternate" hreflang={otherLang} href={new URL(altHref, Astro.site)} />
-    <HeadMeta lang={lang} title={pageTitle} description={pageDescription} canonical={canonical} />
+    <HeadMeta lang={lang} title={pageTitle} description={pageDescription} canonical={canonical} image={image} />
 
     <script is:inline>
       // Aplica el tema guardado antes de pintar, para evitar el parpadeo

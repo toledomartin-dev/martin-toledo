@@ -1,6 +1,7 @@
 ---
-import * as icons from 'simple-icons';
 import { t, stackRows, type Lang } from '../i18n/content';
+import { brandIcon } from '../lib/icons';
+import { projects, projectPath } from '../projects';
 
 interface Props {
   lang: Lang;
@@ -9,28 +10,25 @@ interface Props {
 const { lang } = Astro.props;
 const ui = t[lang].stack;
 
-type SimpleIcon = { path: string; hex: string };
-const lookup = icons as unknown as Record<string, SimpleIcon | undefined>;
-
-// Las marcas casi negras (Express, Next.js…) se pintan con el color del texto para no
-// desaparecer sobre el fondo oscuro
-const luminance = (hex: string) => {
-  const [r, g, b] = [0, 2, 4].map((i) => parseInt(hex.slice(i, i + 2), 16) / 255);
-  return 0.2126 * r + 0.7152 * g + 0.0722 * b;
+// En qué proyectos aparece cada tecnología: mismo ícono o nombre contenido en el stack o el diagrama
+const usedIn = (name: string, icon: string) => {
+  const needle = name.toLowerCase();
+  return projects
+    .filter((p) => {
+      const items = [...p.text[lang].stack.flatMap((g) => g.items), ...p.diagram.nodes.map((n) => ({ name: n.label, icon: n.icon }))];
+      return items.some((i) => (icon && i.icon === icon) || i.name.toLowerCase().includes(needle));
+    })
+    .map((p) => ({ label: p.text[lang].kicker, href: projectPath(lang, p.key) }));
 };
+const usage = Object.fromEntries(stackRows.flatMap((row) => row.items.map((item) => [item.name, usedIn(item.name, item.icon)])));
+
 const rows = stackRows.map((row, r) => ({
   label: row[lang],
   reverse: r % 2 === 1,
   duration: 38 + r * 6,
   items: row.items.map((item) => {
-    const icon = item.icon ? lookup[item.icon] : undefined;
-    const hex = icon?.hex ?? 'ff7a1a';
-    return {
-      name: item.name,
-      path: icon?.path,
-      initials: item.name.replace(/[^A-Z]/g, '').slice(0, 2) || item.name.slice(0, 2),
-      brand: luminance(hex) < 0.12 ? 'var(--fg)' : `#${hex}`,
-    };
+    const icon = brandIcon(item.icon, item.name);
+    return { name: item.name, path: icon.path, initials: icon.initials, brand: icon.color };
   }),
 }));
 ---
@@ -81,6 +79,17 @@ const rows = stackRows.map((row, r) => ({
         </div>
       ))
     }
+  </div>
+
+  <!-- Dónde usé la tecnología elegida -->
+  <div class="mx-auto mt-8 max-w-6xl px-4 sm:px-6">
+    <div class="glass min-h-[4.5rem] p-4 sm:p-5" data-usage={JSON.stringify(usage)} aria-live="polite">
+      <p class="text-sm text-muted" data-usage-empty>{ui.hint}</p>
+      <div class="hidden flex-wrap items-center gap-2" data-usage-list>
+        <span class="mr-1 text-sm"><strong class="text-fg" data-usage-name></strong> <span class="text-muted">· {ui.usedIn}</span></span>
+      </div>
+      <p class="hidden text-sm" data-usage-daily><strong class="text-fg" data-usage-name></strong> <span class="text-muted">· {ui.daily}</span></p>
+    </div>
   </div>
 </section>
 
@@ -161,14 +170,36 @@ const rows = stackRows.map((row, r) => ({
 </style>
 
 <script>
-  // Tocar una tarjeta la deja pintada (y su copia en la fila también)
-  document.querySelectorAll<HTMLButtonElement>('.tech').forEach((btn) => {
-    btn.addEventListener('click', () => {
-      const lit = btn.getAttribute('aria-pressed') !== 'true';
-      document.querySelectorAll<HTMLButtonElement>(`.tech[data-tech="${CSS.escape(btn.dataset.tech!)}"]`).forEach((el) => {
-        el.classList.toggle('lit', lit);
-        el.setAttribute('aria-pressed', String(lit));
-      });
+  // Tocar una tarjeta la deja pintada (y su copia en la fila) y muestra en qué proyectos se usó
+  const box = document.querySelector<HTMLElement>('[data-usage]')!;
+  const usage = JSON.parse(box.dataset.usage!) as Record<string, { label: string; href: string }[]>;
+  const empty = box.querySelector<HTMLElement>('[data-usage-empty]')!;
+  const list = box.querySelector<HTMLElement>('[data-usage-list]')!;
+  const daily = box.querySelector<HTMLElement>('[data-usage-daily]')!;
+
+  const select = (name: string | null) => {
+    document.querySelectorAll<HTMLButtonElement>('.tech').forEach((el) => {
+      const on = el.dataset.tech === name;
+      el.classList.toggle('lit', on);
+      el.setAttribute('aria-pressed', String(on));
     });
+    list.querySelectorAll('a').forEach((a) => a.remove());
+    const found = name ? usage[name] ?? [] : [];
+    empty.classList.toggle('hidden', !!name);
+    list.classList.toggle('hidden', !name || !found.length);
+    list.classList.toggle('flex', !!name && !!found.length);
+    daily.classList.toggle('hidden', !name || !!found.length);
+    box.querySelectorAll('[data-usage-name]').forEach((el) => (el.textContent = name));
+    for (const p of found) {
+      const a = document.createElement('a');
+      a.href = p.href;
+      a.textContent = p.label;
+      a.className = 'rounded-full border border-line px-3 py-1 text-sm transition-colors hover:border-accent/60 hover:text-accent';
+      list.append(a);
+    }
+  };
+
+  document.querySelectorAll<HTMLButtonElement>('.tech').forEach((btn) => {
+    btn.addEventListener('click', () => select(btn.getAttribute('aria-pressed') === 'true' ? null : btn.dataset.tech!));
   });
 </script>

@@ -1,0 +1,51 @@
+---
+// Mini panel de monitoreo: CPU, requests y servidores en verde
+import { t, type Lang } from '../../i18n/content';
+
+interface Props {
+  lang: Lang;
+}
+
+const ui = t[Astro.props.lang].bento.monitor;
+const servers = ['app-01', 'api-01', 'db-01', 'proxy'];
+const cpu = 'M0 38 L12 30 L24 33 L36 18 L48 24 L60 14 L72 20 L84 10 L96 16 L108 8 L120 14';
+---
+
+<div class="grid flex-1 gap-3 sm:grid-cols-3" aria-hidden="true">
+  <div class="rounded-xl border border-line bg-bg-soft/60 p-4">
+    <p class="font-mono text-[10px] text-muted uppercase">CPU</p>
+    <svg viewBox="0 0 120 44" class="mt-3 h-14 w-full" preserveAspectRatio="none">
+      <defs>
+        <linearGradient id="cpu-fill" x1="0" x2="0" y1="0" y2="1">
+          <stop offset="0" stop-color="var(--accent)" stop-opacity=".35"></stop>
+          <stop offset="1" stop-color="var(--accent)" stop-opacity="0"></stop>
+        </linearGradient>
+      </defs>
+      <path d={`${cpu} L120 44 L0 44Z`} fill="url(#cpu-fill)"></path>
+      <path d={cpu} fill="none" stroke="var(--accent)" stroke-width="1.6" vector-effect="non-scaling-stroke"></path>
+    </svg>
+  </div>
+  <div class="rounded-xl border border-line bg-bg-soft/60 p-4">
+    <p class="font-mono text-[10px] text-muted uppercase">Requests</p>
+    <div class="mt-3 flex h-14 items-end gap-1.5">
+      {
+        [0.5, 0.8, 0.6, 0.9, 0.4, 0.7, 0.85, 0.55, 0.75].map((h, i) => (
+          <span class="anim-bar flex-1 rounded-sm bg-accent/70" style={`height:100%;--from:${h * 0.5};--to:${h};--d:${i * 0.18}s`} />
+        ))
+      }
+    </div>
+  </div>
+  <div class="rounded-xl border border-line bg-bg-soft/60 p-4">
+    <p class="font-mono text-[10px] text-muted uppercase">{ui.servers}</p>
+    <ul class="mt-3 space-y-1.5 font-mono text-[11px]">
+      {
+        servers.map((s) => (
+          <li class="flex items-center justify-between">
+            <span class="text-muted">{s}</span>
+            <span class="size-1.5 rounded-full bg-emerald-400 shadow-[0_0_8px] shadow-emerald-400" />
+          </li>
+        ))
+      }
+    </ul>
+  </div>
+</div>

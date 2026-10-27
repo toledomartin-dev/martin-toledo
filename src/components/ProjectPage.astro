@@ -1,0 +1,176 @@
+---
+import type { Lang } from '../i18n/content';
+import { projects, projectPath } from '../projects';
+import type { Project } from '../projects/types';
+import { brandIcon } from '../lib/icons';
+import ArchDiagram from './ArchDiagram.astro';
+import ProjectVisual from './ProjectVisual.astro';
+
+interface Props {
+  lang: Lang;
+  project: Project;
+}
+
+const { lang, project } = Astro.props;
+const c = project.text[lang];
+const home = lang === 'es' ? '/' : '/en/';
+const ui = {
+  es: { back: 'Volver a proyectos', stack: 'Stack técnico', next: 'Siguiente proyecto', step: 'Paso', play: 'Reproducir', pause: 'Pausar', prev: 'Paso anterior', next: 'Paso siguiente', hint: 'Tocá o señalá una pieza para ver con qué se conecta.' },
+  en: { back: 'Back to projects', stack: 'Tech stack', next: 'Next project', step: 'Step', play: 'Play', pause: 'Pause', prev: 'Previous step', next: 'Next step', hint: 'Tap or hover a piece to see what it connects to.' },
+}[lang];
+
+const index = projects.indexOf(project);
+const next = projects[(index + 1) % projects.length];
+const stack = c.stack.map((g) => ({ ...g, items: g.items.map((i) => ({ ...i, ...brandIcon(i.icon, i.name) })) }));
+---
+
+<article class="mx-auto max-w-4xl px-4 pt-32 pb-24 sm:px-6 sm:pt-40">
+  <a href={`${home}#proyectos`} class="inline-flex items-center gap-2 text-sm text-muted hover:text-accent">
+    <span aria-hidden="true">←</span>
+    {ui.back}
+  </a>
+
+  <p class="mt-10 font-mono text-sm text-accent">{c.kicker}</p>
+  <h1 class="display text-gradient mt-4 text-4xl text-balance sm:text-6xl">{c.title}</h1>
+  <p class="mt-6 max-w-3xl text-lg leading-relaxed text-muted">{c.lead}</p>
+
+  {
+    c.links && (
+      <div class="mt-6 flex flex-wrap gap-2">
+        {c.links.map((l) => (
+          <a
+            href={l.href}
+            target="_blank"
+            rel="noopener noreferrer"
+            class="inline-flex items-center gap-1.5 rounded-full border border-line px-3 py-1 font-mono text-xs text-muted transition-colors hover:border-accent/60 hover:text-accent"
+          >
+            {l.label} <span aria-hidden="true">↗</span>
+          </a>
+        ))}
+      </div>
+    )
+  }
+
+  <ProjectVisual lang={lang} projectKey={project.key} />
+
+  <dl class="glass mt-10 grid grid-cols-2 gap-px bg-line sm:grid-cols-4">
+    {
+      c.facts.map((f) => (
+        <div class="bg-card p-4">
+          <dt class="font-mono text-xs tracking-wider text-muted uppercase">{f.k}</dt>
+          <dd class="mt-2 text-sm font-medium">{f.v}</dd>
+        </div>
+      ))
+    }
+  </dl>
+
+  {
+    c.sections.map((s) => (
+      <section class="reveal mt-16 max-w-3xl">
+        <h2 class="text-2xl font-medium tracking-tight">{s.h}</h2>
+        {s.p.map((para) => (
+          <p class="mt-4 leading-relaxed text-muted">{para}</p>
+        ))}
+      </section>
+    ))
+  }
+
+  {
+    c.related && (
+      <a href={c.related.href} class="glass reveal group mt-10 flex max-w-3xl items-center justify-between gap-4 p-5">
+        <span>
+          <span class="block font-mono text-xs text-accent">{c.related.kicker}</span>
+          <span class="mt-1 block font-medium">{c.related.title}</span>
+        </span>
+        <span class="text-accent transition-transform group-hover:translate-x-1" aria-hidden="true">
+          →
+        </span>
+      </a>
+    )
+  }
+
+  <section class="reveal mt-16">
+    <h2 class="text-2xl font-medium tracking-tight">{c.diagram.title}</h2>
+    <p class="mt-4 max-w-3xl leading-relaxed text-muted">{c.diagram.text}</p>
+    <p class="mt-2 text-sm text-muted/80">{ui.hint}</p>
+    <ArchDiagram diagram={project.diagram} text={c.diagram} labels={ui} />
+  </section>
+
+  <section class="reveal mt-16">
+    <h2 class="text-2xl font-medium tracking-tight">{ui.stack}</h2>
+    <div class="mt-6 grid gap-4 sm:grid-cols-2">
+      {
+        stack.map((g) => (
+          <div class="glass p-5">
+            <h3 class="font-mono text-xs tracking-widest text-accent uppercase">{g.group}</h3>
+            <ul class="mt-4 space-y-3">
+              {g.items.map((i) => (
+                <li class="flex gap-3">
+                  <span class="grid size-8 shrink-0 place-items-center rounded-lg border border-line bg-bg-soft">
+                    {i.path ? (
+                      <svg class="size-4" viewBox="0 0 24 24" aria-hidden="true">
+                        <path d={i.path} fill={i.color} />
+                      </svg>
+                    ) : (
+                      <span class="font-mono text-[10px] font-bold text-accent">{i.initials}</span>
+                    )}
+                  </span>
+                  <span class="text-sm leading-snug">
+                    <span class="font-medium">{i.name}</span>
+                    <span class="block text-muted">{i.role}</span>
+                  </span>
+                </li>
+              ))}
+            </ul>
+          </div>
+        ))
+      }
+    </div>
+  </section>
+
+  {
+    c.built && (
+      <section class="reveal mt-16 max-w-3xl">
+        <h2 class="text-2xl font-medium tracking-tight">{c.built.h}</h2>
+        <ul class="mt-6 space-y-3">
+          {c.built.items.map((item) => (
+            <li class="flex gap-3 leading-relaxed text-muted">
+              <svg class="mt-1 size-5 shrink-0 text-accent" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" aria-hidden="true">
+                <path d="m5 12 5 5L20 7" />
+              </svg>
+              {item}
+            </li>
+          ))}
+        </ul>
+      </section>
+    )
+  }
+
+  <section class="reveal mt-16">
+    <h2 class="text-2xl font-medium tracking-tight">{c.lessons.h}</h2>
+    <div class="mt-6 grid gap-4 sm:grid-cols-2">
+      {
+        c.lessons.items.map((l) => (
+          <div class="glass p-6">
+            <h3 class="font-semibold">{l.t}</h3>
+            <p class="mt-2 text-sm leading-relaxed text-muted">{l.d}</p>
+          </div>
+        ))
+      }
+    </div>
+  </section>
+
+  <nav class="mt-16 flex flex-col gap-6 border-t border-line pt-8 sm:flex-row sm:items-center sm:justify-between">
+    <a href={`${home}#proyectos`} class="inline-flex items-center gap-2 font-semibold text-accent hover:underline">
+      <span aria-hidden="true">←</span>
+      {ui.back}
+    </a>
+    <a href={projectPath(lang, next.key)} class="group text-right">
+      <span class="block font-mono text-xs text-muted uppercase">{ui.next}</span>
+      <span class="mt-1 inline-flex items-center gap-2 font-medium group-hover:text-accent">
+        {next.text[lang].kicker}
+        <span class="transition-transform group-hover:translate-x-1" aria-hidden="true">→</span>
+      </span>
+    </a>
+  </nav>
+</article>

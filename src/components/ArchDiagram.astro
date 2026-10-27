@@ -1,0 +1,379 @@
+---
+// Diagrama de arquitectura animado: piezas del stack conectadas, paquetes que viajan por las
+// conexiones y un recorrido paso a paso. Dos dibujos (ancho y angosto) con la misma lógica.
+import type { Diagram, ProjectText } from '../projects/types';
+import { brandIcon } from '../lib/icons';
+
+interface Props {
+  diagram: Diagram;
+  text: ProjectText['diagram'];
+  labels: { step: string; play: string; pause: string; prev: string; next: string };
+}
+
+const { diagram, text, labels } = Astro.props;
+
+const layouts = [
+  // Celular: tres columnas (x = 60, 180, 300) de nodos chicos, solo ícono y nombre
+  { kind: 'wide', w: 960, h: diagram.height, hw: 80, hh: 30, icon: 20, pos: (n: Diagram['nodes'][number]) => n.at },
+  { kind: 'tall', w: 360, h: diagram.mobileHeight, hw: 56, hh: 21, icon: 16, pos: (n: Diagram['nodes'][number]) => n.m },
+].map((l) => {
+  const placed = diagram.nodes.filter((n) => l.pos(n));
+  const byId = new Map(placed.map((n) => [n.id, l.pos(n)!]));
+  // Curva de borde a borde: sale por el lado que mira al otro nodo
+  const edges = diagram.edges
+    .filter((e) => byId.has(e.from) && byId.has(e.to) && !(l.kind === 'tall' && e.wideOnly))
+    .map((e) => {
+      const [ax, ay] = byId.get(e.from)!;
+      const [bx, by] = byId.get(e.to)!;
+      const dx = bx - ax;
+      const dy = by - ay;
+      let d: string;
+      let mid: [number, number];
+      if (Math.abs(dx) > l.hw * 2 && Math.abs(dx) * 0.6 >= Math.abs(dy)) {
+        const sx = ax + Math.sign(dx) * l.hw;
+        const ex = bx - Math.sign(dx) * l.hw;
+        const mx = (sx + ex) / 2;
+        d = `M${sx} ${ay} C${mx} ${ay} ${mx} ${by} ${ex} ${by}`;
+        mid = [mx, (ay + by) / 2];
+      } else {
+        const sy = ay + Math.sign(dy || 1) * l.hh;
+        const ey = by - Math.sign(dy || 1) * l.hh;
+        const my = (sy + ey) / 2;
+        d = `M${ax} ${sy} C${ax} ${my} ${bx} ${my} ${bx} ${ey}`;
+        mid = [(ax + bx) / 2, my];
+      }
+      const label = text.edges[e.id] ?? '';
+      return { ...e, d, mid, label, lw: label.length * 6.1 + 14 };
+    });
+  const nodes = placed.map((n) => {
+    const [x, y] = byId.get(n.id)!;
+    return { ...n, x, y, sub: text.sub[n.id] ?? '', ...brandIcon(n.icon, n.label) };
+  });
+  return { ...l, edges, nodes };
+});
+---
+
+<figure class="arch glass mt-8 p-3 sm:p-5" data-arch data-flow={JSON.stringify(diagram.flow)}>
+  {
+    layouts.map((l) => (
+      <svg
+        class:list={['arch-svg h-auto w-full', l.kind === 'wide' ? 'hidden sm:block' : 'sm:hidden']}
+        viewBox={`0 0 ${l.w} ${l.h}`}
+        role="img"
+        aria-label={text.title}
+      >
+        <g>
+          {l.edges.map((e, i) => (
+            <g class="edge" data-edge={e.id} data-from={e.from} data-to={e.to}>
+              <path class:list={['edge-line', e.dashed && 'dashed']} d={e.d} />
+              <circle class="pkt" r="2.4">
+                <animateMotion dur={`${e.dashed ? 4.2 : 2.8}s`} begin={`${(i * 0.53) % 2.8}s`} repeatCount="indefinite" path={e.d} />
+              </circle>
+              <circle class="burst" r="4.5">
+                <animateMotion class="go" dur="1.1s" begin="indefinite" path={e.d} />
+                <animate class="go" attributeName="opacity" values="0;1;1;0" keyTimes="0;.1;.85;1" dur="1.1s" begin="indefinite" />
+              </circle>
+              <circle class="burst" r="4.5">
+                <animateMotion class="back" dur="1.1s" begin="indefinite" path={e.d} keyPoints="1;0" keyTimes="0;1" calcMode="linear" />
+                <animate class="back" attributeName="opacity" values="0;1;1;0" keyTimes="0;.1;.85;1" dur="1.1s" begin="indefinite" />
+              </circle>
+              {l.kind === 'wide' && e.label && (
+                <g class="edge-label" transform={`translate(${e.mid[0]} ${e.mid[1]})`}>
+                  <rect x={-e.lw / 2} y="-9" width={e.lw} height="18" rx="9" />
+                  <text text-anchor="middle" y="3.6">
+                    {e.label}
+                  </text>
+                </g>
+              )}
+            </g>
+          ))}
+        </g>
+        {l.nodes.map((n) => (
+          <g class:list={['node', n.core && 'core']} data-node={n.id} tabindex="0" transform={`translate(${n.x - l.hw} ${n.y - l.hh})`}>
+            <title>{`${n.label} — ${n.sub}`}</title>
+            <rect class="node-box" width={l.hw * 2} height={l.hh * 2} rx={l.kind === 'wide' ? 14 : 11} />
+            {n.path ? (
+              <g transform={`translate(${l.kind === 'wide' ? 12 : 8} ${l.hh - l.icon / 2}) scale(${l.icon / 24})`}>
+                <path d={n.path} fill={n.color} />
+              </g>
+            ) : (
+              <g transform={`translate(${l.kind === 'wide' ? 22 : 16} ${l.hh})`}>
+                <circle r={l.kind === 'wide' ? 11 : 9} class="mono-bg" />
+                <text class="mono" text-anchor="middle" y="3.5">
+                  {n.initials}
+                </text>
+              </g>
+            )}
+            {l.kind === 'wide' ? (
+              <>
+                <text class="node-label" x="39" y={l.hh - 3}>
+                  {n.label}
+                </text>
+                <text class="node-sub" x="39" y={l.hh + 12}>
+                  {n.sub}
+                </text>
+              </>
+            ) : (
+              <text class="node-label small" x="30" y={l.hh + 4}>
+                {n.short ?? n.label}
+              </text>
+            )}
+          </g>
+        ))}
+      </svg>
+    ))
+  }
+
+  <div class="mt-4 flex items-center justify-between gap-3 border-t border-line px-1 pt-4">
+    <p class="font-mono text-xs text-muted">
+      {labels.step} <span data-step-n>1</span>/{diagram.flow.length}
+    </p>
+    <div class="flex items-center gap-1.5">
+      <!-- En el celular se ve un paso a la vez: flechas para moverse -->
+      <button type="button" class="grid size-8 place-items-center rounded-full border border-line text-muted hover:text-fg sm:hidden" data-prev aria-label={labels.prev}>←</button>
+      <button type="button" class="arch-toggle rounded-full border border-line px-3 py-1 font-mono text-xs text-muted transition-colors hover:text-fg" data-play aria-pressed="true">
+        <span class="when-on">{labels.pause}</span><span class="when-off">{labels.play}</span>
+      </button>
+      <button type="button" class="grid size-8 place-items-center rounded-full border border-line text-muted hover:text-fg sm:hidden" data-next aria-label={labels.next}>→</button>
+    </div>
+  </div>
+  <ol class="mt-3 space-y-1">
+    {
+      text.flow.map((s, i) => (
+        <li class="arch-li">
+          <button type="button" class="arch-step flex w-full gap-3 rounded-xl px-3 py-2.5 text-left text-sm leading-relaxed text-muted" data-step={i}>
+            <span class="step-n mt-0.5 grid size-5 shrink-0 place-items-center rounded-full border border-line font-mono text-[10px]">{i + 1}</span>
+            <span>{s}</span>
+          </button>
+        </li>
+      ))
+    }
+  </ol>
+</figure>
+
+<style>
+  .edge-line {
+    fill: none;
+    stroke: color-mix(in srgb, var(--fg) 22%, transparent);
+    stroke-width: 1.6;
+    transition:
+      stroke 0.4s ease,
+      opacity 0.3s ease;
+  }
+  .edge-line.dashed {
+    stroke-dasharray: 5 5;
+  }
+  .pkt {
+    fill: var(--muted);
+    opacity: 0.8;
+  }
+  .burst {
+    fill: var(--accent);
+    opacity: 0;
+    filter: drop-shadow(0 0 6px var(--accent));
+  }
+  .edge-label rect {
+    fill: var(--bg);
+    stroke: var(--border);
+  }
+  .edge-label text {
+    fill: var(--muted);
+    font-family: var(--font-mono);
+    font-size: 10.5px;
+  }
+  .edge.on .edge-line {
+    stroke: var(--accent);
+    stroke-width: 2.2;
+  }
+  .edge.on .pkt {
+    fill: var(--accent);
+    opacity: 0.9;
+  }
+  .edge.on .edge-label rect {
+    stroke: color-mix(in srgb, var(--accent) 60%, transparent);
+  }
+  .edge.on .edge-label text {
+    fill: var(--fg);
+  }
+
+  .node {
+    cursor: pointer;
+    outline: none;
+    transition: opacity 0.3s ease;
+  }
+  .node-box {
+    fill: var(--card);
+    stroke: var(--border);
+    stroke-width: 1.2;
+    transition:
+      stroke 0.3s ease,
+      fill 0.3s ease;
+  }
+  .node.core .node-box {
+    stroke: color-mix(in srgb, var(--accent) 55%, transparent);
+    fill: color-mix(in srgb, var(--accent) 7%, var(--card));
+  }
+  .node.on .node-box,
+  .node:hover .node-box,
+  .node:focus-visible .node-box {
+    stroke: var(--accent);
+  }
+  .node-label {
+    fill: var(--fg);
+    font-size: 13px;
+    font-weight: 550;
+  }
+  .node-label.small {
+    font-size: 11px;
+  }
+  .node-sub {
+    fill: var(--muted);
+    font-size: 10.5px;
+  }
+  .mono-bg {
+    fill: color-mix(in srgb, var(--accent) 18%, transparent);
+  }
+  .mono {
+    fill: var(--accent);
+    font-family: var(--font-mono);
+    font-size: 9px;
+    font-weight: 700;
+  }
+
+  /* Al señalar un nodo: se apaga todo lo que no se conecta con él */
+  [data-focus] .node:not(.lit),
+  [data-focus] .edge:not(.lit) {
+    opacity: 0.25;
+  }
+  [data-focus] .edge.lit .edge-line {
+    stroke: var(--accent);
+  }
+
+  .arch-step {
+    transition:
+      background-color 0.3s ease,
+      color 0.3s ease;
+  }
+  .arch-step:hover {
+    color: var(--fg);
+  }
+  .arch-step.on {
+    background: color-mix(in srgb, var(--accent) 9%, transparent);
+    color: var(--fg);
+  }
+  .arch-step.on .step-n {
+    border-color: var(--accent);
+    background: var(--accent);
+    color: var(--accent-ink);
+  }
+  /* Celular: solo el paso actual (el primero, antes de que arranque el recorrido) */
+  @media (max-width: 639px) {
+    .arch-li:not(.cur) {
+      display: none;
+    }
+    ol:not(:has(.cur)) > .arch-li:first-child {
+      display: block;
+    }
+  }
+  [aria-pressed='true'] .when-off,
+  [aria-pressed='false'] .when-on {
+    display: none;
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    .pkt {
+      display: none;
+    }
+  }
+</style>
+
+<script>
+  const reduced = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+
+  document.querySelectorAll<HTMLElement>('[data-arch]').forEach((fig) => {
+    const flow = JSON.parse(fig.dataset.flow!) as string[][];
+    const steps = [...fig.querySelectorAll<HTMLButtonElement>('[data-step]')];
+    const counter = fig.querySelector('[data-step-n]')!;
+    const toggle = fig.querySelector<HTMLButtonElement>('[data-play]')!;
+    const svgs = [...fig.querySelectorAll<SVGSVGElement>('svg')];
+    let current = -1;
+    let playing = !reduced;
+    let visible = false;
+    let timer = 0;
+
+    const show = (i: number) => {
+      current = (i + flow.length) % flow.length;
+      fig.querySelectorAll('.edge.on, .node.on').forEach((el) => el.classList.remove('on'));
+      for (const token of flow[current]) {
+        const back = token.startsWith('-');
+        const id = back ? token.slice(1) : token;
+        fig.querySelectorAll<SVGGElement>(`[data-edge="${id}"]`).forEach((edge) => {
+          edge.classList.add('on');
+          for (const n of [edge.dataset.from, edge.dataset.to]) {
+            fig.querySelectorAll(`[data-node="${n}"]`).forEach((el) => el.classList.add('on'));
+          }
+          // Solo se dispara en el dibujo visible; SMIL no anima lo que está oculto
+          if (!reduced && edge.ownerSVGElement?.getBoundingClientRect().width) {
+            edge.querySelectorAll<SVGAnimationElement>(back ? '.back' : '.go').forEach((a) => a.beginElement());
+          }
+        });
+      }
+      steps.forEach((s, k) => {
+        s.classList.toggle('on', k === current);
+        s.parentElement!.classList.toggle('cur', k === current);
+      });
+      counter.textContent = String(current + 1);
+    };
+
+    const schedule = () => {
+      clearTimeout(timer);
+      if (playing && visible) timer = window.setTimeout(() => (show(current + 1), schedule()), 2800);
+    };
+    const setPlaying = (on: boolean) => {
+      playing = on;
+      toggle.setAttribute('aria-pressed', String(on));
+      schedule();
+    };
+
+    toggle.addEventListener('click', () => setPlaying(!playing));
+    fig.querySelector('[data-prev]')!.addEventListener('click', () => (show(current - 1), setPlaying(false)));
+    fig.querySelector('[data-next]')!.addEventListener('click', () => (show(current + 1), setPlaying(false)));
+    steps.forEach((s, k) =>
+      s.addEventListener('click', () => {
+        show(k);
+        setPlaying(false);
+      }),
+    );
+
+    new IntersectionObserver(
+      ([entry]) => {
+        visible = entry.isIntersecting;
+        if (visible && current < 0) show(0);
+        schedule();
+      },
+      { threshold: 0.35 },
+    ).observe(fig);
+
+    // Señalar o tocar un nodo resalta sus conexiones
+    const focusNode = (id: string | null) => {
+      fig.querySelectorAll('.lit').forEach((el) => el.classList.remove('lit'));
+      if (!id) return fig.removeAttribute('data-focus');
+      fig.dataset.focus = id;
+      fig.querySelectorAll(`[data-node="${id}"]`).forEach((el) => el.classList.add('lit'));
+      fig.querySelectorAll<SVGGElement>(`[data-from="${id}"], [data-to="${id}"]`).forEach((edge) => {
+        edge.classList.add('lit');
+        const other = edge.dataset.from === id ? edge.dataset.to : edge.dataset.from;
+        fig.querySelectorAll(`[data-node="${other}"]`).forEach((el) => el.classList.add('lit'));
+      });
+    };
+    svgs.forEach((svg) => {
+      svg.querySelectorAll<SVGGElement>('[data-node]').forEach((node) => {
+        const id = node.dataset.node!;
+        node.addEventListener('pointerenter', () => focusNode(id));
+        node.addEventListener('pointerleave', () => focusNode(null));
+        node.addEventListener('focus', () => focusNode(id));
+        node.addEventListener('blur', () => focusNode(null));
+      });
+    });
+  });
+</script>

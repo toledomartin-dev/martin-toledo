@@ -355,6 +355,156 @@ html.dark .astro-code span {
   background-color: var(--shiki-dark-bg) !important;
 }
 
+/* ---------- Notas: gráficos escritos en HTML dentro del Markdown ---------- */
+.prose .note-figure {
+  margin-block: 2.2em;
+  border: 1px solid var(--border);
+  border-radius: 1.25rem;
+  background: var(--card);
+  padding: 1.25rem;
+  font-size: 0.9rem;
+  line-height: 1.5;
+}
+.prose .note-figure > * + * {
+  margin-top: 0;
+}
+.prose .note-caption {
+  margin-top: 1rem;
+  color: var(--muted);
+  font-family: var(--font-mono);
+  font-size: 0.72rem;
+}
+
+/* Línea de tiempo: mi vida y la tecnología, en el mismo eje */
+.note-timeline {
+  position: relative;
+  display: grid;
+  gap: 0.9rem;
+  padding-left: 1.4rem;
+}
+.note-timeline::before {
+  content: '';
+  position: absolute;
+  top: 0.4rem;
+  bottom: 0.4rem;
+  left: 0.3rem;
+  width: 1px;
+  background: var(--border);
+}
+.note-timeline > div {
+  position: relative;
+  display: grid;
+  grid-template-columns: 4.2rem 1fr;
+  gap: 0.75rem;
+}
+.note-timeline > div::before {
+  content: '';
+  position: absolute;
+  top: 0.45rem;
+  left: -1.4rem;
+  width: 0.65rem;
+  height: 0.65rem;
+  border: 2px solid var(--muted);
+  border-radius: 999px;
+  background: var(--card);
+}
+.note-timeline > .me::before {
+  border-color: var(--accent);
+  background: var(--accent);
+}
+.note-timeline b {
+  color: var(--fg);
+  font-family: var(--font-mono);
+  font-size: 0.8rem;
+  font-weight: 600;
+}
+.note-timeline .me span {
+  color: var(--fg);
+}
+.note-legend {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 1rem;
+  margin-bottom: 1.1rem;
+  font-family: var(--font-mono);
+  font-size: 0.72rem;
+}
+.note-legend i {
+  display: inline-block;
+  width: 0.6rem;
+  height: 0.6rem;
+  margin-right: 0.4rem;
+  border: 2px solid var(--muted);
+  border-radius: 999px;
+}
+.note-legend i.me {
+  border-color: var(--accent);
+  background: var(--accent);
+}
+
+/* Pasos en fila (en el celular, en columna) */
+.note-steps {
+  display: grid;
+  gap: 0.5rem;
+}
+@media (min-width: 640px) {
+  .note-steps {
+    grid-template-columns: repeat(var(--n, 4), 1fr);
+  }
+}
+.note-steps > div {
+  border: 1px solid var(--border);
+  border-radius: 0.9rem;
+  background: var(--bg-soft);
+  padding: 0.75rem;
+}
+.note-steps > div:last-child {
+  border-color: color-mix(in srgb, var(--accent) 55%, transparent);
+}
+.note-steps b {
+  display: block;
+  color: var(--fg);
+  font-weight: 600;
+}
+.note-steps small {
+  display: block;
+  margin-top: 0.2rem;
+  color: var(--muted);
+  font-size: 0.78rem;
+}
+
+/* Dos columnas comparadas */
+.note-split {
+  display: grid;
+  gap: 0.75rem;
+}
+@media (min-width: 640px) {
+  .note-split {
+    grid-template-columns: 1fr 1fr;
+  }
+}
+.note-split > div {
+  border: 1px solid var(--border);
+  border-radius: 0.9rem;
+  padding: 0.9rem 1rem;
+}
+.note-split > div:last-child {
+  border-color: color-mix(in srgb, var(--accent) 55%, transparent);
+  background: color-mix(in srgb, var(--accent) 6%, transparent);
+}
+.note-split p {
+  margin: 0 0 0.5rem;
+  color: var(--accent);
+  font-family: var(--font-mono);
+  font-size: 0.72rem;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+.note-split span {
+  display: block;
+  padding-block: 0.2rem;
+}
+
 /* Botón de idioma mientras trabaja */
 [aria-busy='true'] {
   cursor: progress;
