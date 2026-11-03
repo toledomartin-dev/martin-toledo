@@ -253,6 +253,7 @@ export interface ParticleLabels {
 
 interface Options {
   canvas: HTMLCanvasElement;
+  gl: WebGL2RenderingContext; // creado por getGpuContext sobre el mismo canvas
   section: HTMLElement;
   onProgress?: (p: number) => void;
   // Capa HTML sobre el canvas: nombres de las ciudades y la tarjeta del vehículo señalado
@@ -269,7 +270,7 @@ const smooth = (a: number, b: number, x: number) => {
 };
 
 /** Devuelve false si no se pudo (o no convenía) iniciar las partículas. */
-export async function initParticles({ canvas, section, onProgress, overlay }: Options): Promise<boolean> {
+export async function initParticles({ canvas, gl, section, onProgress, overlay }: Options): Promise<boolean> {
   const [pointsBuf, routes] = await Promise.all([
     fetch('/data/cordoba-points.bin').then((r) => r.arrayBuffer()),
     fetch('/data/cordoba-routes.json').then((r) => r.json() as Promise<number[][][]>),
@@ -296,7 +297,7 @@ export async function initParticles({ canvas, section, onProgress, overlay }: Op
   geometry.setAttribute('aMap', new BufferAttribute(map, 2));
   geometry.setAttribute('aRand', new BufferAttribute(rand, 1));
 
-  const renderer = new WebGLRenderer({ canvas, antialias: false, alpha: true, powerPreference: 'high-performance' });
+  const renderer = new WebGLRenderer({ canvas, context: gl, antialias: false, alpha: true });
   const pixelRatio = Math.min(window.devicePixelRatio, 1.75);
   renderer.setPixelRatio(pixelRatio);
 
@@ -772,6 +773,13 @@ export async function initParticles({ canvas, section, onProgress, overlay }: Op
         slowFrames = 0;
       }
     }
+  }
+  // Los shaders se compilan en paralelo antes del primer cuadro: compilarlos al dibujar frenaba la
+  // página (con una placa de video real, cientos de milisegundos con los cuatro materiales)
+  try {
+    await renderer.compileAsync(scene, camera);
+  } catch {
+    renderer.compile(scene, camera);
   }
   loop();
   return true;

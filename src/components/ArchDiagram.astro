@@ -3,6 +3,7 @@
 // conexiones y un recorrido paso a paso. Dos dibujos (ancho y angosto) con la misma lógica.
 import type { Diagram, ProjectText } from '../projects/types';
 import { brandIcon } from '../lib/icons';
+import Icon from './Icon.astro';
 
 interface Props {
   diagram: Diagram;
@@ -130,11 +131,11 @@ const layouts = [
     </p>
     <div class="flex items-center gap-1.5">
       <!-- En el celular se ve un paso a la vez: flechas para moverse -->
-      <button type="button" class="grid size-8 place-items-center rounded-full border border-line text-muted hover:text-fg sm:hidden" data-prev aria-label={labels.prev}>←</button>
+      <button type="button" class="grid size-8 place-items-center rounded-full border border-line text-muted hover:text-fg sm:hidden" data-prev aria-label={labels.prev}><Icon name="arrow-left" /></button>
       <button type="button" class="arch-toggle rounded-full border border-line px-3 py-1 font-mono text-xs text-muted transition-colors hover:text-fg" data-play aria-pressed="true">
         <span class="when-on">{labels.pause}</span><span class="when-off">{labels.play}</span>
       </button>
-      <button type="button" class="grid size-8 place-items-center rounded-full border border-line text-muted hover:text-fg sm:hidden" data-next aria-label={labels.next}>→</button>
+      <button type="button" class="grid size-8 place-items-center rounded-full border border-line text-muted hover:text-fg sm:hidden" data-next aria-label={labels.next}><Icon name="arrow-right" /></button>
     </div>
   </div>
   <ol class="mt-3 space-y-1">

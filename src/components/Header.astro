@@ -21,9 +21,11 @@ const links = [
 ];
 ---
 
-<header class="fixed inset-x-0 top-0 z-40 px-4 pt-4 sm:px-6">
+<!-- El header deja pasar los toques: su caja incluye el menú del celular (invisible pero ocupando lugar),
+     y sin esto tapaba los links de arriba de la página. Solo la barra y el menú los reciben. -->
+<header class="pointer-events-none fixed inset-x-0 top-0 z-40 px-4 pt-4 sm:px-6">
   <nav
-    class="mx-auto flex h-14 max-w-6xl items-center justify-between rounded-full border border-line/80 bg-bg/60 pr-2 pl-3 shadow-[0_10px_40px_-20px_rgba(0,0,0,.6)] backdrop-blur-xl"
+    class="pointer-events-auto mx-auto flex h-14 max-w-6xl items-center justify-between rounded-full border border-line/80 bg-bg/60 pr-2 pl-3 shadow-[0_10px_40px_-20px_rgba(0,0,0,.6)] backdrop-blur-xl"
   >
     <a href={base} class="group flex items-center gap-2.5 font-medium tracking-tight">
       <span class="relative grid size-8 place-items-center">
@@ -101,7 +103,7 @@ const links = [
     </div>
   </nav>
 
-  <ul id="mobile-menu" class="pop-menu pop-menu-down mx-auto mt-2 max-w-6xl rounded-3xl border border-line bg-bg/90 p-2 backdrop-blur-xl lg:hidden">
+  <ul id="mobile-menu" class="pop-menu pop-menu-down pointer-events-auto mx-auto mt-2 max-w-6xl rounded-3xl border border-line bg-bg/90 p-2 backdrop-blur-xl lg:hidden">
     {
       [...links, { id: 'contacto', label: ui.nav.contact }].map((l, i) => (
         <li style={`--i:${i}`}>

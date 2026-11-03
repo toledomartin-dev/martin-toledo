@@ -9,6 +9,7 @@ import MonitorPanel from './mocks/MonitorPanel.astro';
 import NfcCard from './mocks/NfcCard.astro';
 import MuniDoc from './mocks/MuniDoc.astro';
 import BikeStation from './mocks/BikeStation.astro';
+import Icon from './Icon.astro';
 
 interface Props {
   lang: Lang;
@@ -38,7 +39,7 @@ const spark = 'M0 50 L20 42 L40 46 L60 30 L80 34 L100 22 L120 28 L140 16 L160 20
         <div class="mt-5 flex flex-wrap items-center gap-x-5 gap-y-2">
           <a href={ui.entaxi.href} class="inline-flex items-center gap-2 text-sm font-medium text-accent after:absolute after:inset-0 after:content-['']">
             {ui.entaxi.cta}
-            <span class="transition-transform group-hover:translate-x-1" aria-hidden="true">→</span>
+            <Icon name="arrow-right" class="size-4 transition-transform group-hover:translate-x-1" />
           </a>
           <a
             href={links.cbataxi}
@@ -46,7 +47,7 @@ const spark = 'M0 50 L20 42 L40 46 L60 30 L80 34 L100 22 L120 28 L140 16 L160 20
             rel="noopener noreferrer"
             class="relative z-10 inline-flex items-center gap-1.5 rounded-full border border-line px-3 py-1 font-mono text-xs text-muted transition-colors hover:border-accent/60 hover:text-accent"
           >
-            cbataxi.com <span aria-hidden="true">↗</span>
+            cbataxi.com <Icon name="arrow-up-right" class="size-3.5" />
           </a>
         </div>
       </div>
@@ -120,7 +121,7 @@ const spark = 'M0 50 L20 42 L40 46 L60 30 L80 34 L100 22 L120 28 L140 16 L160 20
       <NfcCard />
       <h3 class="mt-4 text-lg font-medium tracking-tight">{ui.saldobus.title}</h3>
       <p class="mt-1 text-sm leading-relaxed text-muted">{ui.saldobus.text}</p>
-      <p class="mt-3 font-mono text-[11px] text-emerald-300/90">✓ {ui.saldobus.read} · {ui.saldobus.done}</p>
+      <p class="mt-3 inline-flex items-center gap-1.5 font-mono text-[11px] text-emerald-300/90"><Icon name="check" class="size-3.5" />{ui.saldobus.read} · {ui.saldobus.done}</p>
       <div class="mt-auto"><DetailLink href={projectPath(lang, 'saldobus')} label={ui.detail} /></div>
     </div>
 
@@ -140,7 +141,7 @@ const spark = 'M0 50 L20 42 L40 46 L60 30 L80 34 L100 22 L120 28 L140 16 L160 20
       </div>
       <div class="mt-auto flex items-center justify-between pt-6">
         <h3 class="text-lg font-medium tracking-tight">{ui.tubondi.title}</h3>
-        <span class="text-muted transition-colors group-hover:text-accent" aria-label={ui.visit}>↗</span>
+        <span class="text-muted transition-colors group-hover:text-accent" aria-label={ui.visit}><Icon name="arrow-up-right" class="size-5" /></span>
       </div>
       <p class="mt-1 text-sm leading-relaxed text-muted">{ui.tubondi.text}</p>
     </a>
@@ -158,7 +159,7 @@ const spark = 'M0 50 L20 42 L40 46 L60 30 L80 34 L100 22 L120 28 L140 16 L160 20
           rel="noopener noreferrer"
           class="relative z-10 mt-4 inline-flex items-center gap-1.5 rounded-full border border-line px-3 py-1 font-mono text-xs text-muted transition-colors hover:border-accent/60 hover:text-accent"
         >
-          {ui.muni.libreta} <span aria-hidden="true">↗</span>
+          {ui.muni.libreta} <Icon name="arrow-up-right" class="size-3.5" />
         </a>
       </div>
     </div>
@@ -177,7 +178,7 @@ const spark = 'M0 50 L20 42 L40 46 L60 30 L80 34 L100 22 L120 28 L140 16 L160 20
             rel="noopener noreferrer"
             class="relative z-10 mt-4 inline-flex items-center gap-1.5 rounded-full border border-line px-3 py-1 font-mono text-xs text-muted transition-colors hover:border-accent/60 hover:text-accent"
           >
-            bicicba.com <span aria-hidden="true">↗</span>
+            bicicba.com <Icon name="arrow-up-right" class="size-3.5" />
           </a>
         </div>
       </div>

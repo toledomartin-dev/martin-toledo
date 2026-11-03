@@ -41,7 +41,7 @@ html.light {
 }
 
 @theme {
-  --font-sans: 'Inter Variable', ui-sans-serif, system-ui, sans-serif;
+  --font-sans: 'Inter Variable', 'Inter Fallback', ui-sans-serif, system-ui, sans-serif;
   --font-mono: 'JetBrains Mono Variable', ui-monospace, monospace;
   --color-bg: var(--bg);
   --color-bg-soft: var(--bg-soft);
@@ -70,9 +70,21 @@ html {
 @view-transition {
   navigation: auto;
 }
-::view-transition-old(root),
+::view-transition-old(root) {
+  animation: page-out 0.25s ease both;
+}
 ::view-transition-new(root) {
-  animation-duration: 0.28s;
+  animation: page-in 0.4s 0.08s ease both;
+}
+@keyframes page-out {
+  to {
+    opacity: 0;
+  }
+}
+@keyframes page-in {
+  from {
+    opacity: 0;
+  }
 }
 
 button,
@@ -174,6 +186,121 @@ html.light .glass {
     0 0 0 1px var(--accent),
     0 10px 40px -4px var(--glow),
     inset 0 1px 0 rgba(255, 255, 255, 0.45);
+}
+
+/* Respaldo de Inter: Arial ajustada a sus medidas, para que el texto no salte si la fuente llega tarde */
+@font-face {
+  font-family: 'Inter Fallback';
+  src: local('Arial');
+  size-adjust: 107.4%;
+  ascent-override: 90.2%;
+  descent-override: 22.5%;
+  line-gap-override: 0%;
+}
+
+/* ---------- Entrada de cada página (Base.astro pone enter-wait antes de pintar y enter-go cuando está listo) ---------- */
+html.enter-wait [data-enter] {
+  opacity: 0;
+}
+html.enter-go [data-enter] {
+  animation: enter 0.8s cubic-bezier(0.2, 0.7, 0.2, 1) both;
+  animation-delay: calc(var(--i, 0) * 80ms);
+}
+@keyframes enter {
+  from {
+    opacity: 0;
+    transform: translateY(18px);
+    filter: blur(8px);
+  }
+}
+
+/* ---------- Pantalla de carga (Base.astro decide si se muestra: html.intro) ---------- */
+.intro-screen {
+  display: none;
+}
+html.intro {
+  overflow: hidden;
+}
+html.intro .intro-screen {
+  position: fixed;
+  inset: 0;
+  z-index: 100;
+  display: grid;
+  place-content: center;
+  justify-items: center;
+  gap: 1.1rem;
+  background: var(--bg);
+  clip-path: circle(150% at 50% 45%);
+  transition: clip-path 0.7s cubic-bezier(0.65, 0, 0.35, 1);
+}
+/* Al irse, se cierra en un círculo hacia el logo y deja ver la página */
+html.intro-out .intro-screen {
+  clip-path: circle(0% at 50% 45%);
+}
+.intro-logo {
+  position: relative;
+  display: grid;
+  width: 4.5rem;
+  height: 4.5rem;
+  place-items: center;
+  animation: intro-in 0.6s cubic-bezier(0.2, 0.7, 0.2, 1) both;
+}
+.intro-mark {
+  position: relative;
+  display: grid;
+  width: 100%;
+  height: 100%;
+  place-items: center;
+  border-radius: 999px;
+  background: var(--accent);
+  color: var(--accent-ink);
+  font-family: var(--font-mono);
+  font-size: 1.3rem;
+  font-weight: 700;
+  box-shadow: 0 0 40px -6px var(--glow);
+}
+.intro-ring {
+  position: absolute;
+  inset: 0;
+  border-radius: 999px;
+  border: 1.5px solid var(--accent);
+  animation: pulse-ring 1.6s cubic-bezier(0.2, 0.6, 0.3, 1) infinite;
+}
+.intro-name {
+  color: var(--fg);
+  font-size: 1.05rem;
+  font-weight: 500;
+  letter-spacing: -0.01em;
+  animation: intro-in 0.6s 0.1s cubic-bezier(0.2, 0.7, 0.2, 1) both;
+}
+.intro-bar {
+  width: 7.5rem;
+  height: 2px;
+  overflow: hidden;
+  border-radius: 2px;
+  background: var(--border);
+  animation: intro-in 0.6s 0.2s cubic-bezier(0.2, 0.7, 0.2, 1) both;
+}
+.intro-bar > span {
+  display: block;
+  height: 100%;
+  background: var(--accent);
+  transform-origin: left;
+  animation: intro-bar 1.2s cubic-bezier(0.3, 0.6, 0.3, 1) forwards;
+}
+@keyframes intro-in {
+  from {
+    opacity: 0;
+    transform: translateY(8px) scale(0.96);
+  }
+}
+@keyframes intro-bar {
+  from {
+    transform: scaleX(0);
+  }
+  to {
+    transform: scaleX(1);
+  }
 }
 
 /* Cambio de tema: el navegador cruza las dos "fotos"; la animación del círculo la hace el JS */

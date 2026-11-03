@@ -2,6 +2,7 @@
 // Préstamo en una estación de BiciCba, en un ciclo de 8 s: se escanea el QR del usuario, una bici
 // sale del anclaje, baja el contador de disponibles y queda registrado el préstamo
 import { t, type Lang } from '../../i18n/content';
+import Icon from '../Icon.astro';
 
 interface Props {
   lang: Lang;
@@ -28,7 +29,7 @@ const docks = [1, 1, 1, 0, 1];
       {qr.map((b) => <span class:list={['rounded-[1px]', b ? 'bg-[#0a0b0f]' : 'bg-transparent']} />)}
       <span class="scan absolute inset-x-0 top-0 h-0.5 bg-accent shadow-[0_0_10px_var(--accent)]"></span>
     </div>
-    <span class="ok absolute grid size-7 place-items-center rounded-full bg-emerald-400 text-sm font-bold text-[#0a0b0f]">✓</span>
+    <span class="ok absolute grid size-7 place-items-center rounded-full bg-emerald-400 text-[#0a0b0f]"><Icon name="check" class="size-4" /></span>
     <span class="absolute bottom-2 font-mono text-[9px] text-[#8d939e]">{ui.expires}</span>
   </div>
 

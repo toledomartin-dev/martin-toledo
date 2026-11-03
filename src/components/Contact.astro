@@ -1,5 +1,6 @@
 ---
 import { t, site, type Lang } from '../i18n/content';
+import Icon from './Icon.astro';
 
 interface Props {
   lang: Lang;
@@ -34,7 +35,7 @@ const social = [
 
     <a href={`mailto:${site.email}`} class="btn-glow magnetic mt-10 inline-flex items-center gap-2 rounded-full px-7 py-3.5 font-semibold">
       {ui.cta}
-      <span aria-hidden="true">→</span>
+      <Icon name="arrow-right" />
     </a>
     <!-- Muchos no tienen un cliente de correo configurado: con un clic copian la dirección -->
     <div class="mt-5 flex justify-center">

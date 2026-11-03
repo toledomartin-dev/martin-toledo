@@ -77,7 +77,7 @@ Being in the middle, I see both sides.
 
 People starting today write code faster than ever. But if they skip steps, they lack the foundation to notice when something is wrong, and that foundation now has to be built on purpose, because AI doesn't force you to build it.
 
-At the other end are people who programmed one way their whole lives and find it hard to change. When I joined the company I ended up running Git, Docker and Jira training for everyone, and it wasn't easy: every time we had to show why it was better and what was gained. One team merged their code by passing it on a USB drive to a single machine to see what each person had done. And they had good reason to be wary: they had once tried Git without anyone showing them how to use it properly, lost code and were left afraid of it. With some guidance they adopted it, and today they use it and understand why.
+At the other end are people who programmed one way their whole lives and find it hard to change. When I joined the company I ended up running Git, Docker and Jira training for everyone, and it wasn't easy: every time we had to show why it was better and what was gained. With some guidance they gradually adopted it, and today they use it and understand why.
 
 That's why I say we got the best of both worlds: we learned on a stick shift and now drive an automatic. And we know the car still needs servicing: on any team, standing still has a cost, with systems tied to old versions, everything that means for security, and tools that stop being supported.
 

@@ -1,6 +1,7 @@
 ---
 // Link al detalle técnico del proyecto, "estirado" sobre toda la tarjeta (la tarjeta lleva `group`;
 // los links externos de la tarjeta van con z-10 para quedar por encima)
+import Icon from './Icon.astro';
 interface Props {
   href: string;
   label: string;
@@ -11,5 +12,5 @@ const { href, label } = Astro.props;
 
 <a href={href} class="mt-4 inline-flex items-center gap-2 text-sm font-medium text-accent after:absolute after:inset-0 after:content-['']">
   {label}
-  <span class="transition-transform group-hover:translate-x-1" aria-hidden="true">→</span>
+  <Icon name="arrow-right" class="size-4 transition-transform group-hover:translate-x-1" />
 </a>

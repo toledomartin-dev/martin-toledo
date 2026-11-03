@@ -1,6 +1,7 @@
 ---
 import { t, type Lang } from '../i18n/content';
 import { notePath, readingMinutes, formatDate, type Note } from '../lib/notes';
+import Icon from './Icon.astro';
 
 interface Props {
   note: Note;
@@ -24,7 +25,7 @@ const ui = t[lang].notes;
   <ul class="mt-5 flex flex-wrap gap-2">
     {note.data.tags.map((tag) => <li class="rounded-full border border-line px-2.5 py-0.5 font-mono text-[11px] text-muted">{tag}</li>)}
   </ul>
-  <p class="mt-auto pt-6 text-sm font-medium text-accent">
-    {ui.read} <span class="inline-block transition-transform group-hover:translate-x-1" aria-hidden="true">→</span>
+  <p class="mt-auto inline-flex items-center gap-2 pt-6 text-sm font-medium text-accent">
+    {ui.read} <Icon name="arrow-right" class="size-4 transition-transform group-hover:translate-x-1" />
   </p>
 </article>

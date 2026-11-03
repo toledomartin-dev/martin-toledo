@@ -11,7 +11,7 @@ import {
   ShaderMaterial,
   WebGLRenderer,
 } from 'three';
-import { isSoftwareRenderer } from './gpu';
+import { getGpuContext } from './gpu';
 
 const vertexShader = /* glsl */ `
   uniform float uSize;
@@ -83,14 +83,15 @@ interface Options {
 }
 
 export async function init404({ canvas, onBurst }: Options): Promise<boolean> {
-  if (isSoftwareRenderer()) return false;
+  const gl = getGpuContext(canvas);
+  if (!gl) return false;
   await document.fonts.ready;
 
   const mobile = window.matchMedia('(max-width: 767px)').matches;
   const reduced = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
   const count = mobile ? 2600 : 5200;
 
-  const renderer = new WebGLRenderer({ canvas, alpha: true, antialias: false });
+  const renderer = new WebGLRenderer({ canvas, context: gl, alpha: true, antialias: false });
   const pixelRatio = Math.min(window.devicePixelRatio, 1.75);
   renderer.setPixelRatio(pixelRatio);
   const scene = new Scene();

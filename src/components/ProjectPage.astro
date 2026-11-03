@@ -5,6 +5,7 @@ import type { Project } from '../projects/types';
 import { brandIcon } from '../lib/icons';
 import ArchDiagram from './ArchDiagram.astro';
 import ProjectVisual from './ProjectVisual.astro';
+import Icon from './Icon.astro';
 
 interface Props {
   lang: Lang;
@@ -25,18 +26,18 @@ const stack = c.stack.map((g) => ({ ...g, items: g.items.map((i) => ({ ...i, ...
 ---
 
 <article class="mx-auto max-w-4xl px-4 pt-32 pb-24 sm:px-6 sm:pt-40">
-  <a href={`${home}#proyectos`} class="inline-flex items-center gap-2 text-sm text-muted hover:text-accent">
-    <span aria-hidden="true">←</span>
+  <a href={`${home}#proyectos`} class="inline-flex items-center gap-2 text-sm text-muted hover:text-accent" data-enter style="--i:0">
+    <Icon name="arrow-left" />
     {ui.back}
   </a>
 
-  <p class="mt-10 font-mono text-sm text-accent">{c.kicker}</p>
-  <h1 class="display text-gradient mt-4 text-4xl text-balance sm:text-6xl">{c.title}</h1>
-  <p class="mt-6 max-w-3xl text-lg leading-relaxed text-muted">{c.lead}</p>
+  <p class="mt-10 font-mono text-sm text-accent" data-enter style="--i:1">{c.kicker}</p>
+  <h1 class="display text-gradient mt-4 text-4xl text-balance sm:text-6xl" data-enter style="--i:2">{c.title}</h1>
+  <p class="mt-6 max-w-3xl text-lg leading-relaxed text-muted" data-enter style="--i:3">{c.lead}</p>
 
   {
     c.links && (
-      <div class="mt-6 flex flex-wrap gap-2">
+      <div class="mt-6 flex flex-wrap gap-2" data-enter style="--i:4">
         {c.links.map((l) => (
           <a
             href={l.href}
@@ -44,16 +45,18 @@ const stack = c.stack.map((g) => ({ ...g, items: g.items.map((i) => ({ ...i, ...
             rel="noopener noreferrer"
             class="inline-flex items-center gap-1.5 rounded-full border border-line px-3 py-1 font-mono text-xs text-muted transition-colors hover:border-accent/60 hover:text-accent"
           >
-            {l.label} <span aria-hidden="true">↗</span>
+            {l.label} <Icon name="arrow-up-right" class="size-3.5" />
           </a>
         ))}
       </div>
     )
   }
 
-  <ProjectVisual lang={lang} projectKey={project.key} />
+  <div data-enter style="--i:5">
+    <ProjectVisual lang={lang} projectKey={project.key} />
+  </div>
 
-  <dl class="glass mt-10 grid grid-cols-2 gap-px bg-line sm:grid-cols-4">
+  <dl data-enter style="--i:6" class="glass mt-10 grid grid-cols-2 gap-px bg-line sm:grid-cols-4">
     {
       c.facts.map((f) => (
         <div class="bg-card p-4">
@@ -82,9 +85,7 @@ const stack = c.stack.map((g) => ({ ...g, items: g.items.map((i) => ({ ...i, ...
           <span class="block font-mono text-xs text-accent">{c.related.kicker}</span>
           <span class="mt-1 block font-medium">{c.related.title}</span>
         </span>
-        <span class="text-accent transition-transform group-hover:translate-x-1" aria-hidden="true">
-          →
-        </span>
+        <Icon name="arrow-right" class="size-5 text-accent transition-transform group-hover:translate-x-1" />
       </a>
     )
   }
@@ -162,14 +163,14 @@ const stack = c.stack.map((g) => ({ ...g, items: g.items.map((i) => ({ ...i, ...
 
   <nav class="mt-16 flex flex-col gap-6 border-t border-line pt-8 sm:flex-row sm:items-center sm:justify-between">
     <a href={`${home}#proyectos`} class="inline-flex items-center gap-2 font-semibold text-accent hover:underline">
-      <span aria-hidden="true">←</span>
+      <Icon name="arrow-left" />
       {ui.back}
     </a>
     <a href={projectPath(lang, next.key)} class="group text-right">
       <span class="block font-mono text-xs text-muted uppercase">{ui.next}</span>
       <span class="mt-1 inline-flex items-center gap-2 font-medium group-hover:text-accent">
         {next.text[lang].kicker}
-        <span class="transition-transform group-hover:translate-x-1" aria-hidden="true">→</span>
+        <Icon name="arrow-right" class="size-4 transition-transform group-hover:translate-x-1" />
       </span>
     </a>
   </nav>

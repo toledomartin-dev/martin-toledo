@@ -54,7 +54,7 @@ const city = t[lang].city;
     <div class="relative mx-auto flex h-full max-w-6xl items-end px-4 pb-16 sm:px-6 lg:items-center lg:pb-0">
       <!-- Escena 1: presentación -->
       <div data-scene="1" class="max-w-xl will-change-transform">
-        <div class="flex items-center gap-3">
+        <div class="flex items-center gap-3" data-enter style="--i:0">
           <Photo lang={lang} />
           <p class="inline-flex items-center gap-2 rounded-full border border-line bg-card/70 px-3 py-1 text-xs text-muted backdrop-blur">
             <span class="relative flex size-2">
@@ -65,12 +65,12 @@ const city = t[lang].city;
           </p>
         </div>
 
-        <h1 class="display text-gradient mt-6 text-5xl sm:text-6xl lg:text-7xl">{ui.headline}</h1>
-        <p class="mt-6 max-w-md text-base leading-relaxed text-muted sm:text-lg">
+        <h1 class="display text-gradient mt-6 text-5xl sm:text-6xl lg:text-7xl" data-enter style="--i:1">{ui.headline}</h1>
+        <p class="mt-6 max-w-md text-base leading-relaxed text-muted sm:text-lg" data-enter style="--i:2">
           <span class="text-fg">Martín Toledo</span> — {ui.role}. {ui.sub}
         </p>
 
-        <div class="mt-9 flex flex-wrap gap-3">
+        <div class="mt-9 flex flex-wrap gap-3" data-enter style="--i:3">
           <a href="#proyectos" class="btn-glow magnetic inline-flex items-center gap-2 rounded-full px-6 py-3 text-sm font-semibold">
             {ui.ctaProjects}
             <svg class="size-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" aria-hidden="true"><path d="M12 5v14M5 12l7 7 7-7"></path></svg>
@@ -136,8 +136,8 @@ const city = t[lang].city;
 </section>
 
 <script>
-  import { isSoftwareRenderer } from '../scripts/gpu';
-  import { IDLE_TILT, START_SPIN, landPoints, rotate } from '../scripts/globe';
+  import { getGpuContext } from '../scripts/gpu';
+  import { CORDOBA, IDLE_TILT, START_SPIN, landPoints, rotate, toXYZ } from '../scripts/globe';
   import { bindMenu } from '../scripts/menu';
 
   const cv = document.querySelector<HTMLElement>('[data-cv-menu]')!;
@@ -171,39 +171,119 @@ const city = t[lang].city;
   };
 
   // Globo provisorio: mismos continentes, giro, inclinación, tamaño y lugar que el de Three.js
-  // (cámara de 35° a 7 de distancia, radio 1,55), así el cambio a las partículas no se nota
+  // (cámara de 35° a 7 de distancia, radio 1,55), así el cambio a las partículas no se nota.
+  // Mientras espera, los puntos se encienden en una onda que nace en Córdoba y después algunos
+  // titilan, como datos que llegan. No gira: no hay nada que sincronizar con el globo real.
   const ghost = section.querySelector<HTMLCanvasElement>('canvas.hero-ghost')!;
-  const drawGhost = () => {
+  const reducedMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+  type Dot = { x: number; y: number; a: number; r: number; accent: boolean; delay: number; phase: number };
+  let dots: Dot[] = [];
+  let colors = { dot: '', accent: '' };
+  let size = { w: 0, h: 0, dpr: 1 };
+
+  const buildGhost = () => {
     const w = ghost.clientWidth;
     const h = ghost.clientHeight;
     const dpr = Math.min(window.devicePixelRatio, 2);
     ghost.width = w * dpr;
     ghost.height = h * dpr;
-    const g = ghost.getContext('2d');
-    if (!g) return;
-    g.scale(dpr, dpr);
+    size = { w, h, dpr };
     const css = getComputedStyle(document.documentElement);
-    const dot = css.getPropertyValue('--fg').trim();
-    const accent = css.getPropertyValue('--accent').trim();
+    colors = { dot: css.getPropertyValue('--fg').trim(), accent: css.getPropertyValue('--accent').trim() };
     const wide = w >= 1024;
     const cx = w / 2 + (wide ? 0.38 : 0) * (w / 2);
     const cy = h / 2 - (wide ? 0.02 : 0.32) * (h / 2);
     const unit = h / 2 / (7 * Math.tan((17.5 * Math.PI) / 180));
+    const project = (p: number[]) => {
+      const [x, y, z] = rotate(p, START_SPIN, IDLE_TILT);
+      const k = (7 / (7 - z * 1.55)) * 1.55 * unit;
+      return [cx + x * k, cy - y * k, z];
+    };
+    const [ox, oy] = project(toXYZ(CORDOBA.lat, CORDOBA.lon));
     const n = wide ? 2400 : 2200;
     const land = landPoints(n);
-    for (let i = 0; i < n; i++) {
-      const [x, y, z] = rotate([land[i * 3], land[i * 3 + 1], land[i * 3 + 2]], START_SPIN, IDLE_TILT);
-      const k = (7 / (7 - z * 1.55)) * 1.55 * unit;
-      g.globalAlpha = 0.06 + 0.66 * Math.max(0, z * 0.5 + 0.5) ** 1.5;
-      g.fillStyle = i % 14 ? dot : accent;
+    const reach = Math.hypot(w, h) * 0.5;
+    dots = Array.from({ length: n }, (_, i) => {
+      const [x, y, z] = project([land[i * 3], land[i * 3 + 1], land[i * 3 + 2]]);
+      return {
+        x,
+        y,
+        a: 0.06 + 0.66 * Math.max(0, z * 0.5 + 0.5) ** 1.5,
+        r: i % 5 ? 0.9 : 1.2,
+        accent: i % 14 === 0,
+        // La onda sale de Córdoba: cuanto más lejos, más tarde se enciende (con algo de azar)
+        delay: (Math.hypot(x - ox, y - oy) / reach) * 1.8 + Math.random() * 0.3,
+        phase: Math.random() * 100,
+      };
+    });
+  };
+
+  // t: segundos desde que empezó la onda (Infinity = todo encendido y quieto)
+  const drawGhost = (t: number) => {
+    const g = ghost.getContext('2d');
+    if (!g) return;
+    g.setTransform(size.dpr, 0, 0, size.dpr, 0, 0);
+    g.clearRect(0, 0, size.w, size.h);
+    for (const d of dots) {
+      const on = Math.min(1, Math.max(0, (t - d.delay) / 0.35));
+      if (on <= 0) continue;
+      // Titileo: de vez en cuando un punto se enciende más, como un dato que llega
+      const blink = Number.isFinite(t) ? Math.max(0, Math.sin(t * 1.6 + d.phase)) ** 24 : 0;
+      g.globalAlpha = Math.min(1, d.a * on * (1 + blink * 2.5));
+      g.fillStyle = d.accent || blink > 0.5 ? colors.accent : colors.dot;
       g.beginPath();
-      g.arc(cx + x * k, cy - y * k, i % 5 ? 0.9 : 1.2, 0, Math.PI * 2);
+      g.arc(d.x, d.y, d.r * (1 + blink * 0.8) * (0.6 + 0.4 * on), 0, Math.PI * 2);
       g.fill();
     }
   };
-  drawGhost();
-  window.addEventListener('resize', drawGhost);
-  new MutationObserver(drawGhost).observe(document.documentElement, { attributes: true, attributeFilter: ['class'] });
+
+  // La animación corre a ~30 cuadros por segundo y se corta cuando llegan las partículas
+  // (o a los 8 s, en equipos que no las cargan): después queda dibujado quieto
+  let t0 = 0;
+  let raf = 0;
+  let lastFrame = 0;
+  const animate = (now: number) => {
+    const t = (now - t0) / 1000;
+    if (canvas.classList.contains('is-ready') || t > 8) return drawGhost(Infinity);
+    if (now - lastFrame >= 33) {
+      lastFrame = now;
+      drawGhost(t);
+    }
+    raf = requestAnimationFrame(animate);
+  };
+  const startGhost = () => {
+    cancelAnimationFrame(raf);
+    buildGhost();
+    if (reducedMotion) return drawGhost(Infinity);
+    t0 = performance.now();
+    raf = requestAnimationFrame(animate);
+  };
+
+  // Arranca junto con la entrada del texto (después de la pantalla de carga, si la hay)
+  const root = document.documentElement;
+  if (root.classList.contains('enter-wait')) {
+    buildGhost();
+    const waitGo = new MutationObserver(() => {
+      if (root.classList.contains('enter-wait')) return;
+      waitGo.disconnect();
+      startGhost();
+    });
+    waitGo.observe(root, { attributes: true, attributeFilter: ['class'] });
+  } else {
+    startGhost();
+  }
+  window.addEventListener('resize', () => {
+    buildGhost();
+    drawGhost(Infinity);
+  });
+  // Cambio de tema: solo se redibuja con los colores nuevos (no se repite la onda)
+  let theme = root.classList.contains('light');
+  new MutationObserver(() => {
+    if (root.classList.contains('light') === theme) return;
+    theme = !theme;
+    buildGhost();
+    drawGhost(Infinity);
+  }).observe(root, { attributes: true, attributeFilter: ['class'] });
 
   const fallback = () => window.addEventListener('scroll', () => paint(scrollProgress()), { passive: true });
 
@@ -219,12 +299,14 @@ const city = t[lang].city;
     started = true;
     events.forEach((ev) => window.removeEventListener(ev, start));
     const run = () => {
-      if (isSoftwareRenderer()) return fallback();
+      const gl = getGpuContext(canvas);
+      if (!gl) return fallback();
       import('../scripts/particles')
         .then(({ initParticles }) => {
           const place = (name: string) => section.querySelector<HTMLElement>(`[data-place="${name}"]`)!;
           return initParticles({
             canvas,
+            gl,
             section,
             onProgress: paint,
             overlay: { cordoba: place('cordoba'), sanJuan: place('sanjuan'), server: place('server'), tip: place('tip'), labels: JSON.parse(section.dataset.labels!) },
@@ -243,8 +325,20 @@ const city = t[lang].city;
       events.forEach((ev) => window.addEventListener(ev, start, { passive: true, once: true }));
       setTimeout(start, 3500);
     };
-    if (document.readyState === 'complete') arm();
-    else window.addEventListener('load', arm, { once: true });
+    // Además de esperar a que la página cargue, se espera a que termine la entrada del texto: si
+    // Three.js arranca en el medio (por ejemplo, porque el mouse ya se está moviendo), la traba
+    const settled = () => (document.readyState === 'complete' ? Promise.resolve() : new Promise((r) => window.addEventListener('load', r, { once: true })));
+    const entrance = () =>
+      new Promise<void>((resolve) => {
+        if (!root.classList.contains('enter-wait')) return resolve();
+        const watch = new MutationObserver(() => {
+          if (root.classList.contains('enter-wait')) return;
+          watch.disconnect();
+          resolve();
+        });
+        watch.observe(root, { attributes: true, attributeFilter: ['class'] });
+      });
+    Promise.all([settled(), entrance().then(() => new Promise((r) => setTimeout(r, 1200)))]).then(arm);
   }
   paint(scrollProgress());
 </script>

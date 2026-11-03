@@ -4,6 +4,7 @@ import { cv } from '../i18n/cv';
 import { site, t, type Lang } from '../i18n/content';
 import HeadMeta from './HeadMeta.astro';
 import Linkify from './Linkify.astro';
+import Icon from './Icon.astro';
 
 interface Props {
   lang: Lang;
@@ -33,7 +34,7 @@ const github = site.github.replace(/^https?:\/\//, '');
     <!-- Barra de herramientas: no se imprime -->
     <div class="sticky top-0 z-10 border-b border-line bg-bg/85 backdrop-blur print:hidden">
       <div class="mx-auto flex max-w-[210mm] items-center justify-between gap-3 px-4 py-3">
-        <a href={home} class="text-sm text-muted hover:text-fg">← {c.toolbar.back}</a>
+        <a href={home} class="inline-flex items-center gap-1.5 text-sm text-muted hover:text-fg"><Icon name="arrow-left" />{c.toolbar.back}</a>
         <div class="flex items-center gap-2">
           <a
             id="lang-switch"

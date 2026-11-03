@@ -1,5 +1,6 @@
 ---
 // La libreta: credencial con QR y una lista de requisitos cumplidos
+import Icon from '../Icon.astro';
 ---
 
 <div class="flex gap-3" aria-hidden="true">
@@ -17,7 +18,7 @@
       [1, 1, 0].map((done) => (
         <li class="flex items-center gap-2">
           <span class:list={['grid size-3.5 place-items-center rounded-sm text-[8px]', done ? 'bg-accent text-accent-ink' : 'border border-line']}>
-            {done ? '✓' : ''}
+            {done ? <Icon name="check" class="size-2.5" /> : null}
           </span>
           <span class="h-1.5 flex-1 rounded bg-line" />
         </li>

@@ -2,6 +2,7 @@
 import { t, type Lang } from '../i18n/content';
 import { getNotes, notesBase } from '../lib/notes';
 import NoteCard from './NoteCard.astro';
+import Icon from './Icon.astro';
 
 interface Props {
   lang: Lang;
@@ -20,7 +21,7 @@ const notes = (await getNotes(lang)).slice(0, 3);
       <p class="mt-4 text-muted">{ui.intro}</p>
     </div>
     <a href={notesBase(lang)} class="inline-flex items-center gap-2 text-sm font-medium text-accent hover:underline">
-      {ui.all} <span aria-hidden="true">→</span>
+      {ui.all} <Icon name="arrow-right" />
     </a>
   </div>
 

@@ -77,7 +77,7 @@ Al estar en el medio, veo los dos lados.
 
 Quien arranca hoy escribe código más rápido que nunca. Pero si se salta las etapas, le falta la base para darse cuenta cuando algo está mal, y esa base ahora hay que buscarla a propósito, porque la IA no te obliga a construirla.
 
-En el otro extremo está quien programó toda la vida de una forma y le cuesta cambiar. Cuando entré a la empresa me tocó armar capacitaciones de Git, Docker y Jira para todos, y no fue fácil: cada vez había que mostrar por qué era mejor y qué se ganaba. En un área unificaban el código pasándolo en un pendrive a una sola máquina para ver qué había hecho cada uno. Y tenían razón en desconfiar: una vez habían probado Git sin que nadie les mostrara cómo usarlo bien, perdieron código y les quedó el miedo. Con acompañamiento lo adoptaron, y hoy lo usan y entienden por qué.
+En el otro extremo está quien programó toda la vida de una forma y le cuesta cambiar. Cuando entré a la empresa me tocó armar capacitaciones de Git, Docker y Jira para todos, y no fue fácil: cada vez había que mostrar por qué era mejor y qué se ganaba. Con acompañamiento lo fueron adoptando, y hoy lo usan y entienden por qué.
 
 Por eso digo que estamos en lo mejor de los dos mundos: aprendimos con caja manual y ahora manejamos un automático. Y sabemos que el auto también hay que llevarlo al service: en cualquier equipo, quedarse quieto tiene un costo, con sistemas atados a versiones viejas, todo lo que eso implica en seguridad y herramientas que dejan de tener soporte.
 

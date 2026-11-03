@@ -36,12 +36,14 @@ const copy = {
     <!-- Las partículas arman el "404"; sin WebGL queda el número en texto -->
     <div class="relative h-[min(38vw,380px)] min-h-40 w-full max-w-5xl">
       <canvas id="p404" class="absolute inset-0 size-full cursor-crosshair touch-none" aria-hidden="true"></canvas>
-      <p id="fallback" class="display text-gradient absolute inset-0 grid place-items-center text-[min(32vw,320px)] leading-none">404</p>
+      <!-- Respaldo sin WebGL: oculto mientras se intenta la animación, para que no parpadee -->
+      <p id="fallback" class="display text-gradient absolute inset-0 grid place-items-center text-[min(32vw,320px)] leading-none opacity-0 transition-opacity duration-700">404</p>
+      <noscript><style>#fallback { opacity: 1; }</style></noscript>
     </div>
 
     {
       (['es', 'en'] as const).map((l) => (
-        <div data-lang={l} class:list={['relative mt-6 max-w-xl', l === 'en' && 'hidden']}>
+        <div data-lang={l} data-enter style="--i:1" class:list={['relative mt-6 max-w-xl', l === 'en' && 'hidden']}>
           <p class="inline-flex items-center gap-2 font-mono text-xs tracking-widest text-accent uppercase">
             <span class="relative flex size-2">
               <span class="anim-pulse absolute inline-flex size-full rounded-full bg-accent" />
@@ -102,9 +104,9 @@ const copy = {
       }),
     )
     .then((ok) => {
-      if (!ok) return;
+      if (!ok) throw new Error('sin WebGL');
       document.getElementById('fallback')?.remove();
       hint.hidden = false;
     })
-    .catch(() => {});
+    .catch(() => document.getElementById('fallback')?.classList.remove('opacity-0'));
 </script>

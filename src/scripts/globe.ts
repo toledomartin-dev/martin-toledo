@@ -36,19 +36,30 @@ export function landPoints(count: number) {
   const golden = Math.PI * (3 - Math.sqrt(5));
   let n = count * 4;
   for (;;) {
-    const land: number[] = [];
+    // Arreglos de tamaño fijo: crecer de a un número era lo más lento con 16.000 puntos
+    const land = new Float32Array(n * 3);
+    let found = 0;
     for (let i = 0; i < n; i++) {
       const y = 1 - (i / (n - 1)) * 2;
       const r = Math.sqrt(1 - y * y);
       const x = Math.cos(golden * i) * r;
       const z = Math.sin(golden * i) * r;
-      if (isLand(Math.asin(y) / RAD, Math.atan2(x, z) / RAD)) land.push(x, y, z);
+      if (isLand(Math.asin(y) / RAD, Math.atan2(x, z) / RAD)) {
+        land[found * 3] = x;
+        land[found * 3 + 1] = y;
+        land[found * 3 + 2] = z;
+        found++;
+      }
     }
-    const found = land.length / 3;
     if (found >= count) {
       // Submuestreo parejo para quedarse con exactamente `count`
       const out = new Float32Array(count * 3);
-      for (let i = 0; i < count; i++) out.set(land.slice(Math.floor((i * found) / count) * 3, Math.floor((i * found) / count) * 3 + 3), i * 3);
+      for (let i = 0; i < count; i++) {
+        const k = Math.floor((i * found) / count) * 3;
+        out[i * 3] = land[k];
+        out[i * 3 + 1] = land[k + 1];
+        out[i * 3 + 2] = land[k + 2];
+      }
       return out;
     }
     n = Math.ceil(n * 1.5);

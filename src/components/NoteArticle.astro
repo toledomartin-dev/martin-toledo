@@ -2,6 +2,7 @@
 import { render } from 'astro:content';
 import { t, site } from '../i18n/content';
 import { notesBase, readingMinutes, formatDate, type Note } from '../lib/notes';
+import Icon from './Icon.astro';
 
 interface Props {
   note: Note;
@@ -14,21 +15,21 @@ const { Content } = await render(note);
 ---
 
 <article class="mx-auto max-w-2xl px-4 pt-32 pb-24 sm:px-6 sm:pt-40">
-  <a href={notesBase(lang)} class="inline-flex items-center gap-2 text-sm text-muted hover:text-accent">
-    <span aria-hidden="true">←</span>
+  <a href={notesBase(lang)} class="inline-flex items-center gap-2 text-sm text-muted hover:text-accent" data-enter style="--i:0">
+    <Icon name="arrow-left" />
     {ui.back}
   </a>
 
-  <p class="mt-10 font-mono text-xs text-muted">
+  <p class="mt-10 font-mono text-xs text-muted" data-enter style="--i:1">
     {formatDate(note.data.date, lang)} · {readingMinutes(note)} {ui.minutes}
   </p>
-  <h1 class="display text-gradient mt-4 text-4xl text-balance sm:text-5xl">{note.data.title}</h1>
-  <p class="mt-5 text-lg leading-relaxed text-muted">{note.data.description}</p>
-  <ul class="mt-6 flex flex-wrap gap-2">
+  <h1 class="display text-gradient mt-4 text-4xl text-balance sm:text-5xl" data-enter style="--i:2">{note.data.title}</h1>
+  <p class="mt-5 text-lg leading-relaxed text-muted" data-enter style="--i:3">{note.data.description}</p>
+  <ul class="mt-6 flex flex-wrap gap-2" data-enter style="--i:4">
     {note.data.tags.map((tag) => <li class="rounded-full border border-line px-2.5 py-0.5 font-mono text-[11px] text-muted">{tag}</li>)}
   </ul>
 
-  <div class="prose mt-12 border-t border-line pt-10">
+  <div class="prose mt-12 border-t border-line pt-10" data-enter style="--i:5">
     <Content />
   </div>
 

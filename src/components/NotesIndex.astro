@@ -13,11 +13,11 @@ const notes = await getNotes(lang);
 ---
 
 <section class="mx-auto max-w-6xl px-4 pt-32 pb-24 sm:px-6 sm:pt-40">
-  <p class="font-mono text-xs tracking-widest text-accent uppercase">{ui.kicker}</p>
-  <h1 class="display text-gradient mt-4 text-4xl sm:text-6xl">{ui.indexTitle}</h1>
-  <p class="mt-5 max-w-2xl text-lg leading-relaxed text-muted">{ui.indexLead}</p>
+  <p class="font-mono text-xs tracking-widest text-accent uppercase" data-enter style="--i:0">{ui.kicker}</p>
+  <h1 class="display text-gradient mt-4 text-4xl sm:text-6xl" data-enter style="--i:1">{ui.indexTitle}</h1>
+  <p class="mt-5 max-w-2xl text-lg leading-relaxed text-muted" data-enter style="--i:2">{ui.indexLead}</p>
 
-  <div class="mt-14 grid gap-4 md:grid-cols-2 lg:grid-cols-3">
+  <div class="mt-14 grid gap-4 md:grid-cols-2 lg:grid-cols-3" data-enter style="--i:3">
     {notes.map((note, i) => <NoteCard note={note} lang={lang} delay={(i % 3) * 0.06} />)}
   </div>
 </section>
