@@ -54,23 +54,15 @@ const city = t[lang].city;
     <div class="relative mx-auto flex h-full max-w-6xl items-end px-4 pb-16 sm:px-6 lg:items-center lg:pb-0">
       <!-- Escena 1: presentación -->
       <div data-scene="1" class="max-w-xl will-change-transform">
-        <div class="flex items-center gap-3" data-enter style="--i:0">
+        <h1 class="display text-gradient text-5xl sm:text-6xl lg:text-7xl" data-enter style="--i:0">{ui.headline}</h1>
+        <div class="mt-7 flex max-w-md items-start gap-4" data-enter style="--i:1">
           <Photo lang={lang} />
-          <p class="inline-flex items-center gap-2 rounded-full border border-line bg-card/70 px-3 py-1 text-xs text-muted backdrop-blur">
-            <span class="relative flex size-2">
-              <span class="anim-pulse absolute inline-flex size-full rounded-full bg-accent"></span>
-              <span class="relative inline-flex size-2 rounded-full bg-accent"></span>
-            </span>
-            {ui.location}
+          <p class="text-base leading-relaxed text-muted sm:text-lg">
+            <span class="text-fg">Martín Toledo</span> — {ui.role}. {ui.sub}
           </p>
         </div>
 
-        <h1 class="display text-gradient mt-6 text-5xl sm:text-6xl lg:text-7xl" data-enter style="--i:1">{ui.headline}</h1>
-        <p class="mt-6 max-w-md text-base leading-relaxed text-muted sm:text-lg" data-enter style="--i:2">
-          <span class="text-fg">Martín Toledo</span> — {ui.role}. {ui.sub}
-        </p>
-
-        <div class="mt-9 flex flex-wrap gap-3" data-enter style="--i:3">
+        <div class="mt-9 flex flex-wrap gap-3" data-enter style="--i:2">
           <a href="#proyectos" class="btn-glow magnetic inline-flex items-center gap-2 rounded-full px-6 py-3 text-sm font-semibold">
             {ui.ctaProjects}
             <svg class="size-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" aria-hidden="true"><path d="M12 5v14M5 12l7 7 7-7"></path></svg>
@@ -110,12 +102,11 @@ const city = t[lang].city;
         data-scene="2"
         class="pointer-events-none absolute inset-x-4 bottom-16 max-w-md opacity-0 sm:inset-x-6 lg:top-1/2 lg:bottom-auto lg:-translate-y-1/2"
       >
-        <p class="font-mono text-xs tracking-widest text-accent uppercase">{city.kicker}</p>
-        <h2 class="display text-gradient mt-4 text-4xl sm:text-5xl">{city.title}</h2>
+        <h2 class="display text-gradient text-4xl sm:text-5xl">{city.title}</h2>
         <p class="mt-5 leading-relaxed text-muted">{city.text}</p>
         <ul class="mt-6 flex flex-wrap gap-x-6 gap-y-2 font-mono text-xs text-muted">
           <li class="flex items-center gap-2"><span class="size-1.5 rounded-full bg-[#ffe9d6]"></span>{city.legendPoints}</li>
-          <li class="flex items-center gap-2"><span class="size-2 rounded-full bg-accent shadow-[0_0_10px_var(--accent)]"></span>{city.legendVehicles}</li>
+          <li class="flex items-center gap-2"><span class="size-2 rounded-full bg-accent"></span>{city.legendVehicles}</li>
           <li class="flex items-center gap-2"><span class="size-2.5 rounded-full border border-accent"></span>{city.legendPings}</li>
         </ul>
       </div>

@@ -6,6 +6,7 @@ import type { Lang } from '../../i18n/content';
 import { projects } from '../../projects';
 import type { Project } from '../../projects/types';
 import { brandIcon } from '../../lib/icons';
+import Logo from '../../components/Logo.astro';
 
 export function getStaticPaths() {
   return projects.flatMap((project) =>
@@ -44,7 +45,7 @@ const icons = c.stack
     <div class="absolute -top-40 -right-40 size-[620px] rounded-full bg-accent/20 blur-[140px]"></div>
     <div class="relative flex h-full flex-col px-[72px] py-[64px]">
       <div class="flex items-center gap-4 text-[26px] font-semibold tracking-tight">
-        <span class="grid size-12 place-items-center rounded-full bg-accent font-mono text-[17px] font-bold text-accent-ink">MT</span>
+        <Logo class="size-12" />
         Martín Toledo
       </div>
       <p class="mt-auto font-mono text-[26px] text-accent">{c.kicker}</p>

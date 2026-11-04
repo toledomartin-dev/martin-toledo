@@ -18,6 +18,7 @@ const ui = t[lang].about;
       class="glass reveal group relative block aspect-[4/5] w-full max-w-md cursor-pointer justify-self-center p-2 text-left lg:justify-self-start"
       data-lightbox={site.photoFull}
       data-lightbox-alt={ui.photoAlt}
+      data-lightbox-crop="0.184 0.227 0.699 0.656"
       aria-label={ui.zoom}
     >
       <picture>
@@ -47,8 +48,7 @@ const ui = t[lang].about;
 
     <div>
       <div class="reveal">
-        <p class="font-mono text-xs tracking-widest text-accent uppercase">{ui.kicker}</p>
-        <h2 class="display text-gradient mt-4 text-4xl sm:text-6xl">{ui.title}</h2>
+        <h2 class="display text-gradient text-4xl sm:text-6xl">{ui.title}</h2>
       </div>
 
       <div class="reveal mt-8 space-y-4 text-base leading-relaxed text-muted sm:text-lg" style="--d:.06s">

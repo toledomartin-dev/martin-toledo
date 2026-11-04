@@ -1,5 +1,6 @@
 ---
 import { t, type Lang } from '../i18n/content';
+import Logo from './Logo.astro';
 
 interface Props {
   lang: Lang;
@@ -12,8 +13,8 @@ const ui = t[lang];
 const base = lang === 'es' ? '/' : '/en/';
 const anchor = (id: string) => (home ? `#${id}` : `${base}#${id}`);
 const links = [
-  { id: 'proyectos', label: ui.nav.projects },
   { id: 'sobre-mi', label: ui.nav.about },
+  { id: 'proyectos', label: ui.nav.projects },
   { id: 'experiencia', label: ui.nav.experience },
   { id: 'stack', label: ui.nav.stack },
   { id: 'charlas', label: ui.nav.talks },
@@ -29,8 +30,8 @@ const links = [
   >
     <a href={base} class="group flex items-center gap-2.5 font-medium tracking-tight">
       <span class="relative grid size-8 place-items-center">
-        <span class="absolute inset-0 rounded-full bg-accent/40 blur-md transition-opacity group-hover:opacity-100 opacity-60"></span>
-        <span class="relative grid size-8 place-items-center rounded-full bg-accent font-mono text-[11px] font-bold text-accent-ink" aria-hidden="true">MT</span>
+        <svg class="orbit" viewBox="0 0 44 44" aria-hidden="true"><circle class="orbit-ring" cx="22" cy="22" r="20.5" pathLength="1"></circle><circle class="orbit-sat" cx="22" cy="1.5" r="2"></circle></svg>
+        <Logo class="relative size-8" />
       </span>
       <!-- En celular el nombre no se ve, pero los lectores de pantalla lo siguen leyendo -->
       <span class="sr-only sm:not-sr-only">Martín Toledo</span>

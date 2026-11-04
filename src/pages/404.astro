@@ -44,14 +44,7 @@ const copy = {
     {
       (['es', 'en'] as const).map((l) => (
         <div data-lang={l} data-enter style="--i:1" class:list={['relative mt-6 max-w-xl', l === 'en' && 'hidden']}>
-          <p class="inline-flex items-center gap-2 font-mono text-xs tracking-widest text-accent uppercase">
-            <span class="relative flex size-2">
-              <span class="anim-pulse absolute inline-flex size-full rounded-full bg-accent" />
-              <span class="relative inline-flex size-2 rounded-full bg-accent" />
-            </span>
-            {copy[l].kicker}
-          </p>
-          <h1 class="display text-gradient mt-5 text-4xl sm:text-6xl">{copy[l].title}</h1>
+          <h1 class="display text-gradient text-4xl sm:text-6xl">{copy[l].title}</h1>
           <p class="mt-4 text-muted">{copy[l].text}</p>
           <p class="mx-auto mt-6 w-fit max-w-full truncate rounded-lg border border-line bg-card/60 px-3 py-2 font-mono text-[11px] text-muted backdrop-blur">
             GET <span class="req-path text-fg">/</span> → 404 · lat: NaN · lon: NaN

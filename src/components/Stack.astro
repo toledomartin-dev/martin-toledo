@@ -36,8 +36,7 @@ const rows = stackRows.map((row, r) => ({
 <section id="stack" class="py-28">
   <div class="mx-auto max-w-6xl px-4 sm:px-6">
     <div class="reveal max-w-2xl">
-      <p class="font-mono text-xs tracking-widest text-accent uppercase">{ui.kicker}</p>
-      <h2 class="display text-gradient mt-4 text-4xl sm:text-6xl">{ui.title}</h2>
+      <h2 class="display text-gradient text-4xl sm:text-6xl">{ui.title}</h2>
       <p class="mt-4 text-muted">{ui.intro}</p>
     </div>
   </div>
@@ -122,7 +121,7 @@ const rows = stackRows.map((row, r) => ({
     align-items: center;
     gap: 0.75rem;
     padding: 0.85rem 1.15rem;
-    border-radius: 1rem;
+    border-radius: var(--radius-2xl);
     border: 1px solid var(--border);
     background: color-mix(in srgb, var(--card) 85%, transparent);
     color: var(--muted);

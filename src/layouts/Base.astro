@@ -4,9 +4,12 @@ import Header from '../components/Header.astro';
 import Footer from '../components/Footer.astro';
 import HeadMeta from '../components/HeadMeta.astro';
 import Lightbox from '../components/Lightbox.astro';
+import Cursor from '../components/Cursor.astro';
+import Logo from '../components/Logo.astro';
 import { t, type Lang } from '../i18n/content';
 // La fuente principal se precarga: así el texto se dibuja directo con Inter y no salta al cambiar de fuente
 import interLatin from '@fontsource-variable/inter/files/inter-latin-wght-normal.woff2?url';
+import displayLatin from '@fontsource-variable/bricolage-grotesque/files/bricolage-grotesque-latin-wght-normal.woff2?url';
 
 interface Props {
   lang: Lang;
@@ -34,6 +37,7 @@ const altHref = alternate ?? ui.switchLang.href;
     <title>{pageTitle}</title>
     <meta name="description" content={pageDescription} />
     <link rel="preload" href={interLatin} as="font" type="font/woff2" crossorigin />
+    <link rel="preload" href={displayLatin} as="font" type="font/woff2" crossorigin />
     <link rel="canonical" href={canonical} />
     <link rel="alternate" hreflang={otherLang} href={new URL(altHref, Astro.site)} />
     <HeadMeta lang={lang} title={pageTitle} description={pageDescription} canonical={canonical} image={image} />
@@ -57,7 +61,9 @@ const altHref = alternate ?? ui.switchLang.href;
         if (!window.matchMedia('(prefers-reduced-motion: reduce)').matches) {
           root.classList.add('enter-wait');
           const go = () => root.classList.replace('enter-wait', 'enter-go');
-          const font = document.fonts ? document.fonts.load('450 1em "Inter Variable"') : Promise.resolve();
+          const font = document.fonts
+            ? Promise.all([document.fonts.load('400 1em "Inter Variable"'), document.fonts.load('560 1em "Bricolage Grotesque Variable"')])
+            : Promise.resolve();
           const intro = new Promise((resolve) => (introDone = resolve));
           Promise.all([Promise.race([font, new Promise((r) => setTimeout(r, 1200))]), intro]).then(go, go);
           setTimeout(go, 2500);
@@ -95,7 +101,7 @@ const altHref = alternate ?? ui.switchLang.href;
     <div class="intro-screen" aria-hidden="true">
       <div class="intro-logo">
         <span class="intro-ring"></span>
-        <span class="intro-mark">MT</span>
+        <Logo class="intro-mark" />
       </div>
       <p class="intro-name">Martín Toledo</p>
       <span class="intro-bar"><span></span></span>
@@ -112,6 +118,7 @@ const altHref = alternate ?? ui.switchLang.href;
     </main>
     <Footer lang={lang} />
     <Lightbox closeLabel={ui.about.close} />
+    <Cursor />
 
     <script>
       const reduced = window.matchMedia('(prefers-reduced-motion: reduce)').matches;

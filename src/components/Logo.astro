@@ -1,0 +1,27 @@
+---
+// Logo: una M dibujada como un recorrido que termina en un pin de ubicación.
+// Fondo oscuro en los dos temas; el naranja queda solo para el pin, el destino.
+interface Props {
+  class?: string;
+}
+
+const { class: className = '' } = Astro.props;
+---
+
+<svg class:list={['logo', className]} viewBox="0 0 32 32" aria-hidden="true">
+  <circle cx="16" cy="16" r="15.6" fill="#16181d" stroke="#2c3038" stroke-width="0.8"></circle>
+  <path
+    class="logo-route"
+    d="M9 23V11.5a1.5 1.5 0 0 1 2.6-1L16 16l4.4-5.5a1.5 1.5 0 0 1 2.6 1V18"
+    pathLength="1"
+    fill="none"
+    stroke="#f1f2f4"
+    stroke-width="2.6"
+    stroke-linecap="round"
+    stroke-linejoin="round"></path>
+  <path
+    class="logo-pin"
+    d="M23 19.2c-2.3 0-3.6 1.6-3.6 3.2 0 2 3.6 5 3.6 5s3.6-3 3.6-5c0-1.6-1.3-3.2-3.6-3.2zm0 2.1a1.2 1.2 0 1 1 0 2.4 1.2 1.2 0 0 1 0-2.4z"
+    fill="var(--accent)"
+    fill-rule="evenodd"></path>
+</svg>

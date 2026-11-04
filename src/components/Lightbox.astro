@@ -1,6 +1,8 @@
 ---
 // Visor de imágenes: cualquier elemento con data-lightbox="<url>" abre la imagen en grande.
 // La animación sale desde la miniatura (técnica FLIP) y vuelve a ella al cerrar.
+// Si la miniatura es un recorte de la imagen grande, data-lightbox-crop="x y ancho alto" (fracciones)
+// indica qué parte muestra, para que la animación termine exactamente en ese encuadre.
 interface Props {
   closeLabel: string;
 }
@@ -44,7 +46,6 @@ const { closeLabel } = Astro.props;
     max-width: min(92vw, 900px);
     max-height: 88dvh;
     border-radius: 1.25rem;
-    box-shadow: 0 40px 120px -30px rgb(0 0 0 / 0.8);
     cursor: pointer;
     transform-origin: top left;
   }
@@ -83,19 +84,33 @@ const { closeLabel } = Astro.props;
   let origin: HTMLElement | null = null;
   let closing = false;
 
-  // Transformación que lleva la imagen grande a la posición, tamaño y esquinas de la miniatura
+  const full = { transform: 'none', clipPath: 'inset(0px 0px 0px 0px round 20px)' };
+
+  // Lleva la imagen grande a la miniatura sin deformarla: escala pareja (como object-cover)
+  // y un recorte que se ajusta al encuadre de la miniatura, que puede tener otra proporción
   const fromThumb = () => {
     const thumb = origin?.querySelector('img') ?? origin;
-    if (!thumb) return { transform: 'none', borderRadius: '1.25rem' };
+    if (!thumb) return full;
     const a = thumb.getBoundingClientRect();
     const b = img.getBoundingClientRect();
-    const sx = a.width / b.width;
-    // El radio se escala junto con la imagen: lo compensamos para que arranque igual que la miniatura
-    const r = getComputedStyle(thumb).borderTopLeftRadius;
-    const radius = r.endsWith('%') ? r : `${parseFloat(r) / sx}px`;
+    const [cx, cy, cw, ch] = (origin?.dataset.lightboxCrop ?? '0 0 1 1').split(' ').map(Number);
+    // La zona de la imagen grande que se ve en la miniatura, en píxeles de la imagen grande
+    const rw = cw * b.width;
+    const rh = ch * b.height;
+    const s = Math.max(a.width / rw, a.height / rh);
+    const mx = cx * b.width + rw / 2;
+    const my = cy * b.height + rh / 2;
+    const left = mx - a.width / s / 2;
+    const top = my - a.height / s / 2;
+    const right = b.width - (mx + a.width / s / 2);
+    const bottom = b.height - (my + a.height / s / 2);
+    const tx = a.left + a.width / 2 - b.left - s * mx;
+    const ty = a.top + a.height / 2 - b.top - s * my;
+    // El radio se escala junto con la imagen: lo compensamos para que coincida con el de la miniatura
+    const r = parseFloat(getComputedStyle(thumb).borderTopLeftRadius) || 0;
     return {
-      transform: `translate(${a.left - b.left}px, ${a.top - b.top}px) scale(${sx}, ${a.height / b.height})`,
-      borderRadius: radius,
+      transform: `translate(${tx}px, ${ty}px) scale(${s})`,
+      clipPath: `inset(${top}px ${right}px ${bottom}px ${left}px round ${r / s}px)`,
     };
   };
 
@@ -108,7 +123,7 @@ const { closeLabel } = Astro.props;
     dialog.showModal();
     requestAnimationFrame(() => dialog.classList.add('is-open'));
     if (!reduced) {
-      img.animate([fromThumb(), { transform: 'none', borderRadius: '1.25rem' }], {
+      img.animate([fromThumb(), full], {
         duration: 520,
         easing: 'cubic-bezier(0.2, 0.8, 0.2, 1)',
       });
@@ -120,14 +135,18 @@ const { closeLabel } = Astro.props;
     closing = true;
     dialog.classList.remove('is-open');
     if (!reduced) {
-      await img.animate([{ transform: 'none', borderRadius: '1.25rem' }, fromThumb()], {
+      // fill: la imagen se queda sobre la miniatura hasta que se cierra el visor, sin un cuadro de diferencia
+      await img.animate([full, fromThumb()], {
         duration: 380,
         easing: 'cubic-bezier(0.4, 0, 0.2, 1)',
+        fill: 'forwards',
       }).finished.catch(() => {});
     }
     dialog.close();
+    img.getAnimations().forEach((a) => a.cancel());
     document.documentElement.style.overflow = '';
-    origin?.focus();
+    // Sin preventScroll el navegador puede mover la página para mostrar la foto enfocada
+    origin?.focus({ preventScroll: true });
     closing = false;
   };
 

@@ -3,7 +3,7 @@
 // - Datos del mapa, imágenes, íconos y PDF: la caché responde y de fondo se actualiza.
 // - Páginas: primero la red (para ver siempre lo último) y, sin conexión, la última copia guardada.
 // Cambiar VERSION borra todo lo guardado en la próxima visita.
-const VERSION = 'v1';
+const VERSION = 'v2';
 const STATIC = `static-${VERSION}`;
 const PAGES = `pages-${VERSION}`;
 const MAX_STATIC = 120; // los deploys dejan archivos con hash viejos: se borran los más antiguos
