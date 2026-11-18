@@ -89,6 +89,8 @@ const apps = [
 
 const tierColor = { bronze: '#d08b5b', silver: '#c7ccd6', gold: '#f5c542', platinum: '#a5d8ff' } as const;
 const clientUi = JSON.stringify(ui.client);
+// Login: la dirección de vuelta tiene que coincidir exacta con una de las cargadas en Cognito
+const authConfig = JSON.stringify({ domain: site.cognitoDomain, clientId: site.cognitoClientId, path: lang === 'es' ? '/consola/' : '/en/console/' });
 const trophyDefs = JSON.stringify(ui.trophyList);
 ---
 
@@ -106,7 +108,7 @@ const trophyDefs = JSON.stringify(ui.trophyList);
   }
 </script>
 
-<div class="console" data-console data-lang={lang} data-home={home} data-ui={clientUi} data-trophies={trophyDefs} data-input="keys">
+<div class="console" data-console data-lang={lang} data-home={home} data-ui={clientUi} data-trophies={trophyDefs} data-auth={authConfig} data-input="keys">
   <!-- Fondo: el arte del elemento elegido (solo el activo se dibuja: los demás no gastan nada) -->
   <div class="cs-bg" aria-hidden="true">
     {
@@ -189,8 +191,9 @@ const trophyDefs = JSON.stringify(ui.trophyList);
       <a href={otherLang.href} class="cs-icon-btn font-mono text-xs font-semibold" hreflang={lang === 'es' ? 'en' : 'es'}>{otherLang.label}</a>
       <time class="hidden px-2 font-mono text-sm tabular-nums sm:block" data-clock></time>
       <button type="button" class="cs-user-btn" data-action="open" data-target="user" aria-label={ui.user.label} title={ui.user.label}>
-        <span class="cs-user-avatar">
+        <span class="cs-user-avatar" data-avatar>
           <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" aria-hidden="true" set:html={guestIcon} />
+          <img alt="" referrerpolicy="no-referrer" hidden />
         </span>
       </button>
     </div>
@@ -443,8 +446,9 @@ const trophyDefs = JSON.stringify(ui.trophyList);
   <!-- Menú del usuario (arriba a la derecha) -->
   <dialog class="cs-dialog cs-menu" data-panel="user" aria-label={ui.user.label}>
     <div class="flex items-center gap-3">
-      <span class="cs-user-avatar size-12">
+      <span class="cs-user-avatar size-12" data-avatar>
         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" aria-hidden="true" set:html={guestIcon} />
+        <img alt="" referrerpolicy="no-referrer" hidden />
       </span>
       <div>
         <p class="font-medium" data-user-name>{ui.who.guest}</p>
@@ -458,6 +462,7 @@ const trophyDefs = JSON.stringify(ui.trophyList);
     <div class="cs-menu-list">
       <button type="button" data-action="open" data-target="trophies" autofocus>{ui.user.trophies}</button>
       <button type="button" data-action="switch">{ui.user.switch}</button>
+      <button type="button" data-action="signout" hidden>{ui.user.signout}</button>
       <button type="button" data-action="off">{ui.user.off}</button>
     </div>
   </dialog>
@@ -492,7 +497,7 @@ const trophyDefs = JSON.stringify(ui.trophyList);
   <div class="cs-toast" role="status" aria-live="polite">
     <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" set:html={icons.trophies} />
     <div>
-      <p class="font-mono text-[10px] tracking-widest text-muted uppercase">{ui.client.unlocked}</p>
+      <p class="font-mono text-[10px] tracking-widest text-muted uppercase" data-toast-label>{ui.client.unlocked}</p>
       <p class="font-medium" data-toast-name></p>
     </div>
   </div>
@@ -508,13 +513,14 @@ const trophyDefs = JSON.stringify(ui.trophyList);
         <span class="cs-who-name">{ui.who.guest}</span>
         <span class="cs-who-hint">{ui.who.guestHint}</span>
       </button>
-      <button type="button" role="option" class="cs-who-user" data-user="google" aria-selected="false" aria-disabled="true">
-        <span class="cs-who-avatar">
+      <!-- Sin sesión: logo de Google. Con sesión: la foto y el nombre de la cuenta (los pone el script) -->
+      <button type="button" role="option" class="cs-who-user" data-user="google" aria-selected="false">
+        <span class="cs-who-avatar" data-avatar>
           <svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d={google.path} /></svg>
+          <img alt="" referrerpolicy="no-referrer" hidden />
         </span>
-        <span class="cs-who-name">{ui.who.google}</span>
-        <span class="cs-who-hint">{ui.who.googleHint}</span>
-        <span class="cs-who-soon">{ui.who.soon}</span>
+        <span class="cs-who-name" data-who-name>{ui.who.google}</span>
+        <span class="cs-who-hint" data-who-hint>{ui.who.googleHint}</span>
       </button>
     </div>
   </div>
@@ -1225,6 +1231,9 @@ const trophyDefs = JSON.stringify(ui.trophyList);
   .cs-toast[data-tier='platinum'] svg {
     color: #a5d8ff;
   }
+  .cs-toast[data-tier='notice'] svg {
+    display: none;
+  }
 
   /* ---------- ¿Quién juega? */
   .cs-who {
@@ -1296,14 +1305,6 @@ const trophyDefs = JSON.stringify(ui.trophyList);
       0 0 0 6px #ff7a1a,
       0 20px 60px -15px rgb(255 122 26 / 0.55);
   }
-  .cs-who-user[aria-disabled='true'] .cs-who-avatar {
-    opacity: 0.55;
-  }
-  .cs-who-user[aria-disabled='true'][aria-selected='true'] .cs-who-avatar {
-    box-shadow:
-      0 0 0 3px #05060a,
-      0 0 0 6px #5b6270;
-  }
   .cs-who-name {
     font-size: 1.1rem;
     font-weight: 600;
@@ -1318,18 +1319,25 @@ const trophyDefs = JSON.stringify(ui.trophyList);
   .cs-who-user[aria-selected='true'] .cs-who-hint {
     opacity: 1;
   }
-  .cs-who-soon {
-    position: absolute;
-    top: 0.25rem;
-    right: 0.25rem;
-    padding: 0.2rem 0.55rem;
-    border-radius: 9999px;
-    background: #2a2f3a;
-    font-family: var(--font-mono);
-    font-size: 0.6rem;
-    letter-spacing: 0.08em;
-    text-transform: uppercase;
-    color: #c9cdd4;
+  /* Foto de la cuenta de Google: llena el círculo y tapa el ícono */
+  [data-avatar] {
+    overflow: hidden;
+  }
+  [data-avatar] img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+  }
+  [data-avatar].has-photo svg {
+    display: none;
+  }
+  .cs-who-user.is-busy .cs-who-avatar {
+    animation: busy 1.1s ease-in-out infinite;
+  }
+  @keyframes busy {
+    50% {
+      opacity: 0.55;
+    }
   }
   .cs-who-user.is-shake {
     animation: shake 0.4s ease;

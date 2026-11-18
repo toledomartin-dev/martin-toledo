@@ -17,6 +17,9 @@ export const site = {
   // Clave pública del captcha Cloudflare Turnstile (la secreta vive solo en la Lambda).
   // Para probar sin el widget real: 1x00000000000000000000AA (clave de prueba, siempre aprueba).
   turnstileSiteKey: '0x4AAAAAAGHNZy-tvp9PWiT9',
+  // Login de la consola (Cognito + Google). Públicos: el secreto de Google vive solo en Cognito.
+  cognitoDomain: 'https://us-east-2qwreg76vw.auth.us-east-2.amazoncognito.com',
+  cognitoClientId: '28j41vrelrikph0tp36o86ic0b',
 };
 
 export const links = {
@@ -361,14 +364,14 @@ export const t = {
         guest: 'Invitado',
         guestHint: 'Tus trofeos quedan guardados en este navegador.',
         google: 'Google',
-        googleHint: 'Muy pronto: tus trofeos en tu cuenta y en el porcentaje global.',
-        soon: 'Próximamente',
+        googleHint: 'Entrá con tu cuenta: tus trofeos van a sumar al porcentaje global.',
       },
       user: {
         label: 'Tu usuario',
         level: 'Nivel',
         trophies: 'Trofeos',
         switch: 'Cambiar de usuario',
+        signout: 'Cerrar sesión',
         off: 'Apagar consola',
       },
       search: {
@@ -393,6 +396,9 @@ export const t = {
         unlocked: 'Trofeo desbloqueado',
         progress: '{n} de {total}',
         locked: 'Bloqueado',
+        signedHint: 'Conectado con Google. Tus trofeos van a tu cuenta.',
+        connecting: 'Conectando…',
+        authError: 'No se pudo iniciar sesión. Probá de nuevo.',
       },
     },
     footer: 'Hecho con Astro, Tailwind y Three.js.',
@@ -657,14 +663,14 @@ export const t = {
         guest: 'Guest',
         guestHint: 'Your trophies are saved in this browser.',
         google: 'Google',
-        googleHint: 'Coming soon: your trophies in your account and in the global percentage.',
-        soon: 'Coming soon',
+        googleHint: 'Sign in with your account: your trophies will count toward the global percentage.',
       },
       user: {
         label: 'Your user',
         level: 'Level',
         trophies: 'Trophies',
         switch: 'Switch user',
+        signout: 'Sign out',
         off: 'Turn off console',
       },
       search: {
@@ -689,6 +695,9 @@ export const t = {
         unlocked: 'Trophy unlocked',
         progress: '{n} of {total}',
         locked: 'Locked',
+        signedHint: 'Signed in with Google. Your trophies go to your account.',
+        connecting: 'Connecting…',
+        authError: "Couldn't sign in. Please try again.",
       },
     },
     footer: 'Built with Astro, Tailwind and Three.js.',

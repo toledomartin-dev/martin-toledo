@@ -5,12 +5,13 @@
 import { initSound, sfx } from '../sound';
 import { createTrophies, type TrophyDef } from './trophies';
 import { startBoot, type Boot } from './boot';
+import { createAuth } from './auth';
 
 type Input = 'keys' | 'pad' | 'touch';
 type State = 'boot' | 'who' | 'home' | 'off';
 
 export function initConsole(root: HTMLElement) {
-  const tx = JSON.parse(root.dataset.ui!) as { unlocked: string; progress: string; locked: string };
+  const tx = JSON.parse(root.dataset.ui!) as Record<'unlocked' | 'progress' | 'locked' | 'signedHint' | 'connecting' | 'authError', string>;
   const defs = JSON.parse(root.dataset.trophies!) as TrophyDef[];
   const lang = root.dataset.lang!;
   const home = root.dataset.home!;
@@ -42,6 +43,7 @@ export function initConsole(root: HTMLElement) {
   let toastTimer = 0;
   const trophies = createTrophies(defs, (def, all) => {
     toast.querySelector('[data-toast-name]')!.textContent = def.name;
+    toast.querySelector('[data-toast-label]')!.textContent = tx.unlocked;
     toast.dataset.tier = def.tier;
     toast.classList.remove('is-shown');
     void toast.offsetWidth; // reinicia la animación si llega otro trofeo enseguida
@@ -65,6 +67,74 @@ export function initConsole(root: HTMLElement) {
   }
   paintTrophies();
   document.addEventListener('guestbook:sent', () => trophies.unlock('firma'));
+
+  // ---------- Usuario: invitado o cuenta de Google (Cognito)
+  const authCfg = JSON.parse(root.dataset.auth!) as { domain: string; clientId: string; path: string };
+  const auth = createAuth({ ...authCfg, redirectUri: location.origin + authCfg.path });
+  const PROFILE = 'console-profile'; // con sesión iniciada se puede jugar igual como invitado
+  const googleUser = users.find((u) => u.dataset.user === 'google')!;
+  const googleTexts = {
+    name: googleUser.querySelector('[data-who-name]')!.textContent!,
+    hint: googleUser.querySelector('[data-who-hint]')!.textContent!,
+  };
+  const guestName = root.querySelector('[data-user-name]')!.textContent!;
+
+  const getProfile = () => {
+    try {
+      return localStorage.getItem(PROFILE) ?? 'google';
+    } catch {
+      return 'google';
+    }
+  };
+  const setProfile = (p: 'guest' | 'google') => {
+    try {
+      localStorage.setItem(PROFILE, p);
+    } catch {}
+  };
+
+  function setAvatar(el: HTMLElement, picture?: string) {
+    const img = el.querySelector('img')!;
+    if (picture) img.src = picture;
+    else img.removeAttribute('src');
+    img.hidden = !picture;
+    el.classList.toggle('has-photo', !!picture);
+  }
+
+  // Pinta quién juega: el botón de arriba, el menú y la opción de Google en "¿Quién juega?"
+  function paintUser() {
+    const account = auth.user();
+    const active = account && getProfile() === 'google' ? account : null;
+    root.querySelectorAll<HTMLElement>('.cs-top [data-avatar], [data-panel="user"] [data-avatar]').forEach((el) => setAvatar(el, active?.picture));
+    root.querySelector('[data-user-name]')!.textContent = active?.name ?? guestName;
+    root.querySelector<HTMLElement>('[data-action="signout"]')!.hidden = !account;
+    setAvatar(googleUser.querySelector('[data-avatar]')!, account?.picture);
+    googleUser.querySelector('[data-who-name]')!.textContent = account?.name ?? googleTexts.name;
+    googleUser.querySelector('[data-who-hint]')!.textContent = account ? tx.signedHint : googleTexts.hint;
+  }
+  paintUser();
+
+  // ¿Se vuelve de Google? Se cambia el código por los tokens y se entra con la cuenta
+  auth.handleRedirect().then((result) => {
+    if (result === 'ok') {
+      setProfile('google');
+      paintUser();
+      setTimeout(() => trophies.unlock('encendido'), 700);
+    } else if (result === 'error') {
+      showNotice(tx.authError);
+    }
+  });
+
+  function showNotice(text: string) {
+    const label = toast.querySelector('[data-toast-label]');
+    toast.querySelector('[data-toast-name]')!.textContent = text;
+    if (label) label.textContent = '';
+    toast.dataset.tier = 'notice';
+    toast.classList.remove('is-shown');
+    void toast.offsetWidth;
+    toast.classList.add('is-shown');
+    clearTimeout(toastTimer);
+    toastTimer = window.setTimeout(() => toast.classList.remove('is-shown'), 4200);
+  }
 
   // ---------- Selección en la fila
   const SEL = 'console-sel';
@@ -242,6 +312,9 @@ export function initConsole(root: HTMLElement) {
       else if (action === 'switch') {
         openDialog()?.close();
         showWho();
+      } else if (action === 'signout') {
+        setProfile('guest');
+        auth.logout();
       } else if (action === 'off') shutdown();
     }),
   );
@@ -304,20 +377,26 @@ export function initConsole(root: HTMLElement) {
     root.classList.remove('is-on');
     who.classList.remove('is-off');
     who.hidden = false;
-    pickUser(0, false);
+    // Si hay sesión de Google y se venía jugando con ella, queda elegida
+    pickUser(auth.user() && getProfile() === 'google' ? users.indexOf(googleUser) : 0, false);
   }
 
   function chooseUser() {
     const user = users[userIndex];
-    // Google todavía no está: se sacude y no deja entrar (llega en la etapa de login con Cognito)
-    if (user.getAttribute('aria-disabled') === 'true') {
-      user.classList.remove('is-shake');
-      void user.offsetWidth;
-      user.classList.add('is-shake');
-      sfx('back');
-      return;
-    }
     sfx('press');
+    if (user === googleUser) {
+      // Sin sesión: se va a Google (y vuelve a la consola). Con sesión: se entra directo.
+      if (!auth.user()) {
+        user.classList.add('is-busy');
+        user.querySelector('[data-who-hint]')!.textContent = tx.connecting;
+        auth.login();
+        return;
+      }
+      setProfile('google');
+    } else {
+      setProfile('guest');
+    }
+    paintUser();
     state = 'home';
     who.classList.add('is-off');
     setTimeout(() => (who.hidden = true), 500);
