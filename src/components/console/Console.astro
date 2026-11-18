@@ -92,7 +92,9 @@ const apps = [
 
 // Juegos de mentira: tapas con mi cara (sin los logos originales). "Jugar" solo da un error en chiste.
 const funColors: Record<string, string> = { battle: '#38bdf8', springfield: '#facc15', vice: '#f472b6', ruinas: '#d6a35c' };
-const fun = ui.fun.games.map((g) => ({ ...g, color: funColors[g.id] }));
+// El "logo" en parodia que va abajo de cada tapa, con un estilo distinto por juego (ver .cs-fun-logo)
+const funLogos: Record<string, string> = { battle: 'FORT-DEPLOY', springfield: 'Hit & Commit', vice: 'auto-scaling VI', ruinas: 'UNCHARTERED 4' };
+const fun = ui.fun.games.map((g) => ({ ...g, color: funColors[g.id], logo: funLogos[g.id] }));
 
 const tierColor = { bronze: '#d08b5b', silver: '#c7ccd6', gold: '#f5c542', platinum: '#a5d8ff' } as const;
 const clientUi = JSON.stringify(ui.client);
@@ -184,7 +186,11 @@ const trophyDefs = JSON.stringify(ui.trophyList);
     {
       fun.map((g) => (
         <div class="cs-layer cs-layer-fun" data-bg={g.id} style={`--c:${g.color}`}>
-          <img src={`/img/juegos/${g.id}.webp`} alt="" loading="lazy" decoding="async" />
+          <img class="cs-fun-backdrop" src={`/img/juegos/${g.id}-fondo.webp`} alt="" loading="lazy" decoding="async" />
+          <div class="cs-fun-poster">
+            <img src={`/img/juegos/${g.id}-tapa.webp`} alt="" loading="lazy" decoding="async" />
+            <span class="cs-fun-logo" data-game={g.id}>{g.logo}</span>
+          </div>
         </div>
       ))
     }
@@ -300,6 +306,7 @@ const trophyDefs = JSON.stringify(ui.trophyList);
         >
           <span class="cs-cover">
             <img src={`/img/juegos/${g.id}-tapa.webp`} alt="" class="cs-app-photo" loading="lazy" decoding="async" />
+            <span class="cs-fun-logo" data-game={g.id}>{g.logo}</span>
           </span>
           <span class="cs-tile-name">{g.title}</span>
         </button>
@@ -715,17 +722,95 @@ const trophyDefs = JSON.stringify(ui.trophyList);
     opacity: 0.08;
     filter: grayscale(0.4);
   }
-  /* Juegos de mentira: la imagen de tapa ocupa la derecha y se funde hacia la izquierda */
-  .cs-layer-fun img {
+  /* Juegos de mentira: atrás la imagen entera muy desenfocada (da el color); adelante la tapa como póster */
+  .cs-fun-backdrop {
     position: absolute;
-    top: 0;
-    right: 0;
+    inset: 0;
+    width: 100%;
     height: 100%;
-    width: min(62%, 60rem);
     object-fit: cover;
-    object-position: center 20%;
-    mask-image: linear-gradient(to left, black 55%, transparent);
+    opacity: 0.4;
+    filter: blur(40px) saturate(1.3);
+    transform: scale(1.15);
+  }
+  .cs-fun-poster {
+    position: absolute;
+    top: 52%;
+    right: clamp(2rem, 8vw, 9rem);
+    height: min(66vh, 40rem);
+    aspect-ratio: 3 / 4;
+    overflow: hidden;
+    container-type: inline-size;
+    border-radius: 18px;
+    border: 1px solid rgb(255 255 255 / 0.14);
+    translate: 0 -50%;
+    transform: perspective(1400px) rotateY(-12deg) rotateX(2deg);
+    box-shadow: 0 40px 100px -25px color-mix(in srgb, var(--c) 55%, transparent);
     animation: mock-in 1s cubic-bezier(0.2, 0.7, 0.2, 1);
+  }
+  .cs-fun-poster img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+  }
+  /* Tapas verticales, como cajas de juego (un poco más angostas: son más altas que las cuadradas) */
+  .console[data-tab='fun'] .cs-row {
+    --s: clamp(4.25rem, 7.5vw, 6rem);
+  }
+  /* Tapas verticales, como cajas de juego */
+  .cs-tile-fun .cs-cover {
+    height: calc(var(--s) * 4 / 3);
+    container-type: inline-size;
+  }
+  /* (.cs-row suma especificidad: la regla general de la tarjeta elegida viene más abajo) */
+  .cs-row .cs-tile-fun[aria-selected='true'] .cs-cover {
+    height: calc(var(--s) * 1.42 * 4 / 3);
+  }
+  /* El "logo" de cada juego: la franja de abajo, un estilo por juego. El tamaño sigue al ancho de la tapa. */
+  .cs-fun-logo {
+    position: absolute;
+    inset: auto 0 0;
+    padding: 18cqi 6cqi 7cqi;
+    background: linear-gradient(to top, rgb(0 0 0 / 0.8), transparent);
+    text-align: center;
+    font-family: var(--font-display);
+    font-size: 11cqi;
+    line-height: 1;
+    white-space: nowrap;
+  }
+  .cs-fun-logo[data-game='battle'] {
+    font-weight: 900;
+    color: #fff;
+    font-style: italic;
+    letter-spacing: 0.02em;
+    text-shadow:
+      0 0.08em 0 #0b4a8a,
+      0 0.2em 0.4em rgb(0 0 0 / 0.5);
+  }
+  .cs-fun-logo[data-game='springfield'] {
+    font-weight: 800;
+    color: #fde047;
+    rotate: -3deg;
+    text-shadow:
+      0.06em 0.06em 0 #b91c1c,
+      -0.03em -0.03em 0 #7f1d1d;
+  }
+  .cs-fun-logo[data-game='vice'] {
+    font-weight: 800;
+    font-size: 12cqi;
+    color: #fce7f3;
+    text-shadow:
+      0 0 0.25em #f472b6,
+      0 0 0.6em #db2777,
+      0 0.06em 0 #6d28d9;
+  }
+  .cs-fun-logo[data-game='ruinas'] {
+    font-family: Georgia, 'Times New Roman', serif;
+    font-weight: 700;
+    font-size: 8.5cqi;
+    letter-spacing: 0.1em;
+    color: #ead9b0;
+    text-shadow: 0 0.06em 0 #3b2a14;
   }
   /* Solo se ve la biblioteca elegida */
   .console[data-tab='projects'] [data-group='fun'],
@@ -806,6 +891,7 @@ const trophyDefs = JSON.stringify(ui.trophyList);
   }
   .cs-vignette {
     background:
+      linear-gradient(to bottom, #05060a 0%, transparent 18%),
       linear-gradient(to right, #05060a 0%, color-mix(in srgb, #05060a 70%, transparent) 38%, transparent 70%),
       linear-gradient(to top, #05060a 0%, transparent 35%);
   }
@@ -1750,6 +1836,15 @@ const trophyDefs = JSON.stringify(ui.trophyList);
     /* La mini interfaz no entra: queda solo el color de fondo */
     .cs-layer-mock {
       display: none;
+    }
+    /* La tapa del juego sí entra: centrada y más chica, en el hueco entre la fila y la información */
+    .cs-fun-poster {
+      top: 47%;
+      right: auto;
+      left: 50%;
+      height: min(30vh, 17rem);
+      translate: -50% -50%;
+      transform: none;
     }
     .cs-vignette {
       background: linear-gradient(to top, #05060a 0%, color-mix(in srgb, #05060a 85%, transparent) 45%, transparent 75%);
