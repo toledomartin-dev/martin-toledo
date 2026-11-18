@@ -460,10 +460,23 @@ const trophyDefs = JSON.stringify(ui.trophyList);
       <span class="font-mono text-xs text-muted" data-trophy-count></span>
     </div>
     <div class="cs-menu-list">
-      <button type="button" data-action="open" data-target="trophies" autofocus>{ui.user.trophies}</button>
-      <button type="button" data-action="switch">{ui.user.switch}</button>
-      <button type="button" data-action="signout" hidden>{ui.user.signout}</button>
-      <button type="button" data-action="off">{ui.user.off}</button>
+      <!-- Íconos de trazo (24 × 24): trofeo, dos personas, salir por una puerta, encendido -->
+      <button type="button" data-action="open" data-target="trophies" autofocus>
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M8 21h8M12 17v4M7 4h10v5a5 5 0 0 1-10 0z"/><path d="M17 5h3v2a3 3 0 0 1-3 3M7 5H4v2a3 3 0 0 0 3 3"/></svg>
+        {ui.user.trophies}
+      </button>
+      <button type="button" data-action="switch">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="9" cy="8" r="3.5"/><path d="M2.5 20a6.5 6.5 0 0 1 13 0"/><path d="M16 4.6a3.5 3.5 0 0 1 0 6.8M18.5 14.5a6.5 6.5 0 0 1 3 5.5"/></svg>
+        {ui.user.switch}
+      </button>
+      <button type="button" data-action="signout" hidden>
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4M16 17l5-5-5-5M21 12H9"/></svg>
+        {ui.user.signout}
+      </button>
+      <button type="button" data-action="off">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 3v9"/><path d="M6.4 6.4a8 8 0 1 0 11.2 0"/></svg>
+        {ui.user.off}
+      </button>
     </div>
   </dialog>
 
@@ -1116,6 +1129,9 @@ const trophyDefs = JSON.stringify(ui.trophyList);
     border-top: 1px solid rgb(255 255 255 / 0.08);
   }
   .cs-menu-list button {
+    display: flex;
+    align-items: center;
+    gap: 0.8rem;
     padding: 0.65rem 0.85rem;
     border-radius: 10px;
     text-align: left;
@@ -1123,6 +1139,20 @@ const trophyDefs = JSON.stringify(ui.trophyList);
     transition:
       background-color 0.2s,
       color 0.2s;
+  }
+  .cs-menu-list button[hidden] {
+    display: none;
+  }
+  .cs-menu-list svg {
+    width: 1.15rem;
+    height: 1.15rem;
+    flex-shrink: 0;
+    color: #8b919c;
+    transition: color 0.2s;
+  }
+  .cs-menu-list button:hover svg,
+  .cs-menu-list button:focus-visible svg {
+    color: var(--tint);
   }
   .cs-menu-list button:hover,
   .cs-menu-list button:focus-visible {
