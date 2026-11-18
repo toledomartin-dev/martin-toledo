@@ -1,0 +1,11 @@
+---
+import Base from '../layouts/Base.astro';
+import Console from '../components/console/Console.astro';
+import { t } from '../i18n/content';
+
+const ui = t.es.console;
+---
+
+<Base lang="es" bare title={ui.meta.title} description={ui.meta.description} alternate="/en/console/">
+  <Console lang="es" />
+</Base>

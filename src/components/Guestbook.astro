@@ -6,23 +6,28 @@ import { t, site, type Lang } from '../i18n/content';
 
 interface Props {
   lang: Lang;
+  bare?: boolean; // solo el panel, sin el título de la sección (para la consola)
 }
 
-const { lang } = Astro.props;
+const { lang, bare = false } = Astro.props;
 const ui = t[lang].guestbook;
 const field =
   'w-full rounded-2xl border border-line bg-bg-soft/70 px-4 py-3 text-fg placeholder:text-muted/70 transition-colors focus:border-accent/70 focus:outline-none';
 ---
 
-<section id="libro-de-visitas" class="mx-auto max-w-6xl px-4 py-28 sm:px-6">
-  <div class="reveal max-w-2xl">
-    <span class="rounded-full bg-accent/15 px-2.5 py-1 font-mono text-[11px] text-accent">{ui.kicker}</span>
-    <h2 class="display text-gradient mt-5 text-4xl sm:text-6xl">{ui.title}</h2>
-    <p class="mt-4 text-muted">{ui.intro}</p>
-  </div>
+<section id={bare ? undefined : 'libro-de-visitas'} class:list={!bare && 'mx-auto max-w-6xl px-4 py-28 sm:px-6'}>
+  {
+    !bare && (
+      <div class="reveal max-w-2xl">
+        <span class="rounded-full bg-accent/15 px-2.5 py-1 font-mono text-[11px] text-accent">{ui.kicker}</span>
+        <h2 class="display text-gradient mt-5 text-4xl sm:text-6xl">{ui.title}</h2>
+        <p class="mt-4 text-muted">{ui.intro}</p>
+      </div>
+    )
+  }
 
   <div
-    class="glass reveal mt-14 grid gap-10 p-6 sm:p-8 lg:grid-cols-[2fr_3fr]"
+    class:list={['grid gap-10 lg:grid-cols-[2fr_3fr]', bare ? '' : 'glass reveal mt-14 p-6 sm:p-8']}
     data-guestbook
     data-api={site.guestbookApi}
     data-sitekey={site.turnstileSiteKey}
@@ -229,6 +234,8 @@ const field =
         form.reset();
         count.textContent = '0/280';
         status.textContent = tx.sent;
+        // Aviso para quien quiera enterarse (la consola da un trofeo)
+        document.dispatchEvent(new CustomEvent('guestbook:sent'));
         setTimeout(cargar, 2500);
       } catch (err) {
         status.textContent = err instanceof Error && err.message ? err.message : tx.error;

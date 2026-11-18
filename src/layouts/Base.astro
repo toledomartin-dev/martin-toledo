@@ -18,9 +18,10 @@ interface Props {
   alternate?: string; // ruta equivalente en el otro idioma
   home?: boolean;
   image?: { src: string; alt: string };
+  bare?: boolean; // pantalla completa (la consola): sin header, footer ni pantalla de carga
 }
 
-const { lang, title, description, alternate, home = false, image } = Astro.props;
+const { lang, title, description, alternate, home = false, image, bare = false } = Astro.props;
 const ui = t[lang];
 const pageTitle = title ?? ui.meta.title;
 const pageDescription = description ?? ui.meta.description;
@@ -32,7 +33,7 @@ const altHref = alternate ?? ui.switchLang.href;
 <!doctype html>
 <!-- El sitio ya está en los dos idiomas: sin esto, el traductor del navegador reescribe los textos
      y el cambio de idioma animado no puede emparejar las dos versiones (termina recargando) -->
-<html lang={lang} class="dark" translate="no">
+<html lang={lang} class="dark" translate="no" data-bare={bare ? '' : undefined}>
   <head>
     <meta charset="utf-8" />
     <meta name="google" content="notranslate" />
@@ -75,7 +76,12 @@ const altHref = alternate ?? ui.switchLang.href;
 
       // Pantalla de carga: solo al entrar al sitio (una vez por sesión) y si no se pidió reducir movimiento
       try {
-        if (!sessionStorage.getItem('intro') && !window.matchMedia('(prefers-reduced-motion: reduce)').matches) {
+        // La consola tiene su propio encendido: ahí no va esta pantalla
+        if (
+          !('bare' in root.dataset) &&
+          !sessionStorage.getItem('intro') &&
+          !window.matchMedia('(prefers-reduced-motion: reduce)').matches
+        ) {
           sessionStorage.setItem('intro', '1');
           root.classList.add('intro');
           // Se va cuando la página terminó de cargar, con un mínimo para que se lea y un máximo por las dudas
@@ -101,25 +107,31 @@ const altHref = alternate ?? ui.switchLang.href;
     </script>
   </head>
   <body class="min-h-screen font-sans">
-    <div class="intro-screen" aria-hidden="true">
-      <div class="intro-logo">
-        <span class="intro-ring"></span>
-        <Logo class="intro-mark" />
-      </div>
-      <p class="intro-name">Martín Toledo</p>
-      <span class="intro-bar"><span></span></span>
-    </div>
+    {
+      !bare && (
+        <div class="intro-screen" aria-hidden="true">
+          <div class="intro-logo">
+            <span class="intro-ring" />
+            <Logo class="intro-mark" />
+          </div>
+          <p class="intro-name">Martín Toledo</p>
+          <span class="intro-bar">
+            <span />
+          </span>
+        </div>
+      )
+    }
     <a
       href="#main"
       class="sr-only focus:not-sr-only focus:fixed focus:top-3 focus:left-3 focus:z-50 focus:rounded-lg focus:bg-accent focus:px-4 focus:py-2 focus:text-accent-ink"
     >
       {lang === 'es' ? 'Saltar al contenido' : 'Skip to content'}
     </a>
-    <Header lang={lang} home={home} altHref={altHref} />
+    {!bare && <Header lang={lang} home={home} altHref={altHref} />}
     <main id="main">
       <slot />
     </main>
-    <Footer lang={lang} />
+    {!bare && <Footer lang={lang} />}
     <Lightbox closeLabel={ui.about.close} />
     <Cursor />
 

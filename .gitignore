@@ -2,3 +2,6 @@ node_modules/
 dist/
 .astro/
 .env
+
+# Bitácora local (no se sube: tiene datos de la cuenta de AWS)
+docs/

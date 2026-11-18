@@ -17,6 +17,12 @@ interface Props {
 const { lang } = Astro.props;
 ---
 
+<!-- Volver al sitio clásico: los proyectos ya no ofrecen "Volver a la consola" -->
+<script is:inline>
+  try {
+    sessionStorage.removeItem('from-console');
+  } catch (e) {}
+</script>
 <Hero lang={lang} />
 <About lang={lang} />
 <Bento lang={lang} />

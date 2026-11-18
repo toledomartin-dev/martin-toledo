@@ -27,6 +27,9 @@
     position: fixed;
     top: 0;
     left: 0;
+    /* Un elemento fijo arma su propia capa: sin z-index acá, el header (z-40) le pasaba por encima
+       aunque el punto y el anillo tengan z-index 100 adentro */
+    z-index: 100;
   }
   .cursor-dot,
   .cursor-ring {

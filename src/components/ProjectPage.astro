@@ -16,19 +16,29 @@ const { lang, project } = Astro.props;
 const c = project.text[lang];
 const home = lang === 'es' ? '/' : '/en/';
 const ui = {
-  es: { back: 'Volver a proyectos', stack: 'Stack técnico', next: 'Siguiente proyecto', step: 'Paso', play: 'Reproducir', pause: 'Pausar', prev: 'Paso anterior', next: 'Paso siguiente', hint: 'Tocá o señalá una pieza para ver con qué se conecta.' },
-  en: { back: 'Back to projects', stack: 'Tech stack', next: 'Next project', step: 'Step', play: 'Play', pause: 'Pause', prev: 'Previous step', next: 'Next step', hint: 'Tap or hover a piece to see what it connects to.' },
+  es: { back: 'Volver a proyectos', backConsole: 'Volver a la consola', stack: 'Stack técnico', next: 'Siguiente proyecto', step: 'Paso', play: 'Reproducir', pause: 'Pausar', prev: 'Paso anterior', next: 'Paso siguiente', hint: 'Tocá o señalá una pieza para ver con qué se conecta.' },
+  en: { back: 'Back to projects', backConsole: 'Back to the console', stack: 'Tech stack', next: 'Next project', step: 'Step', play: 'Play', pause: 'Pause', prev: 'Previous step', next: 'Next step', hint: 'Tap or hover a piece to see what it connects to.' },
 }[lang];
 
+// Si se llegó desde la consola, "Volver" lleva de vuelta a la consola (ver el script al pie)
+const consoleHref = lang === 'es' ? '/consola/' : '/en/console/';
 const index = projects.indexOf(project);
 const next = projects[(index + 1) % projects.length];
 const stack = c.stack.map((g) => ({ ...g, items: g.items.map((i) => ({ ...i, ...brandIcon(i.icon, i.name) })) }));
 ---
 
 <article class="mx-auto max-w-4xl px-4 pt-32 pb-24 sm:px-6 sm:pt-40">
-  <a href={`${home}#proyectos`} class="inline-flex items-center gap-2 text-sm text-muted hover:text-accent" data-enter style="--i:0">
+  <a
+    href={`${home}#proyectos`}
+    class="inline-flex items-center gap-2 text-sm text-muted hover:text-accent"
+    data-enter
+    style="--i:0"
+    data-back
+    data-console-href={consoleHref}
+    data-console-label={ui.backConsole}
+  >
     <Icon name="arrow-left" />
-    {ui.back}
+    <span data-back-label>{ui.back}</span>
   </a>
 
   <p class="mt-10 font-mono text-sm text-accent" data-enter style="--i:1">{c.kicker}</p>
@@ -162,9 +172,15 @@ const stack = c.stack.map((g) => ({ ...g, items: g.items.map((i) => ({ ...i, ...
   </section>
 
   <nav class="mt-16 flex flex-col gap-6 border-t border-line pt-8 sm:flex-row sm:items-center sm:justify-between">
-    <a href={`${home}#proyectos`} class="inline-flex items-center gap-2 font-semibold text-accent hover:underline">
+    <a
+      href={`${home}#proyectos`}
+      class="inline-flex items-center gap-2 font-semibold text-accent hover:underline"
+      data-back
+      data-console-href={consoleHref}
+      data-console-label={ui.backConsole}
+    >
       <Icon name="arrow-left" />
-      {ui.back}
+      <span data-back-label>{ui.back}</span>
     </a>
     <a href={projectPath(lang, next.key)} class="group text-right">
       <span class="block font-mono text-xs text-muted uppercase">{ui.next}</span>
@@ -175,3 +191,16 @@ const stack = c.stack.map((g) => ({ ...g, items: g.items.map((i) => ({ ...i, ...
     </a>
   </nav>
 </article>
+
+<!-- En línea (no como módulo): corre antes de pintar, así no se ve el texto cambiar.
+     La marca la deja la consola al abrir un juego; se mantiene si se pasa al "siguiente proyecto". -->
+<script is:inline>
+  try {
+    if (sessionStorage.getItem('from-console')) {
+      document.querySelectorAll('[data-back]').forEach((a) => {
+        a.href = a.dataset.consoleHref;
+        a.querySelector('[data-back-label]').textContent = a.dataset.consoleLabel;
+      });
+    }
+  } catch (e) {}
+</script>

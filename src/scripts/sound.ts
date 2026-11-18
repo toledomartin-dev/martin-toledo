@@ -51,27 +51,62 @@ const sounds = {
     [440, 554.37, 659.25, 880].forEach((f, i) => tone(f, { at: i * 0.07, dur: 0.9 - i * 0.12, gain: 0.035 }));
     tone(220, { dur: 1.1, gain: 0.03, type: 'triangle' });
   },
+  // Consola: moverse entre juegos (un toque corto y grave)
+  move: () => tone(880, { dur: 0.045, gain: 0.035, type: 'triangle', slide: 0.8 }),
+  // Consola: volver o cerrar (dos notas que bajan)
+  back: () => {
+    tone(740, { dur: 0.07, gain: 0.04 });
+    tone(494, { at: 0.05, dur: 0.1, gain: 0.035 });
+  },
+  // Consola: trofeo desbloqueado (campanita brillante)
+  trophy: () => {
+    [1046.5, 1318.5, 1568, 2093].forEach((f, i) => tone(f, { at: i * 0.06, dur: 0.5, gain: 0.03 }));
+  },
+  // Consola: encendido (acorde que crece de a poco, Re mayor con novena)
+  boot: () => {
+    [146.83, 220, 293.66, 369.99, 659.25].forEach((f, i) =>
+      tone(f, { at: i * 0.12, dur: 2.4 - i * 0.2, gain: 0.03, type: i < 2 ? 'triangle' : 'sine' }),
+    );
+  },
 };
 
-export function initSound(toggle: HTMLElement) {
+export type SoundName = keyof typeof sounds;
+
+/** Toca un sonido solo si la persona activó el sonido (sirve para teclado y joystick, que no pasan por el clic). */
+export function sfx(name: SoundName) {
+  try {
+    if (localStorage.getItem(KEY) !== 'on') return;
+  } catch (e) {
+    return;
+  }
+  sounds[name]();
+}
+
+// `toggles`: uno o más botones que prenden y apagan lo mismo (la consola tiene uno en el encendido
+// y otro arriba). `entrance: false` saltea el arpegio de entrada (la consola tiene su propio sonido).
+export function initSound(toggles: HTMLElement | HTMLElement[], { entrance = true } = {}) {
+  const buttons = Array.isArray(toggles) ? toggles : [toggles];
   let on = false;
   try {
     on = localStorage.getItem(KEY) === 'on';
   } catch (e) {}
-  toggle.setAttribute('aria-pressed', String(on));
-  let entered = false;
+  const paint = () => buttons.forEach((b) => b.setAttribute('aria-pressed', String(on)));
+  paint();
+  let entered = !entrance;
 
-  toggle.addEventListener('click', () => {
-    on = !on;
-    toggle.setAttribute('aria-pressed', String(on));
-    try {
-      localStorage.setItem(KEY, on ? 'on' : 'off');
-    } catch (e) {}
-    if (on) {
-      entered = true;
-      sounds.enter();
-    }
-  });
+  buttons.forEach((toggle) =>
+    toggle.addEventListener('click', () => {
+      on = !on;
+      paint();
+      try {
+        localStorage.setItem(KEY, on ? 'on' : 'off');
+      } catch (e) {}
+      if (on) {
+        entered = true;
+        sounds.enter();
+      }
+    }),
+  );
 
   // Con el sonido ya activado de una visita anterior: la entrada suena con el primer toque o tecla
   const enter = () => {
@@ -84,7 +119,7 @@ export function initSound(toggle: HTMLElement) {
   document.addEventListener('pointerdown', (e) => {
     if (!on) return;
     const el = (e.target as Element).closest(PRESSABLE);
-    if (el === toggle) return;
+    if (el && buttons.includes(el as HTMLElement)) return;
     if (!entered) return enter();
     if (!el) return;
     el.matches('.btn-glow') ? sounds.press() : sounds.tick();

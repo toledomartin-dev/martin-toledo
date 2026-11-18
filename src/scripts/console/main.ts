@@ -1,0 +1,603 @@
+// La consola: una fila de juegos (proyectos) y apps. Se maneja con mouse, touch, teclado
+// (flechas, Enter, D, /, Esc) o con un joystick real gracias a la Gamepad API del navegador.
+//
+// Estados: encendido ("boot") → ¿quién juega? ("who") → inicio ("home") → apagado ("off").
+import { initSound, sfx } from '../sound';
+import { createTrophies, type TrophyDef } from './trophies';
+import { startBoot, type Boot } from './boot';
+
+type Input = 'keys' | 'pad' | 'touch';
+type State = 'boot' | 'who' | 'home' | 'off';
+
+export function initConsole(root: HTMLElement) {
+  const tx = JSON.parse(root.dataset.ui!) as { unlocked: string; progress: string; locked: string };
+  const defs = JSON.parse(root.dataset.trophies!) as TrophyDef[];
+  const lang = root.dataset.lang!;
+  const home = root.dataset.home!;
+  const reduced = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+
+  const row = root.querySelector<HTMLElement>('.cs-row')!;
+  const tiles = [...root.querySelectorAll<HTMLButtonElement>('.cs-tile')];
+  const infos = new Map([...root.querySelectorAll<HTMLElement>('[data-info]')].map((el) => [el.dataset.info!, el]));
+  const layers = new Map([...root.querySelectorAll<HTMLElement>('[data-bg]')].map((el) => [el.dataset.bg!, el]));
+  const dialogs = new Map([...root.querySelectorAll<HTMLDialogElement>('dialog[data-panel]')].map((d) => [d.dataset.panel!, d]));
+  const toast = root.querySelector<HTMLElement>('.cs-toast')!;
+  const bootEl = root.querySelector<HTMLElement>('[data-boot]')!;
+  const who = root.querySelector<HTMLElement>('[data-who]')!;
+  const users = [...who.querySelectorAll<HTMLButtonElement>('.cs-who-user')];
+  const games = tiles.filter((t) => t.dataset.kind === 'game').map((t) => t.dataset.id!);
+
+  initSound([...root.querySelectorAll<HTMLElement>('[data-sound-toggle]')], { entrance: false });
+
+  let state: State = document.documentElement.classList.contains('cs-skip-boot') ? 'home' : 'boot';
+
+  // ---------- Modo de entrada: cambia las ayudas de abajo (teclas, joystick o nada en touch)
+  function setInput(mode: Input) {
+    root.dataset.input = mode;
+  }
+  setInput(window.matchMedia('(pointer: coarse)').matches ? 'touch' : 'keys');
+  root.addEventListener('pointerdown', (e) => setInput(e.pointerType === 'touch' ? 'touch' : 'keys'));
+
+  // ---------- Trofeos
+  let toastTimer = 0;
+  const trophies = createTrophies(defs, (def, all) => {
+    toast.querySelector('[data-toast-name]')!.textContent = def.name;
+    toast.dataset.tier = def.tier;
+    toast.classList.remove('is-shown');
+    void toast.offsetWidth; // reinicia la animación si llega otro trofeo enseguida
+    toast.classList.add('is-shown');
+    clearTimeout(toastTimer);
+    toastTimer = window.setTimeout(() => toast.classList.remove('is-shown'), 4200);
+    paintTrophies(all);
+  });
+
+  function paintTrophies(all = trophies.all()) {
+    root.querySelectorAll<HTMLElement>('[data-trophy]').forEach((el) => {
+      const done = all.has(el.dataset.trophy!);
+      el.classList.toggle('is-unlocked', done);
+      const label = el.querySelector('[data-trophy-state]');
+      if (label) label.textContent = done ? '' : tx.locked;
+    });
+    const progress = tx.progress.replace('{n}', String(all.size)).replace('{total}', String(defs.length));
+    root.querySelectorAll('[data-trophy-count]').forEach((el) => (el.textContent = progress));
+    root.querySelectorAll<HTMLElement>('[data-trophy-bar]').forEach((el) => el.style.setProperty('--p', String(all.size / defs.length)));
+    root.querySelectorAll('[data-level]').forEach((el) => (el.textContent = String(1 + all.size)));
+  }
+  paintTrophies();
+  document.addEventListener('guestbook:sent', () => trophies.unlock('firma'));
+
+  // ---------- Selección en la fila
+  const SEL = 'console-sel';
+  const SEEN = 'console-seen';
+  let seen = new Set<string>();
+  try {
+    seen = new Set(JSON.parse(localStorage.getItem(SEEN) ?? '[]'));
+  } catch {}
+  let index = 0;
+  try {
+    index = Math.max(0, tiles.findIndex((t) => t.dataset.id === sessionStorage.getItem(SEL)));
+  } catch {}
+
+  function select(i: number, { sound = true, focus = false } = {}) {
+    i = Math.max(0, Math.min(tiles.length - 1, i));
+    const changed = i !== index;
+    index = i;
+    const tile = tiles[i];
+    const id = tile.dataset.id!;
+    tiles.forEach((t, k) => {
+      t.setAttribute('aria-selected', String(k === i));
+      t.tabIndex = k === i ? 0 : -1;
+    });
+    infos.forEach((el, key) => el.classList.toggle('is-active', key === id));
+    layers.forEach((el, key) => el.classList.toggle('is-active', key === id));
+    root.style.setProperty('--tint', tile.dataset.color!);
+    // Se centra moviendo solo la fila (scrollIntoView también corría la pantalla entera de costado).
+    // Se espera un cuadro: la tarjeta elegida cambia de tamaño y hay que medirla ya crecida.
+    requestAnimationFrame(() =>
+      row.scrollTo({
+        left: tile.offsetLeft - row.clientWidth / 2 + tile.offsetWidth / 2,
+        behavior: reduced ? 'auto' : 'smooth',
+      }),
+    );
+    if (focus) tile.focus({ preventScroll: true });
+    if (changed && sound) sfx('move');
+    try {
+      sessionStorage.setItem(SEL, id);
+    } catch {}
+
+    if (tile.dataset.kind === 'game' && !seen.has(id)) {
+      seen.add(id);
+      try {
+        localStorage.setItem(SEEN, JSON.stringify([...seen]));
+      } catch {}
+      if (games.every((g) => seen.has(g))) trophies.unlock('explorador');
+    }
+  }
+
+  // ---------- Paneles
+  const openDialog = () => [...dialogs.values()].find((d) => d.open);
+
+  function openPanel(name: string) {
+    const dialog = dialogs.get(name);
+    if (!dialog || dialog.open) return;
+    openDialog()?.close(); // del menú del usuario a los trofeos, por ejemplo
+    dialog.showModal();
+    sfx('press');
+    if (name === 'profile') trophies.unlock('curioso');
+    if (name.startsWith('details-')) trophies.unlock('detalles');
+    if (name === 'search') resetSearch();
+  }
+
+  dialogs.forEach((dialog) => {
+    dialog.addEventListener('close', () => {
+      sfx('back');
+      if (state === 'home' && !openDialog()) tiles[index].focus({ preventScroll: true });
+    });
+    // Clic afuera del panel (en el fondo oscuro) lo cierra
+    dialog.addEventListener('click', (e) => {
+      if (e.target === dialog) dialog.close();
+    });
+    dialog.querySelectorAll('[data-close]').forEach((b) => b.addEventListener('click', () => dialog.close()));
+  });
+
+  // Lo que se puede enfocar dentro de un panel, en orden, sin lo invisible (la trampa para bots,
+  // los resultados filtrados del buscador)
+  function focusables(scope: HTMLElement) {
+    return [...scope.querySelectorAll<HTMLElement>('a[href], button:not([disabled]), input:not([tabindex="-1"]), textarea')].filter(
+      (el) => el.getClientRects().length > 0,
+    );
+  }
+
+  function moveFocus(scope: HTMLElement, dir: number) {
+    const els = focusables(scope);
+    if (!els.length) return;
+    const i = els.indexOf(document.activeElement as HTMLElement);
+    els[(i + dir + els.length) % els.length].focus();
+    sfx('move');
+  }
+
+  // ---------- Buscador
+  const search = dialogs.get('search')!;
+  const searchInput = search.querySelector<HTMLInputElement>('[data-search-input]')!;
+  const results = [...search.querySelectorAll<HTMLElement>('[data-result]')];
+  const empty = search.querySelector<HTMLElement>('[data-search-empty]')!;
+  const normalize = (s: string) => s.normalize('NFD').replace(/[̀-ͯ]/g, '').toLowerCase().trim();
+
+  function filterResults() {
+    const q = normalize(searchInput.value);
+    let shown = 0;
+    results.forEach((li) => {
+      const match = !q || normalize(li.dataset.search!).includes(q);
+      li.hidden = !match;
+      if (match) shown++;
+    });
+    empty.hidden = shown > 0;
+  }
+  function resetSearch() {
+    searchInput.value = '';
+    filterResults();
+  }
+  searchInput.addEventListener('input', filterResults);
+  searchInput.addEventListener('keydown', (e) => {
+    const first = results.find((li) => !li.hidden)?.querySelector('button');
+    if (e.key === 'ArrowDown' && first) {
+      e.preventDefault();
+      first.focus();
+    } else if (e.key === 'Enter' && first) {
+      e.preventDefault();
+      first.click();
+    }
+  });
+  search.querySelectorAll<HTMLButtonElement>('[data-goto]').forEach((b) =>
+    b.addEventListener('click', () => {
+      search.close();
+      const i = tiles.findIndex((t) => t.dataset.id === b.dataset.goto);
+      if (i >= 0) select(i, { focus: true });
+    }),
+  );
+
+  // ---------- Acciones
+  function go(href: string, { fromConsole = false } = {}) {
+    sfx('press');
+    // Marca para que la página del proyecto ofrezca "Volver a la consola" en vez del sitio clásico
+    try {
+      if (fromConsole) sessionStorage.setItem('from-console', '1');
+      else sessionStorage.removeItem('from-console');
+    } catch {}
+    root.classList.add('is-leaving');
+    // Una pausa corta: que se vea el trofeo y suene antes de irse
+    setTimeout(() => location.assign(href), reduced ? 0 : 650);
+  }
+
+  function activate() {
+    const { kind, id, href } = tiles[index].dataset;
+    if (kind === 'game') {
+      trophies.unlock('jugador');
+      go(href!, { fromConsole: true });
+    } else if (id === 'exit') {
+      shutdown();
+    } else {
+      openPanel(id!);
+    }
+  }
+
+  function details() {
+    const tile = tiles[index];
+    if (tile.dataset.kind === 'game') openPanel(`details-${tile.dataset.id}`);
+  }
+
+  tiles.forEach((tile, k) =>
+    tile.addEventListener('click', () => {
+      if (k === index) activate();
+      else select(k);
+    }),
+  );
+  root.querySelectorAll<HTMLElement>('[data-action]').forEach((el) =>
+    el.addEventListener('click', (e) => {
+      e.preventDefault();
+      const action = el.dataset.action;
+      if (action === 'play') activate();
+      else if (action === 'details') details();
+      else if (action === 'open') openPanel(el.dataset.target!);
+      else if (action === 'switch') {
+        openDialog()?.close();
+        showWho();
+      } else if (action === 'off') shutdown();
+    }),
+  );
+
+  // ---------- Encendido
+  let boot: Boot | null = null;
+
+  function onBootKey(e: KeyboardEvent) {
+    if (e.key === 'Tab' || e.metaKey || e.ctrlKey || e.altKey) return;
+    // Que esta tecla no llegue también a la consola (un Enter abriría un juego)
+    e.preventDefault();
+    e.stopImmediatePropagation();
+    leaveBoot();
+  }
+  function onBootPointer(e: PointerEvent) {
+    if ((e.target as Element).closest('[data-sound-toggle]')) return;
+    leaveBoot();
+  }
+
+  async function leaveBoot() {
+    if (state !== 'boot') return;
+    window.removeEventListener('keydown', onBootKey, true);
+    bootEl.removeEventListener('pointerdown', onBootPointer);
+    sfx('boot');
+    showWho();
+    bootEl.classList.add('is-off');
+    await (boot ? boot.explode() : new Promise((r) => setTimeout(r, 700)));
+    bootEl.hidden = true;
+    bootEl.classList.remove('is-off', 'is-ready', 'no-gl');
+  }
+
+  if (state === 'boot') {
+    const canvas = bootEl.querySelector('canvas')!;
+    const logo = bootEl.querySelector<SVGSVGElement>('svg.logo')!;
+    boot = reduced ? null : startBoot(canvas, logo);
+    // Sin WebGL (o con movimiento reducido) se muestra el logo de SVG en lugar de las partículas
+    if (!boot) bootEl.classList.add('no-gl');
+    (boot ? boot.formed : new Promise((r) => setTimeout(r, 500))).then(() => bootEl.classList.add('is-ready'));
+    // En fase de captura: llega antes que el manejo normal del teclado
+    window.addEventListener('keydown', onBootKey, true);
+    bootEl.addEventListener('pointerdown', onBootPointer);
+  } else {
+    bootEl.hidden = true;
+    root.classList.add('is-on');
+  }
+  select(index, { sound: false });
+
+  // ---------- ¿Quién juega?
+  let userIndex = 0;
+
+  function pickUser(i: number, sound = true) {
+    userIndex = Math.max(0, Math.min(users.length - 1, i));
+    users.forEach((u, k) => u.setAttribute('aria-selected', String(k === userIndex)));
+    users[userIndex].focus({ preventScroll: true });
+    if (sound) sfx('move');
+  }
+
+  function showWho() {
+    state = 'who';
+    root.classList.remove('is-on');
+    who.classList.remove('is-off');
+    who.hidden = false;
+    pickUser(0, false);
+  }
+
+  function chooseUser() {
+    const user = users[userIndex];
+    // Google todavía no está: se sacude y no deja entrar (llega en la etapa de login con Cognito)
+    if (user.getAttribute('aria-disabled') === 'true') {
+      user.classList.remove('is-shake');
+      void user.offsetWidth;
+      user.classList.add('is-shake');
+      sfx('back');
+      return;
+    }
+    sfx('press');
+    state = 'home';
+    who.classList.add('is-off');
+    setTimeout(() => (who.hidden = true), 500);
+    root.classList.add('is-on');
+    select(index, { sound: false, focus: true });
+    setTimeout(() => trophies.unlock('encendido'), 700);
+  }
+
+  users.forEach((u, k) =>
+    u.addEventListener('click', () => {
+      pickUser(k, k !== userIndex);
+      chooseUser();
+    }),
+  );
+
+  // ---------- Apagado: el logo se arma, gira, se contrae y recién ahí se va al sitio
+  function shutdown() {
+    if (state === 'off') return;
+    state = 'off';
+    openDialog()?.close();
+    sfx('back');
+    root.classList.add('is-leaving'); // la fila y la info se desvanecen mientras baja la pantalla negra
+    try {
+      sessionStorage.removeItem('from-console');
+    } catch {}
+    document.documentElement.classList.remove('cs-skip-boot');
+    bootEl.hidden = false;
+    bootEl.classList.add('is-shutdown');
+    const canvas = bootEl.querySelector('canvas')!;
+    const logo = bootEl.querySelector<SVGSVGElement>('svg.logo')!;
+    const off = reduced ? null : startBoot(canvas, logo, { shutdown: true });
+    if (!off) bootEl.classList.add('no-gl');
+    (off ? off.explode() : new Promise((r) => setTimeout(r, 1200))).then(() => setTimeout(() => location.assign(home), 350));
+  }
+
+  // ---------- Zonas: arriba (buscador, sonido, idioma, usuario) · la fila · abajo (Jugar, Detalles)
+  // ↑ y ↓ pasan de una zona a otra; ← y → se mueven dentro de la zona.
+  type Zone = 'top' | 'row' | 'actions';
+  const topItems = () => [...root.querySelectorAll<HTMLElement>('.cs-top button, .cs-top a')];
+  const actionItems = () => [...root.querySelectorAll<HTMLElement>('.cs-info.is-active .cs-actions > *')];
+
+  function zoneOf(el: Element | null): Zone {
+    if (el?.closest('.cs-top')) return 'top';
+    if (el?.closest('.cs-infos')) return 'actions';
+    return 'row';
+  }
+
+  function moveInZone(items: HTMLElement[], dir: number) {
+    const i = items.indexOf(document.activeElement as HTMLElement);
+    const next = items[Math.max(0, Math.min(items.length - 1, i < 0 ? 0 : i + dir))];
+    if (next && next !== document.activeElement) {
+      next.focus();
+      sfx('move');
+    }
+  }
+
+  function goToZone(zone: Zone) {
+    if (zone === 'row') tiles[index].focus({ preventScroll: true });
+    else (zone === 'top' ? topItems()[0] : actionItems()[0])?.focus();
+    sfx('move');
+  }
+
+  // ---------- Teclado
+  const ARROWS: Record<string, number> = { ArrowLeft: -1, ArrowUp: -1, ArrowRight: 1, ArrowDown: 1 };
+
+  window.addEventListener('keydown', (e) => {
+    if (state === 'boot' || state === 'off') return;
+    const target = e.target as HTMLElement;
+
+    if (state === 'who') {
+      if (e.key === 'ArrowLeft' || e.key === 'ArrowRight') {
+        e.preventDefault();
+        pickUser(userIndex + (e.key === 'ArrowLeft' ? -1 : 1));
+      } else if (e.key === 'Enter' || e.key === ' ') {
+        e.preventDefault();
+        chooseUser();
+      }
+      return;
+    }
+
+    if (target.closest('input, textarea')) return;
+
+    // Con un panel abierto, las flechas pasan de un botón al otro (Jugar ↔ Cerrar); Enter lo acciona
+    // el propio botón y Esc cierra el panel (eso ya lo hace el navegador)
+    const dialog = openDialog();
+    if (dialog) {
+      const dir = ARROWS[e.key];
+      // Si el panel tiene un solo botón (los trofeos), las flechas quedan para desplazar la lista
+      if (dir && focusables(dialog).length > 1) {
+        e.preventDefault();
+        setInput('keys');
+        moveFocus(dialog, dir);
+      }
+      return;
+    }
+
+    // Enter o espacio sobre un botón o link: que actúe el propio botón (si no, se ejecutaría dos veces)
+    if ((e.key === 'Enter' || e.key === ' ') && target.closest('a, button')) return;
+
+    const arrows = () => {
+      setInput('keys');
+      trophies.unlock('teclado');
+    };
+
+    // Arriba o abajo de la fila: las flechas se mueven entre esos botones
+    const zone = zoneOf(target);
+    if (zone !== 'row' && e.key in ARROWS) {
+      e.preventDefault();
+      arrows();
+      const horizontal = e.key === 'ArrowLeft' || e.key === 'ArrowRight';
+      if (horizontal) moveInZone(zone === 'top' ? topItems() : actionItems(), ARROWS[e.key]);
+      else if ((zone === 'top' && e.key === 'ArrowDown') || (zone === 'actions' && e.key === 'ArrowUp')) goToZone('row');
+      return;
+    }
+
+    switch (e.key) {
+      case 'ArrowRight':
+        arrows();
+        select(index + 1, { focus: true });
+        break;
+      case 'ArrowLeft':
+        arrows();
+        select(index - 1, { focus: true });
+        break;
+      case 'ArrowUp':
+        arrows();
+        goToZone('top');
+        break;
+      case 'ArrowDown':
+        arrows();
+        goToZone('actions');
+        break;
+      case 'Home':
+        select(0, { focus: true });
+        break;
+      case 'End':
+        select(tiles.length - 1, { focus: true });
+        break;
+      case 'Enter':
+      case ' ':
+        activate();
+        break;
+      case 'd':
+      case 'D':
+        details();
+        break;
+      case '/':
+        openPanel('search');
+        break;
+      default:
+        return;
+    }
+    e.preventDefault();
+  });
+
+  // ---------- Rueda del mouse: pasa de juego en juego
+  let wheelAt = 0;
+  root.addEventListener(
+    'wheel',
+    (e) => {
+      if (state !== 'home' || openDialog()) return;
+      const delta = Math.abs(e.deltaY) > Math.abs(e.deltaX) ? e.deltaY : e.deltaX;
+      if (Math.abs(delta) < 8) return;
+      e.preventDefault();
+      const now = performance.now();
+      if (now - wheelAt < 180) return;
+      wheelAt = now;
+      select(index + Math.sign(delta));
+    },
+    { passive: false },
+  );
+
+  // ---------- Joystick (Gamepad API): se lee el estado en cada cuadro
+  const held: Record<string, number> = {};
+  let padLoop = 0;
+  let usedPad = false;
+
+  // true al apretar; si se mantiene y `repeat`, se repite (como una tecla)
+  function pressed(name: string, down: boolean, now: number, repeat = false) {
+    if (!down) {
+      delete held[name];
+      return false;
+    }
+    const next = held[name];
+    if (next === undefined) {
+      held[name] = now + 380;
+      return true;
+    }
+    if (repeat && now >= next) {
+      held[name] = now + 110;
+      return true;
+    }
+    return false;
+  }
+
+  function poll(now: number) {
+    padLoop = requestAnimationFrame(poll);
+    const gp = [...navigator.getGamepads()].find(Boolean);
+    if (!gp) return;
+    const b = (i: number) => Boolean(gp.buttons[i]?.pressed);
+    const ax = gp.axes[0] ?? 0;
+    const ay = gp.axes[1] ?? 0;
+    // Disposición estándar: 0 abajo (aceptar), 1 derecha (volver), 3 arriba, 12–15 la cruz
+    const left = pressed('left', b(14) || ax < -0.5, now, true);
+    const right = pressed('right', b(15) || ax > 0.5, now, true);
+    const up = pressed('up', b(12) || ay < -0.5, now, true);
+    const down = pressed('down', b(13) || ay > 0.5, now, true);
+    const accept = pressed('a', b(0), now);
+    const back = pressed('b', b(1), now);
+    const info = pressed('y', b(3), now);
+    const start = pressed('start', b(9), now);
+    if (!(left || right || up || down || accept || back || info || start)) return;
+
+    setInput('pad');
+    if (!usedPad) {
+      usedPad = true;
+      trophies.unlock('joystick');
+    }
+    if (state === 'off') return;
+    if (state === 'boot') return void leaveBoot();
+    if (state === 'who') {
+      if (left || right) pickUser(userIndex + (left ? -1 : 1));
+      else if (accept || start) chooseUser();
+      return;
+    }
+
+    const dialog = openDialog();
+    if (dialog) {
+      if (back) dialog.close();
+      else if (up || left) moveFocus(dialog, -1);
+      else if (down || right) moveFocus(dialog, 1);
+      else if (accept) (document.activeElement as HTMLElement | null)?.click();
+      return;
+    }
+    // Arriba o abajo de la fila: la cruz se mueve entre esos botones y A aprieta el elegido
+    const zone = zoneOf(document.activeElement);
+    if (zone !== 'row') {
+      if (left || right) moveInZone(zone === 'top' ? topItems() : actionItems(), left ? -1 : 1);
+      else if (back || (zone === 'top' && down) || (zone === 'actions' && up)) goToZone('row');
+      else if (accept) (document.activeElement as HTMLElement | null)?.click();
+      else if (info) details();
+      else if (start) openPanel('user');
+      return;
+    }
+    if (left) select(index - 1, { focus: true });
+    if (right) select(index + 1, { focus: true });
+    if (up) goToZone('top');
+    if (down) goToZone('actions');
+    if (accept) activate();
+    if (start) openPanel('user');
+    if (info) details();
+  }
+
+  window.addEventListener('gamepadconnected', () => {
+    setInput('pad');
+    if (!padLoop) padLoop = requestAnimationFrame(poll);
+  });
+  window.addEventListener('gamepaddisconnected', () => {
+    if ([...navigator.getGamepads()].some(Boolean)) return;
+    cancelAnimationFrame(padLoop);
+    padLoop = 0;
+    setInput('keys');
+  });
+
+  // ---------- Volver con el botón "atrás" del navegador
+  // El navegador puede restaurar la página tal como quedó (caché de ida y vuelta), o sea, a mitad de
+  // la salida y con todo invisible: al volver se deshace la salida.
+  window.addEventListener('pageshow', (e) => {
+    if (!e.persisted) return;
+    root.classList.remove('is-leaving');
+    if (state === 'off') location.reload(); // se había apagado: mejor arrancar de cero
+    else select(index, { sound: false });
+  });
+
+  // ---------- Reloj de la barra
+  const clock = root.querySelector('[data-clock]');
+  const time = new Intl.DateTimeFormat(lang, { hour: '2-digit', minute: '2-digit' });
+  const tick = () => {
+    if (clock) clock.textContent = time.format(new Date());
+  };
+  tick();
+  setInterval(tick, 15000);
+}
