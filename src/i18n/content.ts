@@ -12,6 +12,11 @@ export const site = {
   photoFull: '/img/foto-full.webp', // la que se abre en grande (WebP: todos los navegadores actuales)
   photoAbout: '/img/foto-about.jpg',
   talkVideoId: '1oeWi3M2vvg',
+  // API del libro de visitas (API Gateway → Lambda → SQS → DynamoDB). Es pública: no es un secreto.
+  guestbookApi: 'https://tr3v0lroo3.execute-api.us-east-2.amazonaws.com',
+  // Clave pública del captcha Cloudflare Turnstile (la secreta vive solo en la Lambda).
+  // Para probar sin el widget real: 1x00000000000000000000AA (clave de prueba, siempre aprueba).
+  turnstileSiteKey: '0x4AAAAAAGHNZy-tvp9PWiT9',
 };
 
 export const links = {
@@ -299,6 +304,28 @@ export const t = {
       copy: 'Copiar',
       copied: '¡Copiado!',
     },
+    guestbook: {
+      kicker: 'Hecho con AWS',
+      title: 'Libro de visitas.',
+      intro: 'Dejá un mensaje. Viaja por API Gateway, una cola SQS FIFO y una Lambda hasta DynamoDB.',
+      name: 'Nombre',
+      namePlaceholder: 'Anónimo',
+      message: 'Mensaje',
+      messagePlaceholder: '¡Hola! Pasé por tu web…',
+      send: 'Enviar',
+      client: {
+        loading: 'Cargando mensajes…',
+        empty: 'Todavía no hay mensajes. ¡Sé el primero!',
+        loadError: 'No pude cargar los mensajes. Probá en un rato.',
+        sending: 'Enviando…',
+        queued: 'En la cola…',
+        sent: '¡Gracias! Tu mensaje ya está en la cola.',
+        tooMany: 'Hay muchos mensajes a la vez. Probá en unos segundos.',
+        error: 'No se pudo enviar. Probá de nuevo.',
+        verify: 'Esperá un segundo: estamos verificando que no seas un robot.',
+        anonymous: 'Anónimo',
+      },
+    },
     footer: 'Hecho con Astro, Tailwind y Three.js.',
     cvFile: '/cv/martin-toledo-cv-es.pdf',
     cvName: 'Martin-Toledo-CV.pdf',
@@ -503,6 +530,28 @@ export const t = {
       cta: 'Send email',
       copy: 'Copy',
       copied: 'Copied!',
+    },
+    guestbook: {
+      kicker: 'Built on AWS',
+      title: 'Guestbook.',
+      intro: 'Leave a message. It travels through API Gateway, an SQS FIFO queue and a Lambda into DynamoDB.',
+      name: 'Name',
+      namePlaceholder: 'Anonymous',
+      message: 'Message',
+      messagePlaceholder: 'Hi! I stopped by your site…',
+      send: 'Send',
+      client: {
+        loading: 'Loading messages…',
+        empty: 'No messages yet. Be the first!',
+        loadError: "Couldn't load the messages. Try again later.",
+        sending: 'Sending…',
+        queued: 'In the queue…',
+        sent: 'Thanks! Your message is in the queue.',
+        tooMany: 'Too many messages at once. Try again in a few seconds.',
+        error: "Couldn't send it. Please try again.",
+        verify: "Hold on a second: we're checking you're not a robot.",
+        anonymous: 'Anonymous',
+      },
     },
     footer: 'Built with Astro, Tailwind and Three.js.',
     cvFile: '/cv/martin-toledo-resume-en.pdf',

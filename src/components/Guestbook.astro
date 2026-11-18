@@ -1,0 +1,255 @@
+---
+// Libro de visitas: lee y escribe en la API de AWS (docs/aws/ cuenta cómo se armó).
+//   GET  /mensajes?canal=general → Lambda → DynamoDB (los 20 más nuevos)
+//   POST /mensajes               → Lambda → cola SQS FIFO → Lambda → DynamoDB (responde 202)
+import { t, site, type Lang } from '../i18n/content';
+
+interface Props {
+  lang: Lang;
+}
+
+const { lang } = Astro.props;
+const ui = t[lang].guestbook;
+const field =
+  'w-full rounded-2xl border border-line bg-bg-soft/70 px-4 py-3 text-fg placeholder:text-muted/70 transition-colors focus:border-accent/70 focus:outline-none';
+---
+
+<section id="libro-de-visitas" class="mx-auto max-w-6xl px-4 py-28 sm:px-6">
+  <div class="reveal max-w-2xl">
+    <span class="rounded-full bg-accent/15 px-2.5 py-1 font-mono text-[11px] text-accent">{ui.kicker}</span>
+    <h2 class="display text-gradient mt-5 text-4xl sm:text-6xl">{ui.title}</h2>
+    <p class="mt-4 text-muted">{ui.intro}</p>
+  </div>
+
+  <div
+    class="glass reveal mt-14 grid gap-10 p-6 sm:p-8 lg:grid-cols-[2fr_3fr]"
+    data-guestbook
+    data-api={site.guestbookApi}
+    data-sitekey={site.turnstileSiteKey}
+    data-lang={lang}
+    data-ui={JSON.stringify(ui.client)}
+  >
+    <form class="gb-form flex flex-col gap-4" novalidate>
+      <label class="flex flex-col gap-2">
+        <span class="font-mono text-[11px] tracking-widest text-muted uppercase">{ui.name}</span>
+        <input name="autor" type="text" maxlength="40" autocomplete="nickname" placeholder={ui.namePlaceholder} class={field} />
+      </label>
+
+      <label class="flex flex-col gap-2">
+        <span class="flex items-center justify-between font-mono text-[11px] tracking-widest text-muted uppercase">
+          {ui.message}
+          <span class="gb-count tracking-normal tabular-nums">0/280</span>
+        </span>
+        <textarea name="mensaje" rows="4" maxlength="280" required placeholder={ui.messagePlaceholder} class={`${field} resize-none`}></textarea>
+      </label>
+
+      <!-- Trampa para bots: los humanos no ven este campo; si viene completo, no se envía nada -->
+      <input name="website" type="text" tabindex="-1" autocomplete="off" class="absolute -left-[9999px] size-px opacity-0" aria-hidden="true" />
+
+      <!-- Captcha Cloudflare Turnstile: casi siempre invisible; la Lambda valida el token -->
+      <div class="gb-captcha min-h-[65px]"></div>
+
+      <button type="submit" class="btn-glow mt-2 inline-flex items-center justify-center gap-2 self-start rounded-full px-6 py-3 font-semibold disabled:opacity-60">
+        {ui.send}
+      </button>
+      <p class="gb-status min-h-5 text-sm text-muted" aria-live="polite"></p>
+    </form>
+
+    <div class="min-w-0">
+      <p class="gb-info text-sm text-muted">{ui.client.loading}</p>
+      <ul class="gb-list flex max-h-[28rem] flex-col gap-3 overflow-y-auto pr-1"></ul>
+    </div>
+  </div>
+</section>
+
+<script>
+  type Mensaje = { autor: string; mensaje: string; fecha: string; pendiente?: boolean };
+  type Textos = Record<
+    'loading' | 'empty' | 'loadError' | 'sending' | 'queued' | 'sent' | 'tooMany' | 'error' | 'verify' | 'anonymous',
+    string
+  >;
+  type Turnstile = {
+    render: (el: HTMLElement, opciones: Record<string, unknown>) => string;
+    getResponse: (id: string) => string | undefined;
+    reset: (id: string) => void;
+  };
+
+  const root = document.querySelector<HTMLElement>('[data-guestbook]');
+  if (root) init(root);
+
+  function init(root: HTMLElement) {
+    const api = root.dataset.api!;
+    const lang = root.dataset.lang!;
+    const tx: Textos = JSON.parse(root.dataset.ui!);
+    const form = root.querySelector<HTMLFormElement>('.gb-form')!;
+    const list = root.querySelector<HTMLUListElement>('.gb-list')!;
+    const info = root.querySelector<HTMLElement>('.gb-info')!;
+    const status = root.querySelector<HTMLElement>('.gb-status')!;
+    const count = root.querySelector<HTMLElement>('.gb-count')!;
+    const textarea = form.querySelector('textarea')!;
+    const button = form.querySelector<HTMLButtonElement>('button[type="submit"]')!;
+    const captcha = root.querySelector<HTMLElement>('.gb-captcha')!;
+
+    // El captcha se carga recién cuando la sección está por verse (igual que los mensajes)
+    let turnstile: Turnstile | undefined;
+    let widget = '';
+    function cargarCaptcha() {
+      const script = document.createElement('script');
+      script.src = 'https://challenges.cloudflare.com/turnstile/v0/api.js?render=explicit';
+      script.async = true;
+      script.onload = () => {
+        turnstile = (window as unknown as { turnstile: Turnstile }).turnstile;
+        widget = turnstile.render(captcha, {
+          sitekey: root.dataset.sitekey,
+          language: lang,
+          theme: document.documentElement.classList.contains('light') ? 'light' : 'dark',
+          size: 'flexible',
+        });
+      };
+      document.head.append(script);
+    }
+
+    // Lo último que devolvió la API, y los mensajes enviados desde este navegador
+    // que todavía no aparecen en DynamoDB (siguen en la cola)
+    let guardados: Mensaje[] = [];
+    let pendientes: Mensaje[] = [];
+
+    const relativa = new Intl.RelativeTimeFormat(lang, { numeric: 'auto' });
+    function hace(fecha: string) {
+      // La fecha puede traer un identificador al final ("…Z#a1b2c3d4"): lo sacamos
+      const ms = Date.parse(fecha.split('#')[0]);
+      if (Number.isNaN(ms)) return '';
+      const seg = Math.round((ms - Date.now()) / 1000);
+      const pasos: [Intl.RelativeTimeFormatUnit, number][] = [
+        ['second', 60],
+        ['minute', 60],
+        ['hour', 24],
+        ['day', 7],
+        ['week', 4.35],
+        ['month', 12],
+        ['year', Infinity],
+      ];
+      let valor = seg;
+      for (const [unidad, limite] of pasos) {
+        if (Math.abs(valor) < limite) return relativa.format(Math.round(valor), unidad);
+        valor /= limite;
+      }
+      return '';
+    }
+
+    // Se arma con textContent, nunca con innerHTML: si alguien escribe <script> en un
+    // mensaje, se muestra como texto y no se ejecuta (protección contra XSS).
+    function item(m: Mensaje) {
+      const li = document.createElement('li');
+      li.className = 'rounded-2xl border border-line bg-card/60 px-4 py-3' + (m.pendiente ? ' opacity-60' : '');
+      const head = document.createElement('div');
+      head.className = 'flex items-baseline justify-between gap-3';
+      const autor = document.createElement('span');
+      autor.className = 'truncate font-medium';
+      autor.textContent = m.autor || tx.anonymous;
+      const cuando = document.createElement('span');
+      cuando.className = 'shrink-0 font-mono text-[11px] text-muted';
+      cuando.textContent = m.pendiente ? tx.queued : hace(m.fecha);
+      head.append(autor, cuando);
+      const texto = document.createElement('p');
+      texto.className = 'mt-1 text-sm leading-relaxed break-words whitespace-pre-line text-muted';
+      texto.textContent = m.mensaje;
+      li.append(head, texto);
+      return li;
+    }
+
+    function pintar() {
+      // Los pendientes que ya llegaron a DynamoDB dejan de mostrarse como "en la cola"
+      const fechas = new Set(guardados.map((m) => m.fecha));
+      pendientes = pendientes.filter((p) => !fechas.has(p.fecha));
+      const todos = [...pendientes, ...guardados];
+      list.replaceChildren(...todos.map(item));
+      info.textContent = todos.length ? '' : tx.empty;
+      info.hidden = todos.length > 0;
+    }
+
+    async function cargar() {
+      try {
+        const res = await fetch(`${api}/mensajes?canal=general`);
+        if (!res.ok) throw new Error(String(res.status));
+        const data: { mensajes: Mensaje[] } = await res.json();
+        guardados = data.mensajes;
+        pintar();
+      } catch {
+        if (!list.children.length) {
+          info.textContent = tx.loadError;
+          info.hidden = false;
+        }
+      }
+    }
+
+    textarea.addEventListener('input', () => {
+      count.textContent = `${textarea.value.length}/280`;
+    });
+
+    form.addEventListener('submit', async (e) => {
+      e.preventDefault();
+      const datos = new FormData(form);
+      const autor = String(datos.get('autor') ?? '').trim();
+      const mensaje = String(datos.get('mensaje') ?? '').trim();
+      if (!mensaje) {
+        textarea.focus();
+        return;
+      }
+      // Un bot llenó el campo trampa: hacemos como que salió bien y no mandamos nada
+      if (datos.get('website')) {
+        form.reset();
+        status.textContent = tx.sent;
+        return;
+      }
+
+      // Sin token todavía: el captcha no terminó de verificar
+      const token = turnstile?.getResponse(widget);
+      if (!token) {
+        status.textContent = tx.verify;
+        return;
+      }
+
+      button.disabled = true;
+      status.textContent = tx.sending;
+      try {
+        const res = await fetch(`${api}/mensajes`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ canal: 'general', autor, mensaje, token }),
+        });
+        if (res.status === 429) throw new Error(tx.tooMany);
+        const data = await res.json().catch(() => ({}));
+        if (!res.ok) throw new Error(data.error ?? tx.error);
+
+        // 202: está en la cola, todavía no en la base. Lo mostramos ya como "en la cola"
+        // y volvemos a consultar en unos segundos, cuando la Lambda ya lo guardó.
+        pendientes.unshift({ autor, mensaje, fecha: data.fecha, pendiente: true });
+        pintar();
+        form.reset();
+        count.textContent = '0/280';
+        status.textContent = tx.sent;
+        setTimeout(cargar, 2500);
+      } catch (err) {
+        status.textContent = err instanceof Error && err.message ? err.message : tx.error;
+      } finally {
+        button.disabled = false;
+        // Cada token sirve una sola vez: pedimos uno nuevo para el próximo mensaje
+        turnstile?.reset(widget);
+      }
+    });
+
+    // Se consulta recién cuando la sección está por verse: si el visitante no baja
+    // hasta acá, no se gasta ningún pedido a la API.
+    const io = new IntersectionObserver(
+      ([entry]) => {
+        if (!entry.isIntersecting) return;
+        io.disconnect();
+        cargar();
+        cargarCaptcha();
+      },
+      { rootMargin: '400px' },
+    );
+    io.observe(root);
+  }
+</script>
