@@ -188,7 +188,7 @@ export const t = {
       },
       portfolio: {
         tag: 'Astro · AWS · Cognito',
-        title: 'Este sitio',
+        title: 'Portfolio Lab',
         text: 'Mi campo de pruebas: una consola de juegos inventada, un libro de visitas que pasa por API Gateway, SQS FIFO, Lambda y DynamoDB, login con Google y trofeos globales.',
       },
       saldobus: {
@@ -541,7 +541,7 @@ export const t = {
       },
       portfolio: {
         tag: 'Astro · AWS · Cognito',
-        title: 'This site',
+        title: 'Portfolio Lab',
         text: 'My testing ground: a made-up game console, a guestbook that goes through API Gateway, SQS FIFO, Lambda and DynamoDB, Google sign-in and global trophies.',
       },
       saldobus: {

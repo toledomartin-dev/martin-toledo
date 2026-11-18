@@ -40,13 +40,13 @@ export const portfolio: Project = {
   },
   text: {
     es: {
-      slug: 'este-sitio',
+      slug: 'portfolio-lab',
       meta: {
-        title: 'Este sitio: portfolio, consola y AWS — Martín Toledo',
+        title: 'Portfolio Lab: este sitio, la consola y AWS — Martín Toledo',
         description:
           'Mi portfolio es también mi campo de pruebas: Astro y Three.js en Cloudflare, un libro de visitas con API Gateway, SQS FIFO, Lambda y DynamoDB, y login con Google a través de Cognito.',
       },
-      kicker: 'Este sitio',
+      kicker: 'Portfolio Lab',
       title: 'Mi portfolio, y mi campo de pruebas',
       lead: 'Lo que estás viendo. Empezó como una página para mostrar proyectos y se convirtió en el lugar donde pruebo tecnologías de verdad: una consola de juegos inventada, un libro de visitas que pasa por una cola de AWS, inicio de sesión con Google y trofeos globales.',
       facts: [
@@ -196,13 +196,13 @@ export const portfolio: Project = {
       },
     },
     en: {
-      slug: 'this-site',
+      slug: 'portfolio-lab',
       meta: {
-        title: 'This site: portfolio, console and AWS — Martín Toledo',
+        title: 'Portfolio Lab: this site, the console and AWS — Martín Toledo',
         description:
           'My portfolio is also my testing ground: Astro and Three.js on Cloudflare, a guestbook with API Gateway, SQS FIFO, Lambda and DynamoDB, and Google sign-in through Cognito.',
       },
-      kicker: 'This site',
+      kicker: 'Portfolio Lab',
       title: 'My portfolio, and my testing ground',
       lead: "What you're looking at. It started as a page to show projects and became the place where I try technologies for real: a made-up game console, a guestbook that goes through an AWS queue, Google sign-in and global trophies.",
       facts: [
