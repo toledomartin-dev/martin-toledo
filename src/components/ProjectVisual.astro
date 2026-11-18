@@ -8,6 +8,7 @@ import IaChat from './mocks/IaChat.astro';
 import MonitorPanel from './mocks/MonitorPanel.astro';
 import NfcCard from './mocks/NfcCard.astro';
 import MuniDoc from './mocks/MuniDoc.astro';
+import ConsoleMock from './mocks/ConsoleMock.astro';
 
 interface Props {
   lang: Lang;
@@ -58,6 +59,13 @@ const { lang, projectKey } = Astro.props;
       <div class="mx-auto max-w-md">
         <MuniDoc />
       </div>
+    </div>
+  )
+}
+{
+  projectKey === 'portfolio' && (
+    <div class="glass mt-10 p-3 sm:p-5">
+      <ConsoleMock lang={lang} />
     </div>
   )
 }

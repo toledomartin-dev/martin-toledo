@@ -186,6 +186,11 @@ export const t = {
         text: 'Prometheus, Grafana y alertas con n8n para los servidores de toda la empresa.',
         servers: 'Servidores',
       },
+      portfolio: {
+        tag: 'Astro · AWS · Cognito',
+        title: 'Este sitio',
+        text: 'Mi campo de pruebas: una consola de juegos inventada, un libro de visitas que pasa por API Gateway, SQS FIFO, Lambda y DynamoDB, login con Google y trofeos globales.',
+      },
       saldobus: {
         title: 'SaldoBus',
         text: 'Recarga de tarjetas de transporte por NFC, con cifrado AES-256.',
@@ -349,7 +354,7 @@ export const t = {
       apps: {
         profile: { title: 'Sobre mí', headline: 'Martín Toledo', lead: 'Quién hizo esta consola: qué hago y cómo encontrarme.' },
         guestbook: { title: 'Libro de visitas', headline: 'Dejá tu firma', lead: 'Un mensaje que viaja por API Gateway, una cola SQS FIFO y una Lambda hasta DynamoDB.' },
-        trophies: { title: 'Trofeos', headline: 'Tus trofeos', lead: 'Logros por explorar la consola. Se guardan en este navegador.' },
+        trophies: { title: 'Trofeos', headline: 'Tus trofeos', lead: 'Logros por explorar la consola. Con tu cuenta de Google se guardan en la nube y suman al porcentaje global.' },
         exit: { title: 'Sitio clásico', headline: 'Volver al portfolio', lead: 'Apaga la consola y vuelve a la versión de siempre: proyectos, experiencia, notas y contacto.' },
       },
       hints: { move: 'Moverse', play: 'Aceptar', details: 'Detalles', back: 'Volver', search: 'Buscar' },
@@ -486,6 +491,11 @@ export const t = {
         title: 'Monitoring & infrastructure',
         text: "Prometheus, Grafana and n8n alerts for the whole company's servers.",
         servers: 'Servers',
+      },
+      portfolio: {
+        tag: 'Astro · AWS · Cognito',
+        title: 'This site',
+        text: 'My testing ground: a made-up game console, a guestbook that goes through API Gateway, SQS FIFO, Lambda and DynamoDB, Google sign-in and global trophies.',
       },
       saldobus: {
         title: 'SaldoBus',
@@ -650,7 +660,7 @@ export const t = {
       apps: {
         profile: { title: 'About me', headline: 'Martín Toledo', lead: 'Who built this console: what I do and where to find me.' },
         guestbook: { title: 'Guestbook', headline: 'Sign the book', lead: 'A message that travels through API Gateway, an SQS FIFO queue and a Lambda into DynamoDB.' },
-        trophies: { title: 'Trophies', headline: 'Your trophies', lead: 'Achievements for exploring the console. They are saved in this browser.' },
+        trophies: { title: 'Trophies', headline: 'Your trophies', lead: 'Achievements for exploring the console. With your Google account they are saved in the cloud and count toward the global percentage.' },
         exit: { title: 'Classic site', headline: 'Back to the portfolio', lead: 'Turns the console off and goes back to the usual version: projects, experience, notes and contact.' },
       },
       hints: { move: 'Move', play: 'Select', details: 'Details', back: 'Back', search: 'Search' },

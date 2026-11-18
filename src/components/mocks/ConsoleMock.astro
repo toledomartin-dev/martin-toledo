@@ -1,0 +1,127 @@
+---
+// Este sitio: la consola en miniatura. La selección recorre la fila y salta un trofeo, en un ciclo de 8 s.
+import type { Lang } from '../../i18n/content';
+import Logo from '../Logo.astro';
+
+interface Props {
+  lang: Lang;
+}
+
+const es = Astro.props.lang === 'es';
+const tiles = ['#facc15', '#a78bfa', '#38bdf8', '#34d399', '#e879f9', '#fb923c'];
+---
+
+<div class="cm relative overflow-hidden rounded-2xl border border-white/5 bg-[#06070b] p-4 text-[#f1f2f4]" aria-hidden="true">
+  <div class="cm-glow"></div>
+  <div class="relative flex items-center justify-between">
+    <Logo class="size-5" />
+    <span class="flex items-center gap-2">
+      <span class="font-mono text-[9px] text-[#8d939e]">21:37</span>
+      <span class="size-4 rounded-full bg-gradient-to-br from-[#2a2f3a] to-[#15181f] ring-1 ring-[#e879f9]"></span>
+    </span>
+  </div>
+  <div class="relative mt-4 flex items-center gap-2">
+    {
+      tiles.map((c, i) => (
+        <span class="cm-tile" style={`--c:${c};--i:${i}`}>
+          <span />
+        </span>
+      ))
+    }
+  </div>
+  <div class="relative mt-5">
+    <p class="font-mono text-[8px] tracking-widest text-[#e879f9] uppercase">{es ? 'Proyecto' : 'Project'}</p>
+    <p class="mt-1 text-lg font-semibold tracking-tight">{es ? 'Este sitio' : 'This site'}</p>
+    <div class="mt-2 flex gap-1.5">
+      <span class="rounded-full bg-white px-2.5 py-1 text-[9px] font-semibold text-[#06070b]">▶ {es ? 'Jugar' : 'Play'}</span>
+      <span class="rounded-full bg-white/10 px-2.5 py-1 text-[9px]">{es ? 'Detalles' : 'Details'}</span>
+    </div>
+  </div>
+  <div class="cm-toast">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M8 21h8M12 17v4M7 4h10v5a5 5 0 0 1-10 0z"></path><path d="M17 5h3v2a3 3 0 0 1-3 3M7 5H4v2a3 3 0 0 0 3 3"></path></svg>
+    <span>
+      <span class="block font-mono text-[7px] tracking-widest text-[#8d939e] uppercase">{es ? 'Trofeo desbloqueado' : 'Trophy unlocked'}</span>
+      <span class="block text-[10px] font-medium">{es ? 'Explorador' : 'Explorer'}</span>
+    </span>
+  </div>
+</div>
+
+<style>
+  .cm-glow {
+    position: absolute;
+    inset: -40% -10% auto 30%;
+    height: 120%;
+    background: radial-gradient(closest-side, rgb(232 121 249 / 0.18), transparent);
+    pointer-events: none;
+  }
+  .cm-tile {
+    display: grid;
+    place-items: center;
+    flex: none;
+    width: 2.1rem;
+    aspect-ratio: 1;
+    border-radius: 0.55rem;
+    background: linear-gradient(160deg, color-mix(in srgb, var(--c) 22%, #15181f), #0d0f14);
+    border: 1px solid rgb(255 255 255 / 0.06);
+    animation: cm-pick 8s infinite;
+    animation-delay: calc(var(--i) * 1.33s - 8s);
+  }
+  .cm-tile > span {
+    width: 40%;
+    aspect-ratio: 1;
+    border-radius: 0.2rem;
+    border: 1.5px solid var(--c);
+  }
+  /* Cada tarjeta se agranda y brilla en su turno */
+  @keyframes cm-pick {
+    0%,
+    16% {
+      transform: scale(1.25);
+      border-color: var(--c);
+      box-shadow: 0 0 18px -4px var(--c);
+    }
+    20%,
+    100% {
+      transform: scale(1);
+      border-color: rgb(255 255 255 / 0.06);
+      box-shadow: none;
+    }
+  }
+  .cm-toast {
+    position: absolute;
+    top: 0.6rem;
+    left: 50%;
+    display: flex;
+    align-items: center;
+    gap: 0.45rem;
+    padding: 0.35rem 0.8rem 0.35rem 0.55rem;
+    border-radius: 9999px;
+    background: #15181f;
+    border: 1px solid rgb(255 255 255 / 0.1);
+    transform: translate(-50%, -180%);
+    animation: cm-toast 8s infinite;
+  }
+  .cm-toast svg {
+    width: 1rem;
+    height: 1rem;
+    color: #f5c542;
+  }
+  @keyframes cm-toast {
+    0%,
+    55%,
+    90%,
+    100% {
+      transform: translate(-50%, -180%);
+    }
+    60%,
+    85% {
+      transform: translate(-50%, 0);
+    }
+  }
+  @media (prefers-reduced-motion: reduce) {
+    .cm-tile,
+    .cm-toast {
+      animation: none;
+    }
+  }
+</style>

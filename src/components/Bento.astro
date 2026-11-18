@@ -9,6 +9,7 @@ import MonitorPanel from './mocks/MonitorPanel.astro';
 import NfcCard from './mocks/NfcCard.astro';
 import MuniDoc from './mocks/MuniDoc.astro';
 import BikeStation from './mocks/BikeStation.astro';
+import ConsoleMock from './mocks/ConsoleMock.astro';
 import Icon from './Icon.astro';
 
 interface Props {
@@ -161,6 +162,17 @@ const spark = 'M0 50 L20 42 L40 46 L60 30 L80 34 L100 22 L120 28 L140 16 L160 20
           {ui.muni.libreta} <Icon name="arrow-up-right" class="size-3.5" />
         </a>
       </div>
+    </div>
+
+    <!-- Este sitio: la consola en miniatura -->
+    <div class="glass reveal group grid gap-6 p-7 sm:col-span-2 lg:col-span-6 lg:grid-cols-[1fr_1.35fr] lg:items-center" style="--d:.06s">
+      <div>
+        <p class="font-mono text-xs text-accent">{ui.portfolio.tag}</p>
+        <h3 class="mt-3 text-2xl font-medium tracking-tight">{ui.portfolio.title}</h3>
+        <p class="mt-2 max-w-md text-sm leading-relaxed text-muted">{ui.portfolio.text}</p>
+        <DetailLink href={projectPath(lang, 'portfolio')} label={ui.detail} />
+      </div>
+      <ConsoleMock lang={lang} />
     </div>
 
     <!-- BiciCba: un préstamo en la estación (los números del sistema están en la página del proyecto) -->
