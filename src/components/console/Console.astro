@@ -90,6 +90,10 @@ const apps = [
   { id: 'exit', ...ui.apps.exit, color: '#a3a9b3', href: home },
 ].map((a) => ({ ...a, search: [a.title, a.headline].join(' ').toLowerCase() }));
 
+// Juegos de mentira: tapas con mi cara (sin los logos originales). "Jugar" solo da un error en chiste.
+const funColors: Record<string, string> = { battle: '#38bdf8', springfield: '#facc15', vice: '#f472b6', ruinas: '#d6a35c' };
+const fun = ui.fun.games.map((g) => ({ ...g, color: funColors[g.id] }));
+
 const tierColor = { bronze: '#d08b5b', silver: '#c7ccd6', gold: '#f5c542', platinum: '#a5d8ff' } as const;
 const clientUi = JSON.stringify(ui.client);
 // Login: la dirección de vuelta tiene que coincidir exacta con una de las cargadas en Cognito
@@ -111,7 +115,7 @@ const trophyDefs = JSON.stringify(ui.trophyList);
   }
 </script>
 
-<div class="console" data-console data-lang={lang} data-home={home} data-ui={clientUi} data-trophies={trophyDefs} data-auth={authConfig} data-api={site.guestbookApi} data-input="keys">
+<div class="console" data-console data-lang={lang} data-home={home} data-ui={clientUi} data-trophies={trophyDefs} data-auth={authConfig} data-api={site.guestbookApi} data-input="keys" data-tab="projects">
   <!-- Fondo: el arte del elemento elegido (solo el activo se dibuja: los demás no gastan nada) -->
   <div class="cs-bg" aria-hidden="true">
     {
@@ -177,12 +181,26 @@ const trophyDefs = JSON.stringify(ui.trophyList);
         </div>
       ))
     }
+    {
+      fun.map((g) => (
+        <div class="cs-layer cs-layer-fun" data-bg={g.id} style={`--c:${g.color}`}>
+          <img src={`/img/juegos/${g.id}.webp`} alt="" loading="lazy" decoding="async" />
+        </div>
+      ))
+    }
     <div class="cs-vignette"></div>
   </div>
 
   <!-- Barra de arriba -->
   <header class="cs-top">
-    <span class="size-8"><Logo class="size-8" /></span>
+    <div class="flex items-center gap-1.5 sm:gap-6">
+      <span class="size-8 shrink-0"><Logo class="size-8" /></span>
+      <!-- Biblioteca: los proyectos de verdad o los juegos de mentira -->
+      <div class="cs-tabs" role="group" aria-label={ui.fun.tabs.label}>
+        <button type="button" data-tab="projects" aria-pressed="true">{ui.fun.tabs.projects}</button>
+        <button type="button" data-tab="fun" aria-pressed="false">{ui.fun.tabs.fun}</button>
+      </div>
+    </div>
     <div class="flex items-center gap-1 sm:gap-2">
       <button type="button" class="cs-icon-btn" data-action="open" data-target="search" aria-label={ui.search.label} title={ui.search.label}>
         <svg class="size-[18px]" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true">
@@ -220,6 +238,7 @@ const trophyDefs = JSON.stringify(ui.trophyList);
           aria-label={g.title}
           data-id={g.id}
           data-kind="game"
+          data-group="projects"
           data-href={g.href}
           data-color={g.color}
           style={`--c:${g.color};--i:${i}`}
@@ -234,7 +253,7 @@ const trophyDefs = JSON.stringify(ui.trophyList);
         </button>
       ))
     }
-    <span class="cs-sep" aria-hidden="true"></span>
+    <span class="cs-sep" data-group="projects" aria-hidden="true"></span>
     {
       apps.map((a, i) => (
         <button
@@ -246,6 +265,7 @@ const trophyDefs = JSON.stringify(ui.trophyList);
           aria-label={a.title}
           data-id={a.id}
           data-kind="app"
+          data-group="projects"
           data-href={a.href}
           data-color={a.color}
           style={`--c:${a.color};--i:${games.length + i}`}
@@ -258,6 +278,30 @@ const trophyDefs = JSON.stringify(ui.trophyList);
             )}
           </span>
           <span class="cs-tile-name">{a.title}</span>
+        </button>
+      ))
+    }
+    {
+      fun.map((g, i) => (
+        <button
+          type="button"
+          role="option"
+          class="cs-tile cs-tile-fun"
+          aria-selected="false"
+          tabindex="-1"
+          aria-label={g.title}
+          data-id={g.id}
+          data-kind="fun"
+          data-group="fun"
+          data-color={g.color}
+          data-err-title={g.errTitle}
+          data-err-body={g.errBody}
+          style={`--c:${g.color};--i:${i}`}
+        >
+          <span class="cs-cover">
+            <img src={`/img/juegos/${g.id}-tapa.webp`} alt="" class="cs-app-photo" loading="lazy" decoding="async" />
+          </span>
+          <span class="cs-tile-name">{g.title}</span>
         </button>
       ))
     }
@@ -317,6 +361,24 @@ const trophyDefs = JSON.stringify(ui.trophyList);
             <a href={a.href ?? '#'} class="cs-btn cs-btn-primary" data-action="play">
               {ui.open}
             </a>
+          </div>
+        </div>
+      ))
+    }
+    {
+      fun.map((g) => (
+        <div class="cs-info" data-info={g.id} style={`--c:${g.color}`}>
+          <p class="cs-kicker">{ui.fun.kicker}</p>
+          <h2 class="cs-title">{g.title}</h2>
+          <p class="cs-headline">{g.headline}</p>
+          <p class="cs-fun-meta">{g.meta}</p>
+          <div class="cs-actions">
+            <button type="button" class="cs-btn cs-btn-primary" data-action="play">
+              <svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true">
+                <path d="M8 5v14l11-7z" />
+              </svg>
+              {ui.play}
+            </button>
           </div>
         </div>
       ))
@@ -451,6 +513,16 @@ const trophyDefs = JSON.stringify(ui.trophyList);
         ))
       }
     </ul>
+  </dialog>
+
+  <!-- El error en chiste de los juegos de mentira (el texto lo pone el script según el juego) -->
+  <dialog class="cs-dialog cs-alert" data-panel="fun-error" aria-labelledby="dlg-fun-error">
+    <svg class="cs-alert-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+      <path d="M10.3 3.9 1.8 18a2 2 0 0 0 1.7 3h17a2 2 0 0 0 1.7-3L13.7 3.9a2 2 0 0 0-3.4 0zM12 9v4M12 17h.01"></path>
+    </svg>
+    <h2 id="dlg-fun-error" class="mt-4 text-xl font-medium tracking-tight" data-fun-title></h2>
+    <p class="mt-2 text-sm leading-relaxed text-muted" data-fun-body></p>
+    <button type="button" class="cs-btn cs-btn-primary mt-6" data-close autofocus>{ui.fun.ok}</button>
   </dialog>
 
   <!-- Menú del usuario (arriba a la derecha) -->
@@ -642,6 +714,95 @@ const trophyDefs = JSON.stringify(ui.trophyList);
     aspect-ratio: 1;
     opacity: 0.08;
     filter: grayscale(0.4);
+  }
+  /* Juegos de mentira: la imagen de tapa ocupa la derecha y se funde hacia la izquierda */
+  .cs-layer-fun img {
+    position: absolute;
+    top: 0;
+    right: 0;
+    height: 100%;
+    width: min(62%, 60rem);
+    object-fit: cover;
+    object-position: center 20%;
+    mask-image: linear-gradient(to left, black 55%, transparent);
+    animation: mock-in 1s cubic-bezier(0.2, 0.7, 0.2, 1);
+  }
+  /* Solo se ve la biblioteca elegida */
+  .console[data-tab='projects'] [data-group='fun'],
+  .console[data-tab='fun'] [data-group='projects'] {
+    display: none;
+  }
+  .cs-tabs {
+    display: flex;
+    gap: 0.25rem;
+  }
+  .cs-tabs button {
+    position: relative;
+    padding: 0.4rem 0.8rem;
+    border-radius: 9999px;
+    font-size: 0.95rem;
+    font-weight: 600;
+    color: #8b919c;
+    transition:
+      color 0.2s,
+      background-color 0.2s;
+  }
+  .cs-tabs button[aria-pressed='true'] {
+    color: #f1f2f4;
+  }
+  .cs-tabs button[aria-pressed='true']::after {
+    content: '';
+    position: absolute;
+    left: 0.8rem;
+    right: 0.8rem;
+    bottom: 0.05rem;
+    height: 2px;
+    border-radius: 2px;
+    background: var(--tint);
+  }
+  .cs-tabs button:hover,
+  .cs-tabs button:focus-visible {
+    outline: none;
+    color: #f1f2f4;
+    background: rgb(255 255 255 / 0.08);
+  }
+  .cs-tabs button:focus-visible {
+    box-shadow: inset 0 0 0 1.5px rgb(255 255 255 / 0.35);
+  }
+  /* En el celular la barra va justa: pestañas más compactas */
+  @media (max-width: 480px) {
+    .cs-tabs button {
+      padding: 0.35rem 0.45rem;
+      font-size: 0.85rem;
+    }
+    .cs-tabs button[aria-pressed='true']::after {
+      left: 0.45rem;
+      right: 0.45rem;
+    }
+  }
+  @media (max-width: 380px) {
+    .cs-top .cs-icon-btn {
+      min-width: 2rem;
+      padding-inline: 0.3rem;
+    }
+  }
+  .cs-fun-meta {
+    margin-top: 0.75rem;
+    font-family: var(--font-mono);
+    font-size: 0.75rem;
+    color: #8b919c;
+  }
+  .cs-dialog.cs-alert {
+    width: min(26rem, calc(100% - 2rem));
+    margin: auto;
+    padding: 1.75rem;
+    text-align: center;
+  }
+  .cs-alert-icon {
+    width: 2.75rem;
+    height: 2.75rem;
+    margin-inline: auto;
+    color: #fbbf24;
   }
   .cs-vignette {
     background:

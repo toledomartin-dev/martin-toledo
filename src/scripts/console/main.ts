@@ -22,7 +22,15 @@ export function initConsole(root: HTMLElement) {
   const reduced = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
 
   const row = root.querySelector<HTMLElement>('.cs-row')!;
-  const tiles = [...root.querySelectorAll<HTMLButtonElement>('.cs-tile')];
+  // Biblioteca: "projects" (proyectos y apps) o "fun" (juegos de mentira). `tiles` son las de la visible.
+  type Tab = 'projects' | 'fun';
+  const allTiles = [...root.querySelectorAll<HTMLButtonElement>('.cs-tile')];
+  const tabButtons = [...root.querySelectorAll<HTMLButtonElement>('.cs-tabs [data-tab]')];
+  let tab: Tab = 'projects';
+  try {
+    if (sessionStorage.getItem('console-tab') === 'fun') tab = 'fun';
+  } catch {}
+  let tiles = allTiles.filter((t) => t.dataset.group === tab);
   const infos = new Map([...root.querySelectorAll<HTMLElement>('[data-info]')].map((el) => [el.dataset.info!, el]));
   const layers = new Map([...root.querySelectorAll<HTMLElement>('[data-bg]')].map((el) => [el.dataset.bg!, el]));
   const dialogs = new Map([...root.querySelectorAll<HTMLDialogElement>('dialog[data-panel]')].map((d) => [d.dataset.panel!, d]));
@@ -30,7 +38,7 @@ export function initConsole(root: HTMLElement) {
   const bootEl = root.querySelector<HTMLElement>('[data-boot]')!;
   const who = root.querySelector<HTMLElement>('[data-who]')!;
   const users = [...who.querySelectorAll<HTMLButtonElement>('.cs-who-user')];
-  const games = tiles.filter((t) => t.dataset.kind === 'game').map((t) => t.dataset.id!);
+  const games = allTiles.filter((t) => t.dataset.kind === 'game').map((t) => t.dataset.id!);
 
   initSound([...root.querySelectorAll<HTMLElement>('[data-sound-toggle]')], { entrance: false });
 
@@ -244,6 +252,29 @@ export function initConsole(root: HTMLElement) {
     }
   }
 
+  // ---------- Pestañas de la biblioteca: cada una recuerda qué elemento tenía elegido
+  const lastIndex: Record<Tab, number> = { projects: 0, fun: 0 };
+
+  function setTab(next: Tab, { sound = true, focusRow = false } = {}) {
+    if (next !== tab) {
+      lastIndex[tab] = index;
+      tab = next;
+      tiles = allTiles.filter((t) => t.dataset.group === tab);
+      allTiles.forEach((t) => {
+        if (!tiles.includes(t)) t.tabIndex = -1;
+      });
+      index = -1; // fuerza a `select` a repintar aunque el número coincida
+      select(lastIndex[tab], { sound: false, focus: focusRow });
+      if (sound) sfx('move');
+      try {
+        sessionStorage.setItem('console-tab', tab);
+      } catch {}
+    }
+    root.dataset.tab = tab;
+    tabButtons.forEach((b) => b.setAttribute('aria-pressed', String(b.dataset.tab === tab)));
+  }
+  tabButtons.forEach((b) => b.addEventListener('click', () => setTab(b.dataset.tab as Tab)));
+
   // ---------- Paneles
   const openDialog = () => [...dialogs.values()].find((d) => d.open);
 
@@ -257,6 +288,7 @@ export function initConsole(root: HTMLElement) {
     if (name.startsWith('details-')) trophies.unlock('detalles');
     if (name === 'search') resetSearch();
     if (name === 'trophies') loadGlobal();
+    if (name === 'fun-error') sfx('back');
   }
 
   dialogs.forEach((dialog) => {
@@ -322,8 +354,10 @@ export function initConsole(root: HTMLElement) {
   search.querySelectorAll<HTMLButtonElement>('[data-goto]').forEach((b) =>
     b.addEventListener('click', () => {
       search.close();
-      const i = tiles.findIndex((t) => t.dataset.id === b.dataset.goto);
-      if (i >= 0) select(i, { focus: true });
+      const target = allTiles.find((t) => t.dataset.id === b.dataset.goto);
+      if (!target) return;
+      setTab(target.dataset.group as Tab, { sound: false });
+      select(tiles.indexOf(target), { focus: true });
     }),
   );
 
@@ -341,8 +375,14 @@ export function initConsole(root: HTMLElement) {
   }
 
   function activate() {
-    const { kind, id, href } = tiles[index].dataset;
-    if (kind === 'game') {
+    const { kind, id, href, errTitle, errBody } = tiles[index].dataset;
+    if (kind === 'fun') {
+      // Juegos de mentira: siempre falta algo (premium, espacio, el disco 2…)
+      const panel = dialogs.get('fun-error')!;
+      panel.querySelector('[data-fun-title]')!.textContent = errTitle!;
+      panel.querySelector('[data-fun-body]')!.textContent = errBody!;
+      openPanel('fun-error');
+    } else if (kind === 'game') {
       trophies.unlock('jugador');
       go(href!, { fromConsole: true });
     } else if (id === 'exit') {
@@ -357,10 +397,11 @@ export function initConsole(root: HTMLElement) {
     if (tile.dataset.kind === 'game') openPanel(`details-${tile.dataset.id}`);
   }
 
-  tiles.forEach((tile, k) =>
+  allTiles.forEach((tile) =>
     tile.addEventListener('click', () => {
+      const k = tiles.indexOf(tile);
       if (k === index) activate();
-      else select(k);
+      else if (k >= 0) select(k);
     }),
   );
   root.querySelectorAll<HTMLElement>('[data-action]').forEach((el) =>
@@ -422,6 +463,7 @@ export function initConsole(root: HTMLElement) {
     root.classList.add('is-on');
   }
   select(index, { sound: false });
+  setTab(tab, { sound: false }); // pinta la pestaña guardada (sin cambiar nada)
 
   // ---------- ¿Quién juega?
   let userIndex = 0;
@@ -670,7 +712,9 @@ export function initConsole(root: HTMLElement) {
     const back = pressed('b', b(1), now);
     const info = pressed('y', b(3), now);
     const start = pressed('start', b(9), now);
-    if (!(left || right || up || down || accept || back || info || start)) return;
+    const lb = pressed('lb', b(4), now);
+    const rb = pressed('rb', b(5), now);
+    if (!(left || right || up || down || accept || back || info || start || lb || rb)) return;
 
     setInput('pad');
     if (!usedPad) {
@@ -703,6 +747,8 @@ export function initConsole(root: HTMLElement) {
       else if (start) openPanel('user');
       return;
     }
+    // Gatillos de arriba (LB / RB): cambian de biblioteca
+    if (lb || rb) return void setTab(lb ? 'projects' : 'fun', { focusRow: true });
     if (left) select(index - 1, { focus: true });
     if (right) select(index + 1, { focus: true });
     if (up) goToZone('top');
