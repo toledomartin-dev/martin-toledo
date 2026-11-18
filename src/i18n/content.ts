@@ -409,8 +409,8 @@ export const t = {
           },
           {
             id: 'vice',
-            title: 'Grand Theft Auto-scaling VI',
-            headline: 'Una ciudad de neón, un saco celeste y un cluster que escala solo cuando nadie mira.',
+            title: 'Grand Theft Deploy VI',
+            headline: 'Una ciudad de neón, un saco celeste y un deploy a producción un viernes a las seis de la tarde.',
             meta: 'Mundo abierto · Próximamente',
             errTitle: 'Todavía no salió',
             errBody: 'Fecha de lanzamiento estimada: cuando termine de compilar. Ya vamos por el séptimo año.',
@@ -754,8 +754,8 @@ export const t = {
           },
           {
             id: 'vice',
-            title: 'Grand Theft Auto-scaling VI',
-            headline: 'A neon city, a light blue blazer and a cluster that only scales when nobody is watching.',
+            title: 'Grand Theft Deploy VI',
+            headline: 'A neon city, a light blue blazer and a production deploy on a Friday at 6 p.m.',
             meta: 'Open world · Coming soon',
             errTitle: 'Not out yet',
             errBody: "Estimated release date: whenever it finishes compiling. We're in year seven.",
