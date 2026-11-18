@@ -95,7 +95,10 @@ const funColors: Record<string, string> = { battle: '#38bdf8', springfield: '#fa
 // Las imágenes llevan el logo original con el nombre cambiado por la parodia (una versión por idioma).
 // Proporción ancho / alto de cada una: el póster se muestra entero, sin recortes.
 const funRatio: Record<string, number> = { battle: 0.932, springfield: 1.25, vice: 0.889, ruinas: 1.25 };
-const fun = ui.fun.games.map((g) => ({ ...g, color: funColors[g.id], ratio: funRatio[g.id] }));
+const funOrder = ['vice', 'ruinas', 'battle', 'springfield'];
+const fun = ui.fun.games
+  .map((g) => ({ ...g, color: funColors[g.id], ratio: funRatio[g.id] }))
+  .sort((a, b) => funOrder.indexOf(a.id) - funOrder.indexOf(b.id));
 
 const tierColor = { bronze: '#d08b5b', silver: '#c7ccd6', gold: '#f5c542', platinum: '#a5d8ff' } as const;
 const clientUi = JSON.stringify(ui.client);

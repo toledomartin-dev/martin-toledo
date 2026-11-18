@@ -334,6 +334,13 @@ export const t = {
         anonymous: 'Anónimo',
       },
     },
+    consoleInvite: {
+      kicker: 'Modo consola',
+      title: '¿Preferís jugar?',
+      text: 'Este sitio también es una consola de juegos inventada. Mis proyectos son los juegos, y hay trofeos, un libro de visitas y algunos juegos que mejor no intentes abrir.',
+      points: ['Se maneja con teclado, joystick o el dedo', 'Trofeos con el porcentaje de jugadores que los consiguió', 'Entrá como invitado o con tu cuenta de Google'],
+      cta: 'Encender la consola',
+    },
     console: {
       meta: {
         title: 'Modo consola — Martín Toledo',
@@ -679,6 +686,13 @@ export const t = {
         verify: "Hold on a second: we're checking you're not a robot.",
         anonymous: 'Anonymous',
       },
+    },
+    consoleInvite: {
+      kicker: 'Console mode',
+      title: 'Rather play?',
+      text: "This site is also a made-up game console. My projects are the games, and there are trophies, a guestbook and a few games you'd better not try to open.",
+      points: ['Play with a keyboard, a gamepad or your finger', 'Trophies with the share of players who earned them', 'Enter as a guest or with your Google account'],
+      cta: 'Turn on the console',
     },
     console: {
       meta: {

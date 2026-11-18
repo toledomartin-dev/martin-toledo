@@ -174,11 +174,13 @@ const links = [
   bindMenu(document.getElementById('menu-toggle')!, document.getElementById('mobile-menu')!);
   initSound(document.getElementById('sound-toggle')!);
 
-  // Entrar a la consola con este botón la "enciende" (animación + ¿Quién juega?). La consola usa la
-  // marca una sola vez: al recargar o al volver de un proyecto ya no se repite.
-  document.querySelector('[data-console-link]')?.addEventListener('click', () => {
-    try {
-      sessionStorage.setItem('console-boot', '1');
-    } catch (e) {}
-  });
+  // Entrar a la consola con este botón (o con la invitación del inicio) la "enciende": animación y
+  // ¿Quién juega?. La consola usa la marca una sola vez: al recargar o al volver de un proyecto ya no se repite.
+  document.querySelectorAll('[data-console-link]').forEach((link) =>
+    link.addEventListener('click', () => {
+      try {
+        sessionStorage.setItem('console-boot', '1');
+      } catch (e) {}
+    }),
+  );
 </script>

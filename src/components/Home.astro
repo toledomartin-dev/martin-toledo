@@ -8,6 +8,7 @@ import Talk from './Talk.astro';
 import Notes from './Notes.astro';
 import Guestbook from './Guestbook.astro';
 import Contact from './Contact.astro';
+import ConsoleInvite from './ConsoleInvite.astro';
 import type { Lang } from '../i18n/content';
 
 interface Props {
@@ -25,6 +26,7 @@ const { lang } = Astro.props;
 </script>
 <Hero lang={lang} />
 <About lang={lang} />
+<ConsoleInvite lang={lang} />
 <Bento lang={lang} />
 <Experience lang={lang} />
 <Stack lang={lang} />
