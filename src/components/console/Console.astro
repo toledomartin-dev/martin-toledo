@@ -108,7 +108,7 @@ const trophyDefs = JSON.stringify(ui.trophyList);
   }
 </script>
 
-<div class="console" data-console data-lang={lang} data-home={home} data-ui={clientUi} data-trophies={trophyDefs} data-auth={authConfig} data-input="keys">
+<div class="console" data-console data-lang={lang} data-home={home} data-ui={clientUi} data-trophies={trophyDefs} data-auth={authConfig} data-api={site.guestbookApi} data-input="keys">
   <!-- Fondo: el arte del elemento elegido (solo el activo se dibuja: los demás no gastan nada) -->
   <div class="cs-bg" aria-hidden="true">
     {
@@ -432,6 +432,8 @@ const trophyDefs = JSON.stringify(ui.trophyList);
             <div class="min-w-0">
               <p class="font-medium">{tr.name}</p>
               <p class="text-sm text-muted">{tr.desc}</p>
+              <!-- Porcentaje global (lo trae la API; sin datos queda vacío) -->
+              <p class="cs-trophy-pct" data-trophy-pct />
             </div>
             <span class="cs-tier">
               {ui.trophyTiers[tr.tier as keyof typeof ui.trophyTiers]}
@@ -1100,6 +1102,15 @@ const trophyDefs = JSON.stringify(ui.trophyList);
   .cs-trophy.is-unlocked > svg {
     color: var(--t);
     filter: drop-shadow(0 0 10px color-mix(in srgb, var(--t) 55%, transparent));
+  }
+  .cs-trophy-pct {
+    margin-top: 0.3rem;
+    font-family: var(--font-mono);
+    font-size: 0.68rem;
+    color: #8b919c;
+  }
+  .cs-trophy-pct:empty {
+    display: none;
   }
   .cs-tier {
     font-family: var(--font-mono);

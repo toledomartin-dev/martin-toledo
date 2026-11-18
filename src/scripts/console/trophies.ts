@@ -1,5 +1,5 @@
-// Trofeos de la consola: se guardan en este navegador (localStorage). Más adelante, cada desbloqueo
-// también se va a contar en AWS para mostrar qué porcentaje de visitantes consiguió cada uno.
+// Trofeos de la consola: se guardan en este navegador (localStorage). Con sesión de Google, además se
+// suben a AWS (main.ts) para contar qué porcentaje de jugadores consiguió cada uno.
 import { sfx } from '../sound';
 
 export interface TrophyDef {
@@ -43,5 +43,16 @@ export function createTrophies(defs: TrophyDef[], onUnlock: (def: TrophyDef, all
     }
   }
 
-  return { unlock, has: (id: string) => unlocked.has(id), all: () => unlocked };
+  // Trofeos que vienen de la cuenta (otra computadora): se suman sin aviso ni sonido
+  function merge(ids: string[]) {
+    const before = unlocked.size;
+    ids.forEach((id) => defs.some((d) => d.id === id) && unlocked.add(id));
+    if (unlocked.size === before) return false;
+    save();
+    const rest = defs.filter((d) => d.id !== PLATINUM);
+    if (!unlocked.has(PLATINUM) && rest.every((d) => unlocked.has(d.id))) unlock(PLATINUM);
+    return true;
+  }
+
+  return { unlock, merge, has: (id: string) => unlocked.has(id), all: () => unlocked };
 }

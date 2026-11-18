@@ -11,7 +11,11 @@ type Input = 'keys' | 'pad' | 'touch';
 type State = 'boot' | 'who' | 'home' | 'off';
 
 export function initConsole(root: HTMLElement) {
-  const tx = JSON.parse(root.dataset.ui!) as Record<'unlocked' | 'progress' | 'locked' | 'signedHint' | 'connecting' | 'authError', string>;
+  const tx = JSON.parse(root.dataset.ui!) as Record<
+    'unlocked' | 'progress' | 'locked' | 'signedHint' | 'connecting' | 'authError' | 'pct' | 'pctNone',
+    string
+  >;
+  const api = root.dataset.api!;
   const defs = JSON.parse(root.dataset.trophies!) as TrophyDef[];
   const lang = root.dataset.lang!;
   const home = root.dataset.home!;
@@ -51,6 +55,7 @@ export function initConsole(root: HTMLElement) {
     clearTimeout(toastTimer);
     toastTimer = window.setTimeout(() => toast.classList.remove('is-shown'), 4200);
     paintTrophies(all);
+    pushTrophies([def.id]);
   });
 
   function paintTrophies(all = trophies.all()) {
@@ -122,7 +127,62 @@ export function initConsole(root: HTMLElement) {
     } else if (result === 'error') {
       showNotice(tx.authError);
     }
+    syncTrophies();
   });
+
+  // ---------- Trofeos en la cuenta (API Gateway → Lambda trofeos → DynamoDB)
+  const playing = () => !!auth.user() && getProfile() === 'google';
+
+  async function callApi(path: string, init: RequestInit = {}) {
+    const token = await auth.accessToken();
+    if (!token) return null;
+    const res = await fetch(api + path, {
+      ...init,
+      headers: { Authorization: `Bearer ${token}`, 'Content-Type': 'application/json' },
+    });
+    return res.ok ? res.json() : null;
+  }
+
+  // Desbloqueo nuevo con la cuenta: se cuenta en el porcentaje global
+  function pushTrophies(ids: string[]) {
+    if (!playing() || !ids.length) return;
+    callApi('/trofeos', { method: 'POST', body: JSON.stringify({ ids }) })
+      .then(() => (globalAt = 0)) // que los porcentajes se vuelvan a pedir
+      .catch(() => {});
+  }
+
+  // Al entrar con la cuenta: se traen sus trofeos (de otra computadora) y se suben los de este navegador
+  async function syncTrophies() {
+    if (!playing()) return;
+    try {
+      const mine = await callApi('/trofeos/mios');
+      if (!mine) return;
+      const server = new Set<string>(mine.trofeos);
+      if (trophies.merge(mine.trofeos)) paintTrophies();
+      pushTrophies([...trophies.all()].filter((id) => !server.has(id)));
+    } catch {}
+  }
+
+  // Porcentajes: se piden al abrir los trofeos, como mucho una vez por minuto
+  let globalAt = 0;
+  async function loadGlobal() {
+    if (Date.now() - globalAt < 60_000) return;
+    globalAt = Date.now();
+    try {
+      const res = await fetch(api + '/trofeos');
+      if (!res.ok) return;
+      const { jugadores, trofeos: counts } = (await res.json()) as { jugadores: number; trofeos: Record<string, number> };
+      root.querySelectorAll<HTMLElement>('[data-trophy-pct]').forEach((el) => {
+        const id = el.closest<HTMLElement>('[data-trophy]')!.dataset.trophy!;
+        if (!jugadores) return void (el.textContent = '');
+        const n = counts[id] ?? 0;
+        const p = (n / jugadores) * 100;
+        el.textContent = n ? tx.pct.replace('{p}', p < 1 ? '<1' : String(Math.round(p))) : tx.pctNone;
+      });
+    } catch {
+      globalAt = 0;
+    }
+  }
 
   function showNotice(text: string) {
     const label = toast.querySelector('[data-toast-label]');
@@ -196,6 +256,7 @@ export function initConsole(root: HTMLElement) {
     if (name === 'profile') trophies.unlock('curioso');
     if (name.startsWith('details-')) trophies.unlock('detalles');
     if (name === 'search') resetSearch();
+    if (name === 'trophies') loadGlobal();
   }
 
   dialogs.forEach((dialog) => {
@@ -397,6 +458,7 @@ export function initConsole(root: HTMLElement) {
       setProfile('guest');
     }
     paintUser();
+    syncTrophies();
     state = 'home';
     who.classList.add('is-off');
     setTimeout(() => (who.hidden = true), 500);
