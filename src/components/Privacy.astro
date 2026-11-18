@@ -1,0 +1,116 @@
+---
+import Base from '../layouts/Base.astro';
+import { site, type Lang } from '../i18n/content';
+
+interface Props {
+  lang: Lang;
+}
+
+const { lang } = Astro.props;
+
+// Política de privacidad. Google la pide para que el "Entrar con Google" quede público.
+// Si cambia lo que se guarda (otra tabla, otro servicio), actualizar esta página.
+const copy = {
+  es: {
+    title: 'Política de privacidad',
+    updated: 'Última actualización: noviembre de 2026',
+    intro: 'Este es mi sitio personal. No tiene publicidad ni herramientas de seguimiento, y no vendo ni comparto datos con nadie. Esta página explica qué datos se guardan y por qué.',
+    sections: [
+      {
+        h: 'Libro de visitas',
+        p: [
+          'Si firmás el libro de visitas, se guardan el <strong>nombre</strong> y el <strong>mensaje</strong> que escribas, junto con la fecha. Los dos son públicos: cualquiera que visite el sitio los ve.',
+          'Para frenar el spam, el formulario usa <a href="https://www.cloudflare.com/es-es/privacypolicy/" rel="noopener">Cloudflare Turnstile</a>, que revisa que no seas un robot sin pedirte que resuelvas nada.',
+        ],
+      },
+      {
+        h: 'Entrar con Google (en la consola)',
+        p: [
+          'En la sección consola podés entrar como invitado (no se guarda nada) o con tu cuenta de Google. Si entrás con Google, se guardan tu <strong>nombre</strong>, tu <strong>email</strong> y tu <strong>foto de perfil</strong>.',
+          'El nombre y la foto se usan para mostrarte en la consola. El email no se muestra a nadie: solo sirve para reconocerte la próxima vez. Tus trofeos se guardan asociados a tu cuenta para calcular qué porcentaje de visitantes consiguió cada uno; ese porcentaje es anónimo.',
+          'Nunca recibo tu contraseña de Google: el inicio de sesión lo hace Google directamente.',
+        ],
+      },
+      {
+        h: 'Dónde se guardan',
+        p: [
+          'Los mensajes, las cuentas y los trofeos se guardan en Amazon Web Services (región de Ohio, Estados Unidos). El sitio se sirve desde Cloudflare.',
+        ],
+      },
+      {
+        h: 'En tu navegador',
+        p: [
+          'El sitio guarda en tu navegador algunas preferencias (tema, idioma, sonido) y tus trofeos de invitado. No usa cookies de seguimiento. Podés borrar esos datos desde la configuración de tu navegador.',
+        ],
+      },
+      {
+        h: 'Borrar tus datos',
+        p: [
+          `Si querés que borre un mensaje del libro de visitas o tu cuenta con todos sus datos, escribime a <a href="mailto:${site.email}">${site.email}</a>.`,
+        ],
+      },
+    ],
+  },
+  en: {
+    title: 'Privacy policy',
+    updated: 'Last updated: November 2026',
+    intro: "This is my personal website. It has no ads or tracking tools, and I don't sell or share data with anyone. This page explains what data is stored and why.",
+    sections: [
+      {
+        h: 'Guestbook',
+        p: [
+          'If you sign the guestbook, the <strong>name</strong> and <strong>message</strong> you write are stored along with the date. Both are public: anyone visiting the site can see them.',
+          'To stop spam, the form uses <a href="https://www.cloudflare.com/privacypolicy/" rel="noopener">Cloudflare Turnstile</a>, which checks that you are not a bot without asking you to solve anything.',
+        ],
+      },
+      {
+        h: 'Sign in with Google (in the console)',
+        p: [
+          'In the console section you can enter as a guest (nothing is stored) or with your Google account. If you sign in with Google, your <strong>name</strong>, <strong>email</strong> and <strong>profile picture</strong> are stored.',
+          "Your name and picture are used to show you in the console. Your email is never shown to anyone: it is only used to recognize you next time. Your trophies are stored with your account to calculate what percentage of visitors earned each one; that percentage is anonymous.",
+          'I never receive your Google password: Google handles the sign-in directly.',
+        ],
+      },
+      {
+        h: 'Where it is stored',
+        p: ['Messages, accounts and trophies are stored on Amazon Web Services (Ohio region, United States). The site is served by Cloudflare.'],
+      },
+      {
+        h: 'In your browser',
+        p: [
+          'The site stores a few preferences in your browser (theme, language, sound) and your guest trophies. It uses no tracking cookies. You can clear this data from your browser settings.',
+        ],
+      },
+      {
+        h: 'Deleting your data',
+        p: [`If you want me to delete a guestbook message or your account with all its data, email me at <a href="mailto:${site.email}">${site.email}</a>.`],
+      },
+    ],
+  },
+}[lang];
+---
+
+<Base
+  lang={lang}
+  title={`${copy.title} — ${site.fullName}`}
+  description={copy.intro}
+  alternate={lang === 'es' ? '/en/privacy/' : '/privacidad/'}
+>
+  <article class="mx-auto max-w-3xl px-4 pt-36 pb-24 sm:px-6">
+    <h1 class="display text-4xl font-medium tracking-tight text-fg sm:text-5xl">{copy.title}</h1>
+    <p class="mt-3 font-mono text-xs text-muted">{copy.updated}</p>
+    <div class="prose mt-10">
+      <p>{copy.intro}</p>
+      {
+        copy.sections.map((s) => (
+          <>
+            <h2>{s.h}</h2>
+            {s.p.map((p) => (
+              <p set:html={p} />
+            ))}
+          </>
+        ))
+      }
+    </div>
+  </article>
+</Base>
