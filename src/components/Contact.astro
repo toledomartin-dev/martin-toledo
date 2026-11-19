@@ -8,6 +8,10 @@ interface Props {
 
 const { lang } = Astro.props;
 const ui = t[lang].contact;
+const field =
+  'w-full rounded-2xl border border-line bg-bg-soft/70 px-4 py-3 text-fg placeholder:text-muted/70 transition-colors focus:border-accent/70 focus:outline-none';
+const label = 'flex flex-col gap-2 text-left';
+const labelText = 'font-mono text-[11px] tracking-widest text-muted uppercase';
 const social = [
   {
     href: site.linkedin,
@@ -33,12 +37,42 @@ const social = [
     <h2 class="display text-gradient mx-auto max-w-3xl text-4xl sm:text-6xl">{ui.title}</h2>
     <p class="mx-auto mt-5 max-w-md text-muted">{ui.text}</p>
 
-    <a href={`mailto:${site.email}`} class="btn-glow magnetic mt-10 inline-flex items-center gap-2 rounded-full px-7 py-3.5 font-semibold">
-      {ui.cta}
-      <Icon name="arrow-right" />
-    </a>
-    <!-- Muchos no tienen un cliente de correo configurado: con un clic copian la dirección -->
-    <div class="mt-5 flex justify-center">
+    <!-- Formulario: API Gateway → Lambda (valida el captcha) → SES, que me manda el mensaje por mail -->
+    <form
+      class="ct-form mx-auto mt-10 grid max-w-xl gap-4"
+      novalidate
+      data-api={site.guestbookApi}
+      data-sitekey={site.turnstileSiteKey}
+      data-lang={lang}
+      data-ui={JSON.stringify(ui.client)}
+    >
+      <div class="grid gap-4 sm:grid-cols-2">
+        <label class={label}>
+          <span class={labelText}>{ui.form.name}</span>
+          <input name="nombre" type="text" maxlength="80" required autocomplete="name" placeholder={ui.form.namePlaceholder} class={field} />
+        </label>
+        <label class={label}>
+          <span class={labelText}>{ui.form.email}</span>
+          <input name="email" type="email" maxlength="120" required autocomplete="email" placeholder={ui.form.emailPlaceholder} class={field} />
+        </label>
+      </div>
+      <label class={label}>
+        <span class={labelText}>{ui.form.message}</span>
+        <textarea name="mensaje" rows="5" maxlength="3000" required placeholder={ui.form.messagePlaceholder} class={`${field} resize-y`}></textarea>
+      </label>
+      <!-- Trampa para bots: los humanos no ven este campo -->
+      <input name="website" type="text" tabindex="-1" autocomplete="off" class="absolute -left-[9999px] size-px opacity-0" aria-hidden="true" />
+      <div class="ct-captcha min-h-[65px]"></div>
+      <button type="submit" class="btn-glow magnetic inline-flex items-center justify-center gap-2 justify-self-center rounded-full px-7 py-3.5 font-semibold disabled:opacity-60">
+        {ui.form.send}
+        <Icon name="arrow-right" />
+      </button>
+      <p class="ct-status min-h-5 text-sm text-muted" aria-live="polite"></p>
+    </form>
+
+    <!-- Alternativa: copiar la dirección (muchos no tienen un cliente de correo configurado) -->
+    <p class="mt-8 text-sm text-muted">{ui.form.or}</p>
+    <div class="mt-3 flex justify-center">
       <button
         id="copy-email"
         type="button"
@@ -81,6 +115,97 @@ const social = [
 </section>
 
 <script>
+  type Turnstile = {
+    render: (el: HTMLElement, opciones: Record<string, unknown>) => string;
+    getResponse: (id: string) => string | undefined;
+    reset: (id: string) => void;
+  };
+
+  const form = document.querySelector<HTMLFormElement>('.ct-form');
+  if (form) initForm(form);
+
+  function initForm(form: HTMLFormElement) {
+    const tx = JSON.parse(form.dataset.ui!) as Record<'sending' | 'sent' | 'verify' | 'invalid' | 'tooMany' | 'error', string>;
+    const status = form.querySelector<HTMLElement>('.ct-status')!;
+    const button = form.querySelector<HTMLButtonElement>('button[type="submit"]')!;
+    const captcha = form.querySelector<HTMLElement>('.ct-captcha')!;
+    let turnstile: Turnstile | undefined;
+    let widget = '';
+
+    // El captcha se carga cuando el formulario está por verse. El script de Cloudflare puede estar
+    // ya cargado (o cargándose) por el libro de visitas: en ese caso se reutiliza.
+    function cargarCaptcha() {
+      const render = () => {
+        turnstile = (window as unknown as { turnstile: Turnstile }).turnstile;
+        widget = turnstile.render(captcha, {
+          sitekey: form.dataset.sitekey,
+          language: form.dataset.lang,
+          theme: document.documentElement.classList.contains('light') ? 'light' : 'dark',
+          size: 'flexible',
+        });
+      };
+      if ((window as unknown as { turnstile?: Turnstile }).turnstile) return render();
+      const existing = document.querySelector<HTMLScriptElement>('script[src*="challenges.cloudflare.com/turnstile"]');
+      if (existing) return existing.addEventListener('load', render);
+      const script = document.createElement('script');
+      script.src = 'https://challenges.cloudflare.com/turnstile/v0/api.js?render=explicit';
+      script.async = true;
+      script.onload = render;
+      document.head.append(script);
+    }
+    const io = new IntersectionObserver(
+      ([entry]) => {
+        if (!entry.isIntersecting) return;
+        io.disconnect();
+        cargarCaptcha();
+      },
+      { rootMargin: '400px' },
+    );
+    io.observe(form);
+
+    form.addEventListener('submit', async (e) => {
+      e.preventDefault();
+      const datos = new FormData(form);
+      const nombre = String(datos.get('nombre') ?? '').trim();
+      const email = String(datos.get('email') ?? '').trim();
+      const mensaje = String(datos.get('mensaje') ?? '').trim();
+      // Un bot llenó el campo trampa: hacemos como que salió bien y no mandamos nada
+      if (datos.get('website')) {
+        form.reset();
+        status.textContent = tx.sent;
+        return;
+      }
+      if (!nombre || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email) || mensaje.length < 10) {
+        status.textContent = tx.invalid;
+        return;
+      }
+      const token = turnstile?.getResponse(widget);
+      if (!token) {
+        status.textContent = tx.verify;
+        return;
+      }
+      button.disabled = true;
+      status.textContent = tx.sending;
+      try {
+        const res = await fetch(`${form.dataset.api}/contacto`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ nombre, email, mensaje, token }),
+        });
+        if (res.status === 429) throw new Error(tx.tooMany);
+        if (res.status === 400) throw new Error(tx.invalid);
+        if (!res.ok) throw new Error(tx.error);
+        form.reset();
+        status.textContent = tx.sent;
+      } catch (err) {
+        status.textContent = err instanceof Error && err.message ? err.message : tx.error;
+      } finally {
+        button.disabled = false;
+        turnstile?.reset(widget); // cada token sirve una sola vez
+      }
+    });
+  }
+
   const btn = document.getElementById('copy-email') as HTMLButtonElement | null;
   const status = document.getElementById('copy-status');
   let timer = 0;

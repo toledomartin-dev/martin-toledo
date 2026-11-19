@@ -99,10 +99,7 @@ const field =
     let turnstile: Turnstile | undefined;
     let widget = '';
     function cargarCaptcha() {
-      const script = document.createElement('script');
-      script.src = 'https://challenges.cloudflare.com/turnstile/v0/api.js?render=explicit';
-      script.async = true;
-      script.onload = () => {
+      const render = () => {
         turnstile = (window as unknown as { turnstile: Turnstile }).turnstile;
         widget = turnstile.render(captcha, {
           sitekey: root.dataset.sitekey,
@@ -111,6 +108,14 @@ const field =
           size: 'flexible',
         });
       };
+      // El formulario de contacto usa el mismo script: si ya está (o se está cargando), se reutiliza
+      if ((window as unknown as { turnstile?: Turnstile }).turnstile) return render();
+      const existing = document.querySelector<HTMLScriptElement>('script[src*="challenges.cloudflare.com/turnstile"]');
+      if (existing) return existing.addEventListener('load', render);
+      const script = document.createElement('script');
+      script.src = 'https://challenges.cloudflare.com/turnstile/v0/api.js?render=explicit';
+      script.async = true;
+      script.onload = render;
       document.head.append(script);
     }
 
