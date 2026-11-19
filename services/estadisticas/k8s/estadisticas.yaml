@@ -1,0 +1,82 @@
+# Micro de estadísticas en Kubernetes (EKS).
+#
+# IMAGEN_ECR y URL_DE_LA_COLA se reemplazan al aplicar (llevan el número de cuenta, que no va
+# en el repo). En CloudShell:
+#   CUENTA=$(aws sts get-caller-identity --query Account --output text)
+#   sed -e "s|IMAGEN_ECR|$CUENTA.dkr.ecr.us-east-2.amazonaws.com/estadisticas:v2|" \
+#       -e "s|URL_DE_LA_COLA|https://sqs.us-east-2.amazonaws.com/$CUENTA/estadisticas.fifo|" \
+#       estadisticas.yaml | kubectl apply -f -
+
+# Identidad del pod dentro de Kubernetes. EKS Pod Identity la asocia con un rol de IAM
+# (estadisticas-pod): así el SDK obtiene credenciales sin claves en la imagen ni en el YAML.
+apiVersion: v1
+kind: ServiceAccount
+metadata:
+  name: estadisticas
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: estadisticas
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: estadisticas
+  template:
+    metadata:
+      labels:
+        app: estadisticas
+    spec:
+      serviceAccountName: estadisticas
+      # Al recibir SIGTERM el micro guarda lo acumulado: 30 s alcanzan de sobra
+      terminationGracePeriodSeconds: 30
+      containers:
+        - name: estadisticas
+          image: IMAGEN_ECR
+          ports:
+            - containerPort: 8080
+          env:
+            - name: AWS_REGION
+              value: us-east-2
+            - name: COLA_URL
+              value: URL_DE_LA_COLA
+            - name: TABLA
+              value: estadisticas
+          # Lo que el pod pide reservado (requests) y el tope (limits)
+          resources:
+            requests:
+              cpu: 50m
+              memory: 64Mi
+            limits:
+              memory: 128Mi
+          # readiness: recién cuando responde, el Service le manda tráfico
+          readinessProbe:
+            httpGet:
+              path: /salud
+              port: 8080
+            periodSeconds: 10
+          # liveness: si deja de responder, Kubernetes reinicia el contenedor
+          livenessProbe:
+            httpGet:
+              path: /salud
+              port: 8080
+            initialDelaySeconds: 10
+            periodSeconds: 20
+          securityContext:
+            runAsNonRoot: true
+            allowPrivilegeEscalation: false
+            readOnlyRootFilesystem: true
+---
+# Balanceador de AWS delante de los pods: puerto 80 afuera → 8080 en el contenedor
+apiVersion: v1
+kind: Service
+metadata:
+  name: estadisticas
+spec:
+  type: LoadBalancer
+  selector:
+    app: estadisticas
+  ports:
+    - port: 80
+      targetPort: 8080
