@@ -3,8 +3,9 @@
 # Se dispara al publicar una etiqueta de git "estadisticas-vN":
 #   git tag estadisticas-v2 && git push origin estadisticas-v2   →   ECR estadisticas:v2
 #
-# No hay claves de AWS guardadas en GitHub: el job pide un token OIDC a GitHub y asume
-# un rol de IAM que solo confía en este repo y en estas etiquetas (credenciales de 1 hora).
+# Credenciales: un usuario de IAM "github-ecr" que solo puede subir a este repositorio de ECR,
+# con sus claves guardadas como secretos de GitHub. Lo ideal sería OIDC (sin claves), pero el
+# plan gratuito de AWS bloquea crear el proveedor de identidad de GitHub.
 name: Imagen de estadísticas
 
 on:
@@ -12,7 +13,6 @@ on:
     tags: ['estadisticas-v*']
 
 permissions:
-  id-token: write # para pedir el token OIDC
   contents: read
 
 jobs:
@@ -23,10 +23,11 @@ jobs:
     steps:
       - uses: actions/checkout@v4
 
-      - name: Credenciales temporales de AWS (OIDC)
+      - name: Credenciales de AWS
         uses: aws-actions/configure-aws-credentials@v4
         with:
-          role-to-assume: ${{ vars.AWS_ROLE_ARN }}
+          aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
+          aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
           aws-region: us-east-2
 
       - name: Login en ECR
