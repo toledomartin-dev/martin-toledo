@@ -252,7 +252,7 @@ const trophyDefs = JSON.stringify(ui.trophyList);
           data-color={g.color}
           style={`--c:${g.color};--i:${i}`}
         >
-          <span class="cs-cover">
+          <span class="cs-cover" aria-hidden="true">
             <span class="cs-cover-texture">
               <GameArt diagram={g.diagram} color={g.color} variant="cover" />
             </span>
@@ -279,7 +279,7 @@ const trophyDefs = JSON.stringify(ui.trophyList);
           data-color={a.color}
           style={`--c:${a.color};--i:${games.length + i}`}
         >
-          <span class="cs-cover">
+          <span class="cs-cover" aria-hidden="true">
             {a.id === 'profile' ? (
               <img src="/img/foto-avatar.webp" alt="" class="cs-app-photo" loading="lazy" />
             ) : (
@@ -307,7 +307,7 @@ const trophyDefs = JSON.stringify(ui.trophyList);
           data-err-body={g.errBody}
           style={`--c:${g.color};--i:${i}`}
         >
-          <span class="cs-cover">
+          <span class="cs-cover" aria-hidden="true">
             <img src={`/img/juegos/${g.id}-${lang}-tapa.webp`} alt="" class="cs-app-photo" loading="lazy" decoding="async" />
           </span>
           <span class="cs-tile-name">{g.title}</span>

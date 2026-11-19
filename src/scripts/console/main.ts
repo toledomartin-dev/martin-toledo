@@ -4,7 +4,9 @@
 // Estados: encendido ("boot") → ¿quién juega? ("who") → inicio ("home") → apagado ("off").
 import { initSound, sfx } from '../sound';
 import { createTrophies, type TrophyDef } from './trophies';
-import { startBoot, type Boot } from './boot';
+// Three.js (~130 KB) se descarga solo si hay animación de encendido o apagado
+import type { Boot } from './boot';
+const loadBoot = () => import('./boot').catch(() => null);
 import { createAuth } from './auth';
 
 type Input = 'keys' | 'pad' | 'touch';
@@ -451,13 +453,16 @@ export function initConsole(root: HTMLElement) {
   if (state === 'boot') {
     const canvas = bootEl.querySelector('canvas')!;
     const logo = bootEl.querySelector<SVGSVGElement>('svg.logo')!;
-    boot = reduced ? null : startBoot(canvas, logo);
-    // Sin WebGL (o con movimiento reducido) se muestra el logo de SVG en lugar de las partículas
-    if (!boot) bootEl.classList.add('no-gl');
-    (boot ? boot.formed : new Promise((r) => setTimeout(r, 500))).then(() => bootEl.classList.add('is-ready'));
     // En fase de captura: llega antes que el manejo normal del teclado
     window.addEventListener('keydown', onBootKey, true);
     bootEl.addEventListener('pointerdown', onBootPointer);
+    (reduced ? Promise.resolve(null) : loadBoot()).then((mod) => {
+      if (state !== 'boot') return; // ya se salió del encendido mientras se descargaba
+      boot = mod ? mod.startBoot(canvas, logo) : null;
+      // Sin WebGL (o con movimiento reducido) se muestra el logo de SVG en lugar de las partículas
+      if (!boot) bootEl.classList.add('no-gl');
+      (boot ? boot.formed : new Promise((r) => setTimeout(r, 500))).then(() => bootEl.classList.add('is-ready'));
+    });
   } else {
     bootEl.hidden = true;
     root.classList.add('is-on');
@@ -531,9 +536,13 @@ export function initConsole(root: HTMLElement) {
     bootEl.classList.add('is-shutdown');
     const canvas = bootEl.querySelector('canvas')!;
     const logo = bootEl.querySelector<SVGSVGElement>('svg.logo')!;
-    const off = reduced ? null : startBoot(canvas, logo, { shutdown: true });
-    if (!off) bootEl.classList.add('no-gl');
-    (off ? off.explode() : new Promise((r) => setTimeout(r, 1200))).then(() => setTimeout(() => location.assign(home), 350));
+    (reduced ? Promise.resolve(null) : loadBoot())
+      .then((mod) => {
+        const off = mod ? mod.startBoot(canvas, logo, { shutdown: true }) : null;
+        if (!off) bootEl.classList.add('no-gl');
+        return off ? off.explode() : new Promise((r) => setTimeout(r, 1200));
+      })
+      .then(() => setTimeout(() => location.assign(home), 350));
   }
 
   // ---------- Zonas: arriba (buscador, sonido, idioma, usuario) · la fila · abajo (Jugar, Detalles)

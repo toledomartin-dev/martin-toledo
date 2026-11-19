@@ -47,6 +47,11 @@ const altHref = alternate ?? ui.switchLang.href;
     <HeadMeta lang={lang} title={pageTitle} description={pageDescription} canonical={canonical} image={image} />
 
     <script is:inline>
+      // Con un link a una sección (/#proyectos) el navegador necesita el alto real de todo lo de
+      // arriba para caer justo ahí: en esa visita no se saltea el cálculo de las secciones (global.css)
+      if (location.hash) document.documentElement.classList.add('cv-off');
+    </script>
+    <script is:inline>
       // Aplica el tema guardado antes de pintar, para evitar el parpadeo
       try {
         const saved = localStorage.getItem('theme');

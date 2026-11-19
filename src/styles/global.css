@@ -902,3 +902,12 @@ html.dark .astro-code span {
     animation: none;
   }
 }
+
+/* Las secciones de más abajo no se calculan ni se dibujan hasta que el visitante se acerca: en un
+   celular, armar toda la página de entrada costaba casi un segundo de "layout" antes de responder.
+   El tamaño estimado evita que la barra de scroll salte; después el navegador recuerda el real.
+   Con un link a una sección (#proyectos) se desactiva: ver Base.astro. */
+html:not(.cv-off) #main > section:not(:first-of-type) {
+  content-visibility: auto;
+  contain-intrinsic-size: auto 900px;
+}
