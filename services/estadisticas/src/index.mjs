@@ -71,7 +71,8 @@ async function recibirEvento(req, res) {
   }
   const sesion = String(datos.sesion ?? '');
   const tipo = String(datos.tipo ?? '');
-  const juego = datos.juego == null ? undefined : String(datos.juego);
+  // Una visita es a la consola, no a un juego: si viene con juego, se ignora
+  const juego = datos.juego == null || tipo === 'visita' ? undefined : String(datos.juego);
   if (!SESION.test(sesion) || !TIPOS.has(tipo) || (juego && !JUEGO.test(juego))) {
     return responder(res, 400, { error: 'Evento inválido' });
   }

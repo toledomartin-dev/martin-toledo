@@ -1,0 +1,44 @@
+# Construye la imagen del micro de estadísticas y la sube a ECR.
+#
+# Se dispara al publicar una etiqueta de git "estadisticas-vN":
+#   git tag estadisticas-v2 && git push origin estadisticas-v2   →   ECR estadisticas:v2
+#
+# No hay claves de AWS guardadas en GitHub: el job pide un token OIDC a GitHub y asume
+# un rol de IAM que solo confía en este repo y en estas etiquetas (credenciales de 1 hora).
+name: Imagen de estadísticas
+
+on:
+  push:
+    tags: ['estadisticas-v*']
+
+permissions:
+  id-token: write # para pedir el token OIDC
+  contents: read
+
+jobs:
+  imagen:
+    runs-on: ubuntu-latest
+    env:
+      REPO: estadisticas
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Credenciales temporales de AWS (OIDC)
+        uses: aws-actions/configure-aws-credentials@v4
+        with:
+          role-to-assume: ${{ vars.AWS_ROLE_ARN }}
+          aws-region: us-east-2
+
+      - name: Login en ECR
+        id: ecr
+        uses: aws-actions/amazon-ecr-login@v2
+
+      - name: Construir y subir
+        working-directory: services/estadisticas
+        run: |
+          VERSION="${GITHUB_REF_NAME#estadisticas-}"
+          IMAGEN="${{ steps.ecr.outputs.registry }}/$REPO:$VERSION"
+          # --provenance=false: una sola imagen, sin el índice con la atestación aparte
+          docker build --provenance=false -t "$IMAGEN" .
+          docker push "$IMAGEN"
+          echo "Subida $IMAGEN" >> "$GITHUB_STEP_SUMMARY"
