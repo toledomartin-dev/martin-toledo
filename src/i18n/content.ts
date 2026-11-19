@@ -320,6 +320,9 @@ export const t = {
         messagePlaceholder: 'Contame en qué estás pensando',
         send: 'Enviar mensaje',
         or: 'O escribime directo',
+        doneTitle: '¡Mensaje enviado!',
+        doneText: 'Ya me llegó. Te respondo a la brevedad al email que dejaste.',
+        another: 'Enviar otro mensaje',
       },
       client: {
         sending: 'Enviando…',
@@ -691,6 +694,9 @@ export const t = {
         messagePlaceholder: "Tell me what you're thinking about",
         send: 'Send message',
         or: 'Or email me directly',
+        doneTitle: 'Message sent!',
+        doneText: "It reached me. I'll get back to you soon at the email you left.",
+        another: 'Send another message',
       },
       client: {
         sending: 'Sending…',
