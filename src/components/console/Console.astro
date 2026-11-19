@@ -705,8 +705,8 @@ const trophyDefs = JSON.stringify(ui.trophyList);
     top: 52%;
     right: clamp(2rem, 7vw, 8rem);
     width: min(30rem, 36vw);
-    translate: 0 -50%;
-    transform: perspective(1400px) rotateY(-14deg) rotateX(3deg);
+    /* Todo en transform: el minificador del build descarta translate si la regla también tiene transform */
+    transform: translateY(-50%) perspective(1400px) rotateY(-14deg) rotateX(3deg);
     filter: drop-shadow(0 40px 80px color-mix(in srgb, var(--c) 30%, transparent));
     pointer-events: none;
     animation: mock-in 1s cubic-bezier(0.2, 0.7, 0.2, 1);
@@ -745,8 +745,7 @@ const trophyDefs = JSON.stringify(ui.trophyList);
     overflow: hidden;
     border-radius: 18px;
     border: 1px solid rgb(255 255 255 / 0.14);
-    translate: 0 -50%;
-    transform: perspective(1400px) rotateY(-12deg) rotateX(2deg);
+    transform: translateY(-50%) perspective(1400px) rotateY(-12deg) rotateX(2deg);
     box-shadow: 0 40px 100px -25px color-mix(in srgb, var(--c) 55%, transparent);
     animation: mock-in 1s cubic-bezier(0.2, 0.7, 0.2, 1);
   }
@@ -1688,7 +1687,7 @@ const trophyDefs = JSON.stringify(ui.trophyList);
   @keyframes mock-in {
     from {
       opacity: 0;
-      translate: 3rem -50%;
+      translate: 3rem 0;
     }
   }
   @keyframes glass-shine {
@@ -1776,18 +1775,24 @@ const trophyDefs = JSON.stringify(ui.trophyList);
       height: 40%;
       opacity: 0.35;
     }
-    /* La mini interfaz no entra: queda solo el color de fondo */
+    /* La mini interfaz del proyecto y la tapa del juego: centradas, derechas y más chicas,
+       en el hueco entre la fila y la información */
     .cs-layer-mock {
-      display: none;
+      top: 46%;
+      right: auto;
+      left: 50%;
+      width: min(88vw, 24rem);
+      transform: translate(-50%, -50%) scale(0.78);
     }
-    /* La tapa del juego sí entra: centrada y más chica, en el hueco entre la fila y la información */
+    .cs-entaxi {
+      height: 330px;
+    }
     .cs-fun-poster {
       top: 47%;
       right: auto;
       left: 50%;
       width: min(82vw, calc(30vh * var(--r)));
-      translate: -50% -50%;
-      transform: none;
+      transform: translate(-50%, -50%);
     }
     .cs-vignette {
       background: linear-gradient(to top, #05060a 0%, color-mix(in srgb, #05060a 85%, transparent) 45%, transparent 75%);
