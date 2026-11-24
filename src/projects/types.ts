@@ -49,11 +49,14 @@ export interface ProjectText {
   built?: { h: string; items: string[] };
   lessons: { h: string; items: { t: string; d: string }[] };
   links?: { label: string; href: string }[];
+  // Una segunda parte con su propio diagrama (por ejemplo, un experimento aparte dentro del proyecto)
+  extra?: { h: string; p: string[]; diagram: ProjectText['diagram'] };
   related?: { kicker: string; title: string; href: string }; // nota técnica con la historia completa
 }
 
 export interface Project {
   key: string;
   diagram: Diagram;
+  extra?: Diagram; // geometría del diagrama de ProjectText.extra
   text: Record<Lang, ProjectText>;
 }

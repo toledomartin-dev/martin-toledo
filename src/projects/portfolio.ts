@@ -38,6 +38,35 @@ export const portfolio: Project = {
     ],
     flow: [['gp'], ['pb'], ['bt'], ['ba', 'al', 'lt'], ['ls', 'sp', 'pd'], ['bc', 'cg'], ['ba', 'at', 'td']],
   },
+  // El micro de estadísticas: de un tag de git a un pod en EKS, expuesto por API Gateway
+  extra: {
+    height: 500,
+    mobileHeight: 420,
+    nodes: [
+      { id: 'gh', label: 'GitHub', icon: 'siGithub', at: [100, 80], m: [60, 40] },
+      { id: 'actions', label: 'GitHub Actions', short: 'Actions', icon: 'siGithubactions', at: [360, 80], m: [180, 40] },
+      { id: 'ecr', label: 'ECR', at: [620, 80], m: [300, 40] },
+      { id: 'iam', label: 'Pod Identity', at: [870, 80] },
+      { id: 'cliente', label: 'Cliente', at: [100, 260], m: [60, 150] },
+      { id: 'apigw', label: 'API Gateway', short: 'API GW', at: [360, 260], m: [180, 150] },
+      { id: 'lb', label: 'Balanceador', short: 'ELB', at: [620, 260], m: [180, 260] },
+      { id: 'pod', label: 'Pod en EKS', short: 'Pod', icon: 'siKubernetes', at: [870, 260], m: [300, 260], core: true },
+      { id: 'sqs', label: 'SQS FIFO', at: [620, 420], m: [180, 370] },
+      { id: 'dynamo', label: 'DynamoDB', at: [870, 420], m: [300, 370] },
+    ],
+    edges: [
+      { id: 'ga', from: 'gh', to: 'actions' },
+      { id: 'ae', from: 'actions', to: 'ecr' },
+      { id: 'ep', from: 'ecr', to: 'pod' },
+      { id: 'ip', from: 'iam', to: 'pod', dashed: true },
+      { id: 'ca', from: 'cliente', to: 'apigw' },
+      { id: 'al', from: 'apigw', to: 'lb' },
+      { id: 'lp', from: 'lb', to: 'pod' },
+      { id: 'ps', from: 'pod', to: 'sqs' },
+      { id: 'pd', from: 'pod', to: 'dynamo' },
+    ],
+    flow: [['ga', 'ae'], ['ep'], ['ip'], ['ca', 'al', 'lp'], ['ps'], ['-ps', 'pd']],
+  },
   text: {
     es: {
       slug: 'portfolio-lab',
@@ -87,10 +116,54 @@ export const portfolio: Project = {
         {
           h: 'Lo que viene',
           p: [
-            'Empaquetar un microservicio en Docker y subirlo a ECR, correrlo en Kubernetes con EKS, y describir toda la infraestructura con Terraform para poder crearla y borrarla con un comando.',
+            'Conectar las estadísticas a la consola para mostrar qué proyecto es el más jugado, y describir toda la infraestructura con Terraform para poder crearla y borrarla con un comando.',
           ],
         },
       ],
+      extra: {
+        h: 'Un microservicio en Kubernetes',
+        p: [
+          'Para aprender contenedores armé un microservicio en Node que cuenta qué proyectos se miran y se juegan en la consola. Recibe cada evento por HTTP y lo deja en una cola SQS FIFO, agrupado por visita. En segundo plano lee esa misma cola, junta los eventos en memoria y cada 10 segundos los guarda en DynamoDB de una vez, con contadores atómicos. Por eso es un proceso que queda corriendo y no una Lambda: una Lambda no puede ir acumulando entre ejecuciones.',
+          'La imagen de Docker es multi-stage y corre sin root. La sube un pipeline de GitHub Actions al publicar una etiqueta de git, a un repositorio de ECR con versiones inmutables y escaneo de vulnerabilidades. En EKS corre con un Deployment con chequeos de salud y un Service que crea el balanceador, y API Gateway queda delante como única puerta de entrada.',
+          'El pod no tiene ninguna clave: EKS Pod Identity le da credenciales temporales de un rol que solo puede usar esa cola y esa tabla. Al actualizar la versión, Kubernetes levanta el pod nuevo y recién entonces le avisa al viejo con SIGTERM, que guarda lo pendiente antes de salir: no se pierde ningún evento.',
+          'Lo levanté, lo probé y lo borré en una tarde: el cluster cobra por hora aunque nadie lo use. Queda todo listo para volver a crearlo en media hora.',
+        ],
+        diagram: {
+          title: 'De un tag de git a un pod en EKS',
+          text: 'Cómo llega una versión nueva al cluster y qué recorre un evento desde que entra por API Gateway hasta que queda guardado.',
+          sub: {
+            gh: 'tag estadisticas-v2',
+            actions: 'docker build',
+            ecr: 'imágenes inmutables',
+            iam: 'rol sin claves',
+            cliente: 'consola · curl',
+            apigw: 'HTTP API',
+            lb: 'Service de Kubernetes',
+            pod: 'Node · sin root',
+            sqs: 'agrupada por visita',
+            dynamo: 'contadores · TTL',
+          },
+          edges: {
+            ga: 'push del tag',
+            ae: 'docker push',
+            ep: 'pull',
+            ip: 'credenciales',
+            ca: 'POST /eventos',
+            al: 'proxy',
+            lp: 'puerto 8080',
+            ps: 'enviar · leer',
+            pd: 'lote cada 10 s',
+          },
+          flow: [
+            'Publicar una etiqueta de git dispara GitHub Actions: construye la imagen y la sube a ECR. Las etiquetas son inmutables: v2 siempre es la misma imagen.',
+            'El nodo de EKS descarga la imagen de ECR con su propio rol, y el Deployment mantiene el pod corriendo: si se borra o se cae, levanta otro.',
+            'Pod Identity le da al pod credenciales temporales de un rol que solo puede usar la cola y la tabla. Ni la imagen ni el manifiesto tienen claves.',
+            'Un evento entra por API Gateway, pasa por el balanceador que creó el Service de Kubernetes y llega al pod, que solo recibe tráfico cuando su chequeo de salud responde.',
+            'El pod deja el evento en la cola FIFO y responde 202. Los eventos de una misma visita se procesan en orden, aunque haya varias réplicas.',
+            'En segundo plano, el mismo pod lee la cola con long polling, junta lo recibido y cada 10 segundos lo guarda en DynamoDB. Recién después lo borra de la cola.',
+          ],
+        },
+      },
       diagram: {
         title: 'Del navegador a AWS',
         text: 'Cómo llega el sitio a tu navegador, cómo viaja una firma del libro de visitas y cómo se guardan los trofeos de tu cuenta.',
@@ -151,7 +224,16 @@ export const portfolio: Project = {
             { name: 'SQS FIFO', role: 'Cola ordenada y sin duplicados para el libro de visitas' },
             { name: 'DynamoDB', role: 'Mensajes, trofeos, contadores atómicos y transacciones' },
             { name: 'Cognito', role: 'Usuarios y login federado con Google' },
-            { name: 'IAM', role: 'Un rol por Lambda, con el mínimo permiso' },
+            { name: 'IAM', role: 'Un rol por Lambda y por pod, con el mínimo permiso' },
+          ],
+        },
+        {
+          group: 'Contenedores',
+          items: [
+            { name: 'Docker', icon: 'siDocker', role: 'Imagen multi-stage del microservicio, sin root' },
+            { name: 'Kubernetes (EKS)', icon: 'siKubernetes', role: 'Deployment con chequeos de salud, Service y Pod Identity' },
+            { name: 'ECR', role: 'Registro privado con versiones inmutables y escaneo' },
+            { name: 'GitHub Actions', icon: 'siGithubactions', role: 'Construye y sube la imagen al publicar una etiqueta' },
           ],
         },
         {
@@ -167,7 +249,6 @@ export const portfolio: Project = {
           items: [
             { name: 'Cloudflare Pages', icon: 'siCloudflarepages', role: 'Hosting y deploy en cada push' },
             { name: 'GitHub', icon: 'siGithub', role: 'Código y disparador del deploy' },
-            { name: 'Docker', icon: 'siDocker', role: 'Entorno de desarrollo igual en cualquier máquina' },
             { name: 'Puppeteer', icon: 'siPuppeteer', role: 'Capturas automáticas para revisar cada cambio' },
             { name: 'Claude Code', icon: 'siClaude', role: 'Par de programación y guías paso a paso' },
           ],
@@ -191,6 +272,14 @@ export const portfolio: Project = {
           {
             t: 'Las URL de retorno, exactas',
             d: 'En OAuth cada dirección de vuelta se carga de antemano, con barra final incluida. Es la protección contra que alguien robe el login mandándolo a su página.',
+          },
+          {
+            t: 'Cuando algo se traba sin error, CloudTrail',
+            d: 'El nodo de EKS quedó media hora en "Creando" sin avisar nada. CloudTrail mostró la causa: el plan gratuito de AWS rechazaba ese tipo de instancia en cada intento. Una prueba con --dry-run no lo detecta, porque solo revisa permisos.',
+          },
+          {
+            t: 'Sin root, pero con número',
+            d: 'Kubernetes se negó a arrancar el pod: la imagen decía USER node y no podía comprobar que un nombre no fuera root. Con runAsUser: 1000 arrancó. kubectl describe dio el motivo exacto.',
           },
         ],
       },
@@ -243,10 +332,54 @@ export const portfolio: Project = {
         {
           h: "What's next",
           p: [
-            'Packaging a microservice with Docker and pushing it to ECR, running it on Kubernetes with EKS, and describing the whole infrastructure with Terraform so it can be created and destroyed with one command.',
+            'Wiring the stats into the console to show which project is played the most, and describing the whole infrastructure with Terraform so it can be created and destroyed with one command.',
           ],
         },
       ],
+      extra: {
+        h: 'A microservice on Kubernetes',
+        p: [
+          'To learn containers I built a Node microservice that counts which projects are viewed and played in the console. It receives each event over HTTP and drops it into an SQS FIFO queue, grouped by visit. In the background it reads that same queue, batches events in memory and every 10 seconds writes them to DynamoDB in one go, with atomic counters. That is why it is a long-running process and not a Lambda: a Lambda cannot keep accumulating between invocations.',
+          'The Docker image is multi-stage and runs as non-root. A GitHub Actions pipeline pushes it when a git tag is published, to an ECR repository with immutable versions and vulnerability scanning. On EKS it runs as a Deployment with health checks and a Service that creates the load balancer, with API Gateway in front as the single way in.',
+          'The pod has no keys at all: EKS Pod Identity hands it temporary credentials for a role that can only use that queue and that table. On a new version, Kubernetes starts the new pod and only then sends SIGTERM to the old one, which saves what is pending before exiting: no event is lost.',
+          'I brought it up, tested it and tore it down in one afternoon: the cluster is billed by the hour even when idle. Everything is ready to create it again in half an hour.',
+        ],
+        diagram: {
+          title: 'From a git tag to a pod on EKS',
+          text: 'How a new version reaches the cluster, and the path an event takes from API Gateway until it is stored.',
+          sub: {
+            gh: 'tag estadisticas-v2',
+            actions: 'docker build',
+            ecr: 'immutable images',
+            iam: 'keyless role',
+            cliente: 'console · curl',
+            apigw: 'HTTP API',
+            lb: 'Kubernetes Service',
+            pod: 'Node · non-root',
+            sqs: 'grouped by visit',
+            dynamo: 'counters · TTL',
+          },
+          edges: {
+            ga: 'tag push',
+            ae: 'docker push',
+            ep: 'pull',
+            ip: 'credentials',
+            ca: 'POST /eventos',
+            al: 'proxy',
+            lp: 'port 8080',
+            ps: 'send · receive',
+            pd: 'batch every 10 s',
+          },
+          flow: [
+            'Publishing a git tag triggers GitHub Actions: it builds the image and pushes it to ECR. Tags are immutable: v2 is always the same image.',
+            'The EKS node pulls the image from ECR with its own role, and the Deployment keeps the pod running: if it is deleted or crashes, another one starts.',
+            'Pod Identity gives the pod temporary credentials for a role that can only use the queue and the table. Neither the image nor the manifest holds any keys.',
+            'An event comes in through API Gateway, goes through the load balancer created by the Kubernetes Service and reaches the pod, which only gets traffic once its health check answers.',
+            'The pod drops the event into the FIFO queue and answers 202. Events from the same visit are processed in order, even with several replicas.',
+            'In the background, the same pod reads the queue with long polling, batches what it got and every 10 seconds stores it in DynamoDB. Only then is it deleted from the queue.',
+          ],
+        },
+      },
       diagram: {
         title: 'From the browser to AWS',
         text: 'How the site reaches your browser, how a guestbook entry travels and how your account trophies are stored.',
@@ -307,7 +440,16 @@ export const portfolio: Project = {
             { name: 'SQS FIFO', role: 'Ordered, duplicate-free queue for the guestbook' },
             { name: 'DynamoDB', role: 'Messages, trophies, atomic counters and transactions' },
             { name: 'Cognito', role: 'Users and federated sign-in with Google' },
-            { name: 'IAM', role: 'One role per Lambda, least privilege' },
+            { name: 'IAM', role: 'One role per Lambda and per pod, least privilege' },
+          ],
+        },
+        {
+          group: 'Containers',
+          items: [
+            { name: 'Docker', icon: 'siDocker', role: 'Multi-stage, non-root image for the microservice' },
+            { name: 'Kubernetes (EKS)', icon: 'siKubernetes', role: 'Deployment with health checks, Service and Pod Identity' },
+            { name: 'ECR', role: 'Private registry with immutable versions and scanning' },
+            { name: 'GitHub Actions', icon: 'siGithubactions', role: 'Builds and pushes the image when a tag is published' },
           ],
         },
         {
@@ -323,7 +465,6 @@ export const portfolio: Project = {
           items: [
             { name: 'Cloudflare Pages', icon: 'siCloudflarepages', role: 'Hosting and a deploy on every push' },
             { name: 'GitHub', icon: 'siGithub', role: 'Code and deploy trigger' },
-            { name: 'Docker', icon: 'siDocker', role: 'Same dev environment on any machine' },
             { name: 'Puppeteer', icon: 'siPuppeteer', role: 'Automatic screenshots to review every change' },
             { name: 'Claude Code', icon: 'siClaude', role: 'Pair programming and step-by-step guides' },
           ],
@@ -347,6 +488,14 @@ export const portfolio: Project = {
           {
             t: 'Redirect URLs, exactly',
             d: 'In OAuth every return address is registered in advance, trailing slash included. That is what stops someone from stealing the sign-in by sending it to their own page.',
+          },
+          {
+            t: 'When something hangs silently, CloudTrail',
+            d: 'The EKS node sat in "Creating" for half an hour with no error. CloudTrail showed why: the AWS free plan rejected that instance type on every attempt. A --dry-run test does not catch it, because it only checks permissions.',
+          },
+          {
+            t: 'Non-root, but as a number',
+            d: 'Kubernetes refused to start the pod: the image said USER node and it could not verify that a name was not root. With runAsUser: 1000 it started. kubectl describe gave the exact reason.',
           },
         ],
       },
