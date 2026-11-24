@@ -64,7 +64,10 @@ spec:
             initialDelaySeconds: 10
             periodSeconds: 20
           securityContext:
+            # La imagen dice "USER node" (un nombre): Kubernetes no puede comprobar que no sea
+            # root sin un número, así que se lo damos (node = 1000 en las imágenes de Node)
             runAsNonRoot: true
+            runAsUser: 1000
             allowPrivilegeEscalation: false
             readOnlyRootFilesystem: true
 ---
